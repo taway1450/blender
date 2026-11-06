@@ -3407,6 +3407,14 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
 #define BPY_PROPDEF_NUM_SOFT_MINMAX_DOC(ty) \
   BPY_PROPDEF_NUM_SOFT_MIN_DOC_(ty) BPY_PROPDEF_NUM_SOFT_MAX_DOC_(ty)
 
+/* A multi-dimension *size* takes nested sequences, up to #RNA_MAX_ARRAY_DIMENSION levels deep
+ * (see #bpy_prop_array_from_py_with_dims), such as a #mathutils.Matrix. */
+#define BPY_PROPDEF_VECTOR_DEFAULT_DOC(ty_plural, ty) \
+  "   :param default: Sequence of " ty_plural " the length of *size*, " \
+  "nested once per dimension of a multi-dimension *size*.\n" \
+  "   :type default: Sequence[" ty "] | Sequence[Sequence[" ty "]] | " \
+  "Sequence[Sequence[Sequence[" ty "]]]\n"
+
 #define BPY_PROPDEF_VECSIZE_DOC \
   "   :param size: Vector dimensions in [1, " STRINGIFY(PYRNA_STACK_ARRAY) "]. " \
 "An int sequence can be used to define multi-dimension arrays.\n" \
@@ -3766,8 +3774,7 @@ PyDoc_STRVAR(
     BPY_PROPDEF_NAME_DOC
     BPY_PROPDEF_DESC_DOC
     BPY_PROPDEF_CTXT_DOC
-    "   :param default: sequence of booleans the length of *size*.\n"
-    "   :type default: Sequence[bool]\n"
+    BPY_PROPDEF_VECTOR_DEFAULT_DOC("booleans", "bool")
     BPY_PROPDEF_OPTIONS_DOC
     BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
     BPY_PROPDEF_TAGS_DOC
@@ -4185,8 +4192,7 @@ PyDoc_STRVAR(
     BPY_PROPDEF_NAME_DOC
     BPY_PROPDEF_DESC_DOC
     BPY_PROPDEF_CTXT_DOC
-    "   :param default: sequence of ints the length of *size*.\n"
-    "   :type default: Sequence[int]\n"
+    BPY_PROPDEF_VECTOR_DEFAULT_DOC("ints", "int")
     BPY_PROPDEF_NUM_MINMAX_DOC("int")
     BPY_PROPDEF_NUM_SOFT_MINMAX_DOC("int")
     BPY_PROPDEF_INT_STEP_DOC
@@ -4629,8 +4635,7 @@ PyDoc_STRVAR(
     BPY_PROPDEF_NAME_DOC
     BPY_PROPDEF_DESC_DOC
     BPY_PROPDEF_CTXT_DOC
-    "   :param default: Sequence of floats the length of *size*.\n"
-    "   :type default: Sequence[float]\n"
+    BPY_PROPDEF_VECTOR_DEFAULT_DOC("floats", "float")
     BPY_PROPDEF_NUM_MINMAX_DOC("float")
     BPY_PROPDEF_NUM_SOFT_MINMAX_DOC("float")
     BPY_PROPDEF_FLOAT_STEP_DOC
