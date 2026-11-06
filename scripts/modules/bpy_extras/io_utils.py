@@ -69,7 +69,7 @@ class ExportHelper:
         :param event: The window event.
         :type event: :class:`bpy.types.Event`
         :return: The operator return value.
-        :rtype: set[str]
+        :rtype: set[Literal[:ref:`rna_enum_operator_return_items`]]
         """
         del event
         import os
@@ -134,7 +134,7 @@ class ImportHelper:
         :param event: The window event.
         :type event: :class:`bpy.types.Event`
         :return: The operator return value.
-        :rtype: set[str]
+        :rtype: set[Literal[:ref:`rna_enum_operator_return_items`]]
         """
         del event
         context.window_manager.fileselect_add(self)
@@ -151,7 +151,7 @@ class ImportHelper:
            defaults to the operator label.
         :type confirm_text: str
         :return: The operator return value.
-        :rtype: set[str]
+        :rtype: set[Literal[:ref:`rna_enum_operator_return_items`]]
         """
         if self.properties.is_property_set("filepath"):
             title = self.filepath
