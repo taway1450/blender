@@ -1627,7 +1627,8 @@ class ClassOverrides(NamedTuple):
     additional purpose-specific dicts.
     """
     # Per-dunder partial overrides merged onto `DUNDER_METHODS` entries.
-    # Each value's None fields inherit from the base entry.
+    # Each value's None fields inherit from the base entry. A dunder that is
+    # not in `DUNDER_METHODS` is written only for this class, from a complete entry.
     dunders: dict[str, DunderInfo] | None = None
     # Dunder names to skip even when the slot is present on the type.
     # Use for slots that exist in the type's protocol struct but always raise
@@ -1756,6 +1757,25 @@ CLASS_OVERRIDES: dict[tuple[str, str], ClassOverrides] = {
             "__radd__", "__rsub__", "__rmatmul__",
         },
     ),
+    # `pyrna_struct_subscript` / `pyrna_struct_ass_subscript` access the struct's
+    # ID properties (`struct["name"]`), so they only take `str` keys, and the
+    # values are wrapped ID properties of any type (see `BPy_IDGroup_WrapData`).
+    ("bpy.types", "bpy_struct"): ClassOverrides(
+        dunders={
+            "__getitem__": DunderInfo(
+                params={"key": DunderParam("str", "ID property name.")},
+                return_type="Any",
+            ),
+            "__setitem__": DunderInfo(
+                params={
+                    "key": DunderParam("str", "ID property name."),
+                    "value": DunderParam("Any", "Value to assign."),
+                },
+            ),
+            # Not in `DUNDER_METHODS`: most types with the slot raise on `del`.
+            "__delitem__": DunderInfo("(key)", {"key": DunderParam("str", "ID property name.")}, ""),
+        },
+    ),
     # bpy_prop_collection returns bpy_struct elements, not float.
     ("bpy.types", "bpy_prop_collection"): ClassOverrides(
         dunders={
@@ -1869,8 +1889,9 @@ def write_dunder_methods(fw: WriteFn, class_value: type, module_name: str, type_
     """
     overrides = CLASS_OVERRIDES.get((module_name, type_name), EMPTY_CLASS_OVERRIDES)
     excluded = overrides.excluded_dunders or set()
+    class_dunders = overrides.dunders or {}
     dunder_keys = {
-        key for key in DUNDER_METHODS
+        key for key in DUNDER_METHODS.keys() | class_dunders.keys()
         if key not in excluded and class_value.__dict__.get(key) is not None
     }
     if not dunder_keys:
@@ -1881,9 +1902,8 @@ def write_dunder_methods(fw: WriteFn, class_value: type, module_name: str, type_
     # The stub generator handles this so it has no effect on the generated stub.
     fw("   .. details:: Special Methods\n\n")
 
-    class_dunders = overrides.dunders or {}
     for key in sorted(dunder_keys):
-        info = merge_dunder_info(DUNDER_METHODS[key], class_dunders.get(key))
+        info = merge_dunder_info(DUNDER_METHODS.get(key, DunderInfo()), class_dunders.get(key))
         # Base entries always populate signature/params/return_type, so these are non-None here.
         assert info.signature is not None and info.params is not None and info.return_type is not None
         if info.overloads is not None:
