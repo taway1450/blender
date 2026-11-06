@@ -279,6 +279,24 @@ USE_ONLY_BUILTIN_RNA_TYPES: Final = True
 # that Blender's bundled UI registers from Python add nothing to their base that scripts use.
 BARE_SUBCLASS_BASES: Final = {"Header", "Menu", "Panel"}
 
+# The metaclasses `_bpy_types` gives the registrable classes (`Operator`, `Panel`, `Node`, ...):
+# each with its description and its members (identifier, description, type).
+# What a metaclass defines is available on these classes, not on their instances (`cls.is_registered`).
+# Written for the stubs only (see `USE_STUB_GEN`), as these are private names.
+RNA_METACLASSES: Final[dict[str, tuple[str, tuple[tuple[str, str, str], ...]]]] = {
+    "_RNAMeta": (
+        "Metaclass of the classes that scripts can register.",
+        (
+            ("is_registered", "Whether the class is registered (see :func:`bpy.utils.register_class`).", "bool"),
+        ),
+    ),
+    "_RNAMetaPropGroup": (
+        "Metaclass of the registrable classes with custom-property support "
+        "(:class:`PropertyGroup`, :class:`Node`, ...).",
+        (),
+    ),
+}
+
 # Write a page for each static enum defined in:
 # `source/blender/makesrna/RNA_enum_items.hh` so the enums can be linked to instead of being expanded everywhere.
 USE_SHARED_RNA_ENUM_ITEMS_STATIC: Final = True
@@ -2472,6 +2490,46 @@ def pyrna_deprecated_directive(ident: str, deprecated: stub.RnaDeprecated) -> st
     )
 
 
+def rna_metaclass_id(struct: "stub.InfoStructRNA") -> str | None:
+    """
+    The name of the metaclass in `RNA_METACLASSES` that the struct's class declares,
+    or None when it has none or inherits it from its base (`Operator`, not its subclasses).
+    """
+    metaclass = type(struct.py_class)
+    if metaclass.__module__ != "_bpy_types" or metaclass.__name__ not in RNA_METACLASSES:
+        return None
+    if struct.base is not None and type(struct.base.py_class) is metaclass:
+        return None
+    return metaclass.__name__
+
+
+def write_rna_metaclasses(basepath: Path) -> None:
+    """
+    Write a page for each metaclass in `RNA_METACLASSES`, so the stubs declare them.
+    The pages are in no table of contents, as the metaclasses are private.
+    """
+    import _bpy_types  # type: ignore[import-not-found]
+
+    for metaclass_id, (description, members) in RNA_METACLASSES.items():
+        metaclass = getattr(_bpy_types, metaclass_id)
+        # A base that is not one of these metaclasses (`bpy_struct_meta_idprop`) is not documented.
+        base_ids = [base.__name__ for base in metaclass.__bases__ if base.__name__ in RNA_METACLASSES] or ["type"]
+
+        with open(basepath / "bpy.types.{:s}.rst".format(metaclass_id), "w", encoding="utf-8") as fh:
+            fw = fh.write
+            fw(":orphan:\n\n")
+            fw(title_string(metaclass_id, "="))
+            fw(".. currentmodule:: bpy.types\n\n")
+            fw(".. class:: {:s}({:s})\n\n".format(metaclass_id, ", ".join(base_ids)))
+            fw("   {:s}\n\n".format(description))
+            for identifier, member_description, member_type in members:
+                assert isinstance(metaclass.__dict__[identifier], property)
+                fw("   .. data:: {:s}\n\n".format(identifier))
+                fw("      {:s}\n\n".format(member_description))
+                fw("      :type: {:s}\n\n".format(member_type))
+                fw("      (readonly)\n\n")
+
+
 def pyrna2sphinx(basepath: Path) -> None:
     """
     ``bpy.types`` and ``bpy.ops``.
@@ -2699,8 +2757,12 @@ def pyrna2sphinx(basepath: Path) -> None:
                 else:
                     base_id = _BPY_STRUCT_PYCAPI
 
-        if base_id:
-            fw(".. class:: {:s}({:s})\n\n".format(struct_id, base_id))
+        class_args = [base_id] if base_id else []
+        if USE_STUB_GEN and (metaclass_id := rna_metaclass_id(struct)):
+            class_args.append("metaclass={:s}".format(metaclass_id))
+
+        if class_args:
+            fw(".. class:: {:s}({:s})\n\n".format(struct_id, ", ".join(class_args)))
         else:
             fw(".. class:: {:s}\n\n".format(struct_id))
 
@@ -3035,6 +3097,9 @@ def pyrna2sphinx(basepath: Path) -> None:
                 use_subclasses=False,
                 base_class=_BPY_PROP_COLLECTION_PYCAPI,
             )
+
+        if USE_STUB_GEN:
+            write_rna_metaclasses(basepath)
 
     # Operators.
     def write_ops() -> None:

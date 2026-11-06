@@ -90,6 +90,7 @@ class ClassInfo:
     name: str
     init_params: str | None = None  # Constructor params "(x: int, y: int)"
     bases: list[str] = field(default_factory=list)  # Base class names
+    metaclass: str | None = None  # `.. class:: Operator(bpy_struct, metaclass=_RNAMeta)` -> "_RNAMeta"
     init_param_types: dict[str, str] = field(default_factory=dict)
     methods: list[MethodInfo] = field(default_factory=list)
     attributes: list[AttrInfo] = field(default_factory=list)
@@ -438,12 +439,18 @@ def extract_class(node: ApiNode, source_path: Path) -> ClassInfo:
     init_params = None
     init_args: ast.arguments | None = None
     bases: list[str] = []
+    # e.g. `.. class:: Operator(bpy_struct, metaclass=_RNAMeta)` -> metaclass="_RNAMeta"
+    metaclass: str | None = None
     if rest.startswith("("):
         try:
             tree = ast.parse("class _{:s}: pass".format(rest))
             cls_def = tree.body[0]
             assert isinstance(cls_def, ast.ClassDef)
             bases = [b.id for b in cls_def.bases if isinstance(b, ast.Name)]
+            metaclass = next(
+                (kw.value.id for kw in cls_def.keywords if kw.arg == "metaclass" and isinstance(kw.value, ast.Name)),
+                None,
+            )
         except SyntaxError:
             # Constructor-style syntax (defaults, `/`, etc.) is not valid
             # in a class definition. Verify it parses as a function signature.
@@ -457,7 +464,7 @@ def extract_class(node: ApiNode, source_path: Path) -> ClassInfo:
                     name, rest), file=sys.stderr)
                 State.parse_errors += 1
 
-    cls = ClassInfo(name=name, init_params=init_params, bases=bases)
+    cls = ClassInfo(name=name, init_params=init_params, bases=bases, metaclass=metaclass)
 
     # Class-level `:type param:` fields describe constructor param types.
     fields = node_fields(node)
@@ -1217,7 +1224,7 @@ def sort_classes_by_hierarchy(classes: list[ClassInfo]) -> list[ClassInfo]:
             return
         written.add(cls.name)
         # A collection wrapper's base is subscripted by its element type (see `write_class`).
-        for base in (*cls.bases, collection_element_map.get(cls.name)):
+        for base in (*cls.bases, cls.metaclass, collection_element_map.get(cls.name)):
             base_cls = by_name.get(base) if base else None
             if base_cls is not None:
                 visit(base_cls)
@@ -1445,6 +1452,12 @@ def write_class(
             for b in resolved
         ]
         elem_type = None
+
+    if cls.metaclass:
+        loc = class_locations.module_of(cls.metaclass, current_module)
+        if loc and loc != current_module:
+            imports.add((loc, cls.metaclass))
+        resolved.append("metaclass={:s}".format(cls.metaclass))
 
     if resolved:
         fw("class {:s}({:s}):\n".format(cls.name, ", ".join(resolved)))
