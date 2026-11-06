@@ -54,12 +54,6 @@ def rna_id_ignore(rna_id):
 
     if "_OT_" in rna_id:
         return True
-    if "_MT_" in rna_id:
-        return True
-    if "_PT_" in rna_id:
-        return True
-    if "_HT_" in rna_id:
-        return True
     if "_KSI_" in rna_id:
         return True
     return False

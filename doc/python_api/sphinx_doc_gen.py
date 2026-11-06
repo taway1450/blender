@@ -275,6 +275,10 @@ class State:
 # See: D6261 for reference.
 USE_ONLY_BUILTIN_RNA_TYPES: Final = True
 
+# Structs whose subclasses are documented without members: the menus, panels and headers
+# that Blender's bundled UI registers from Python add nothing to their base that scripts use.
+BARE_SUBCLASS_BASES: Final = {"Header", "Menu", "Panel"}
+
 # Write a page for each static enum defined in:
 # `source/blender/makesrna/RNA_enum_items.hh` so the enums can be linked to instead of being expanded everywhere.
 USE_SHARED_RNA_ENUM_ITEMS_STATIC: Final = True
@@ -2702,6 +2706,12 @@ def pyrna2sphinx(basepath: Path) -> None:
 
         write_indented_lines("   ", fw, struct.description, False)
         fw("\n")
+
+        if base_id in BARE_SUBCLASS_BASES:
+            # A menu, panel or header of the bundled UI: only the class itself, so that scripts can
+            # find it (e.g. `bpy.types.VIEW3D_MT_object.append(draw)`). Its members are its base's.
+            file.close()
+            return
 
         # Properties sorted in alphabetical order.
         sorted_struct_properties = sorted(struct.properties, key=lambda prop: prop.identifier)
