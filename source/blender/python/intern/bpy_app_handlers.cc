@@ -38,21 +38,29 @@ void bpy_app_generic_callback(Main *main,
 
 static PyTypeObject BlenderAppCbType;
 
+/**
+ * The type of a handler list whose handlers get one pointer (`None` when there is none):
+ * #bpy_app_generic_callback passes a function with one parameter only the pointer,
+ * and any other callable the pointer and `None`.
+ */
+#define PYDOC_HANDLER_TYPE_ONE(ty) \
+  "\n\n:type: list[Callable[[" ty "], None] | Callable[[" ty ", None], None]]"
+
 #define FILEPATH_SAVE_ARG \
   "Accepts one argument: " \
   "the file being saved, an empty string for the startup-file."
-#define PYDOC_FILEPATH_SAVE_TYPE "\n\n:type: list[Callable[[str], None]]"
+#define PYDOC_FILEPATH_SAVE_TYPE PYDOC_HANDLER_TYPE_ONE("str")
 
 #define FILEPATH_LOAD_ARG \
   "Accepts one argument: " \
   "the file being loaded, an empty string for the startup-file."
-#define PYDOC_FILEPATH_LOAD_TYPE "\n\n:type: list[Callable[[str], None]]"
+#define PYDOC_FILEPATH_LOAD_TYPE PYDOC_HANDLER_TYPE_ONE("str")
 
 #define RENDER_STATS_ARG \
   "Accepts one argument: " \
   "the render progress as a string containing current frame, current sample, render time and " \
   "saving time."
-#define PYDOC_RENDER_STATS_TYPE "\n\n:type: list[Callable[[str], None]]"
+#define PYDOC_RENDER_STATS_TYPE PYDOC_HANDLER_TYPE_ONE("str")
 
 #define DEPSGRAPH_UPDATE_ARG \
   "Accepts one or two arguments: " \
@@ -66,17 +74,17 @@ static PyTypeObject BlenderAppCbType;
 #define RENDER_ARG \
   "Accepts one argument: " \
   "the scene data-block being rendered"
-#define PYDOC_RENDER_TYPE "\n\n:type: list[Callable[[bpy.types.Scene], None]]"
+#define PYDOC_RENDER_TYPE PYDOC_HANDLER_TYPE_ONE("bpy.types.Scene")
 
 #define OBJECT_BAKE_ARG \
   "Accepts one argument: " \
   "the object data-block being baked"
-#define PYDOC_OBJECT_BAKE_TYPE "\n\n:type: list[Callable[[bpy.types.Object], None]]"
+#define PYDOC_OBJECT_BAKE_TYPE PYDOC_HANDLER_TYPE_ONE("bpy.types.Object")
 
 #define COMPOSITE_ARG \
   "Accepts one argument: " \
   "the scene data-block"
-#define PYDOC_COMPOSITE_TYPE "\n\n:type: list[Callable[[bpy.types.Scene], None]]"
+#define PYDOC_COMPOSITE_TYPE PYDOC_HANDLER_TYPE_ONE("bpy.types.Scene")
 
 #define ANNOTATION_ARG \
   "Accepts two arguments: " \
@@ -87,14 +95,14 @@ static PyTypeObject BlenderAppCbType;
 #define BLENDIMPORT_ARG \
   "Accepts one argument: " \
   "a BlendImportContext"
-#define PYDOC_BLENDIMPORT_TYPE "\n\n:type: list[Callable[[bpy.types.BlendImportContext], None]]"
+#define PYDOC_BLENDIMPORT_TYPE PYDOC_HANDLER_TYPE_ONE("bpy.types.BlendImportContext")
 
 #define SCENE_ARG \
   "Accepts one argument: " \
   "the scene data-block"
-#define PYDOC_SCENE_TYPE "\n\n:type: list[Callable[[bpy.types.Scene], None]]"
-#define PYDOC_HANDLER_TYPE_NONE "\n\n:type: list[Callable[[], None]]"
-#define PYDOC_HANDLER_TYPE_BOOL "\n\n:type: list[Callable[[bool], None]]"
+#define PYDOC_SCENE_TYPE PYDOC_HANDLER_TYPE_ONE("bpy.types.Scene")
+#define PYDOC_HANDLER_TYPE_NONE PYDOC_HANDLER_TYPE_ONE("None")
+#define PYDOC_HANDLER_TYPE_BOOL PYDOC_HANDLER_TYPE_ONE("bool")
 
 /**
  * See `BKE_callbacks.hh` #eCbEvent declaration for the policy on naming.
