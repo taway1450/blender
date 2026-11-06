@@ -2181,6 +2181,12 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
         DefRNA.error = true;
       }
 
+      /* The generated getter of a struct embedded by value returns the address of a DNA member,
+       * which is never null. */
+      if (!pprop->get && dp->dnapointerlevel == 0 && !dp->dnaname.is_empty()) {
+        prop->flag |= PROP_NEVER_NULL;
+      }
+
       pprop->get = reinterpret_cast<PropPointerGetFunc>(rna_def_property_get_func(
           f, srna, prop, dp, reinterpret_cast<const char *>(pprop->get)));
       pprop->set = reinterpret_cast<PropPointerSetFunc>(rna_def_property_set_func(
