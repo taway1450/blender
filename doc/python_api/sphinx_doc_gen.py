@@ -53,6 +53,7 @@ from collections.abc import (
     Sequence,
 )
 from typing import (
+    Any,
     Final,
     NamedTuple,
     Protocol,
@@ -188,6 +189,22 @@ rna_info_BuildRNAInfo_cache.ret = None  # type: ignore[attr-defined]
 # --- end rna_info cache
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+
+
+def rna_type_tags() -> Any:
+    """
+    Probe the Type tags of the refined structs (``Modifier.type`` of a ``SubsurfModifier``, ...)
+    with ``sphinx_doc_gen_type_tags.py``, for the stubs (see `USE_STUB_GEN`).
+    """
+    sys.path.insert(0, str(SCRIPT_DIR))
+    try:
+        import sphinx_doc_gen_type_tags  # type: ignore[import-not-found]
+    finally:
+        del sys.path[0]
+    tags = sphinx_doc_gen_type_tags.probe()
+    for line in tags.missing:
+        print("Type tag not probed: {:s}".format(line))
+    return tags
 
 # ----------------------------------------------------------------------------
 # Global State
@@ -2570,6 +2587,9 @@ def pyrna2sphinx(basepath: Path) -> None:
     if GLOBAL.filter_bpy_ops is not None:
         ops = {k: v for k, v in ops.items() if v.module_name in GLOBAL.filter_bpy_ops}
 
+    # The Type tag of each refined subclass, written for the stubs only.
+    type_tags = rna_type_tags() if USE_STUB_GEN and "bpy.types" not in GLOBAL.exclude_modules else None
+
     # Build set of struct identifiers that are collection wrappers
     # (e.g. BlendDataObjects wraps `BlendData.objects`).  These should
     # inherit from `bpy_prop_collection` rather than `bpy_struct`.
@@ -2812,6 +2832,18 @@ def pyrna2sphinx(basepath: Path) -> None:
             fw("   .. data:: {:s}\n\n".format(identifier))
             fw("      {:s}\n\n".format(description))
             fw("      :type: {:s}\n\n".format(attr_type))
+
+        # The Type tag this subclass always has (`SubsurfModifier.type` is ``'SUBSURF'``).
+        if type_tags is not None:
+            direct_ids = {prop.identifier for prop in struct.properties}
+            for identifier, values in sorted(type_tags.values.get(struct_id, {}).items()):
+                if identifier in direct_ids:
+                    continue
+                base_prop = getattr(bpy.types, struct_id).bl_rna.properties[identifier]
+                fw("   .. {:s}:: {:s}\n\n".format("data" if base_prop.is_readonly else "attribute", identifier))
+                fw("      The {:s} of every :class:`{:s}`{:s}\n\n".format(
+                    identifier, struct_id, " (readonly)" if base_prop.is_readonly else ""))
+                fw("      :type: Literal[{:s}]\n\n".format(", ".join(repr(value) for value in values)))
 
         # Python attributes.
         py_properties = struct.get_py_properties()
