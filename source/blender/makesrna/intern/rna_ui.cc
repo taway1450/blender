@@ -2129,7 +2129,7 @@ static void rna_def_uilist(BlenderRNA *brna)
       "function, you may want to check given 'item' is of the right type...)");
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
   parm = RNA_def_pointer(func, "context", "Context", "", "The context");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "Layout to draw the item");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(
@@ -2167,7 +2167,7 @@ static void rna_def_uilist(BlenderRNA *brna)
   RNA_def_function_ui_description(func, "Draw filtering options");
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
   parm = RNA_def_pointer(func, "context", "Context", "", "The context");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "Layout to draw the item");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
@@ -2179,7 +2179,7 @@ static void rna_def_uilist(BlenderRNA *brna)
       "filter_flags, and reorder results in filter_neworder arrays)");
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
   parm = RNA_def_pointer(func, "context", "Context", "", "The context");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(
       func, "data", "AnyType", "", "Data from which to take Collection property");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
@@ -2241,7 +2241,7 @@ static void rna_def_header(BlenderRNA *brna)
   RNA_def_function_ui_description(func, "Draw UI elements into the header UI layout");
   RNA_def_function_flag(func, FUNC_REGISTER);
   parm = RNA_def_pointer(func, "context", "Context", "", "The context");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
   RNA_define_verify_sdna(false); /* not in sdna */
 
@@ -2312,14 +2312,14 @@ static void rna_def_menu(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   RNA_def_function_return(func, RNA_def_boolean(func, "visible", false, "", ""));
   parm = RNA_def_pointer(func, "context", "Context", "", "The context");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
   /* draw */
   func = RNA_def_function(srna, "draw", nullptr);
   RNA_def_function_ui_description(func, "Draw UI elements into the menu UI layout");
   RNA_def_function_flag(func, FUNC_REGISTER);
   parm = RNA_def_pointer(func, "context", "Context", "", "The context");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
   RNA_define_verify_sdna(false); /* not in sdna */
 
@@ -2486,7 +2486,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   RNA_def_function_return(func, RNA_def_boolean(func, "visible", false, "", ""));
   parm = RNA_def_pointer(func, "context", "Context", "", "The context");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "asset_poll", nullptr);
   RNA_def_function_ui_description(
@@ -2517,7 +2517,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
       func, "Draw UI elements into the context menu UI layout displayed on right click");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   parm = RNA_def_pointer(func, "context", "Context", "", "The context");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "asset", "AssetRepresentation", "", "The active asset");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "The layout to draw into");
@@ -2627,7 +2627,7 @@ static void rna_def_file_handler(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   RNA_def_function_return(func, RNA_def_boolean(func, "is_usable", false, "", ""));
   parm = RNA_def_pointer(func, "context", "Context", "", "The context");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "label_with_extensions", "rna_FileHandler_label_with_extensions");
   RNA_def_function_ui_description(
