@@ -196,8 +196,14 @@ static PyStructSequence_Field app_cb_info_fields[] = {
 /* sets the permanent tag */
 #define APP_CB_OTHER_FIELDS 1
     {"persistent",
-     "Function decorator for callback functions not to be removed when loading new files"
-     "\n\n:type: type"},
+     ".. function:: persistent(func, /)\n"
+     "\n"
+     "   Function decorator for callback functions not to be removed when loading new files.\n"
+     "\n"
+     "   :param func: The callback function.\n"
+     "   :type func: _F\n"
+     "   :return: The callback function itself.\n"
+     "   :rtype: _F\n"},
 
     {nullptr},
 };

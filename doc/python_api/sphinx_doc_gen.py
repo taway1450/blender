@@ -1220,6 +1220,10 @@ def py_descr2sphinx(
         # NOTE: `RST_NOINDEX_ATTR` currently not supported (as it's not used).
         write_indented_lines(ident + "   ", fw, doc, False)
         fw("\n")
+    elif type(descr) == MemberDescriptorType and doc.startswith(".. function::"):
+        # A callable member documents its own signature, e.g. `bpy.app.handlers.persistent`.
+        write_indented_lines(ident, fw, doc, False)
+        fw("\n")
     elif type(descr) == MemberDescriptorType:  # Same as above but use "data".
         fw(ident + ".. data:: {:s}\n\n".format(identifier))
         # NOTE: `RST_NOINDEX_ATTR` currently not supported (as it's not used).

@@ -6,7 +6,7 @@ By default handlers are freed when loading new files, in some cases you may
 want the handler stay running across multiple files (when the handler is
 part of an add-on for example).
 
-For this the :data:`bpy.app.handlers.persistent` decorator needs to be used.
+For this the :func:`bpy.app.handlers.persistent` decorator needs to be used.
 """
 
 import bpy

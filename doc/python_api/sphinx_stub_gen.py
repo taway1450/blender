@@ -767,6 +767,24 @@ STDLIB_TYPE_MODULES: dict[str, str] = {
     "ModuleType": "types",
 }
 
+# Type variables documented types may use, e.g. a decorator that returns the
+# function it is given has `:type func: _F` & `:rtype: _F`.
+# Each stub declares the ones it uses.
+TYPE_VARS: dict[str, str] = {
+    "_T": "TypeVar('_T')",
+    "_F": "TypeVar('_F', bound=Callable[..., Any])",
+    "_C": "TypeVar('_C', bound=type)",
+}
+# Pseudo module of `imports` entries naming the type variables a stub uses.
+TYPE_VAR_IMPORT = "__typevar__"
+
+
+def track_type_var(name: str, imports: set[tuple[str, str]]) -> None:
+    """Declare the type variable *name* (a key of ``TYPE_VARS``) in the stub."""
+    imports.add((TYPE_VAR_IMPORT, name))
+    imports.add(("typing", "TypeVar"))
+    track_stdlib_imports(TYPE_VARS[name], imports)
+
 
 def resolve_class_ref(
     fqn: str,
@@ -806,6 +824,10 @@ def track_imports(
     class_locations: ClassLocations,
 ) -> None:
     """Scan *text* for type names and track the necessary imports."""
+    for name in TYPE_VARS:
+        if contains_word(text, name):
+            track_type_var(name, imports)
+
     # Track imports for enum aliases (prefix-based search + set lookup).
     if "rna_enum_" in text:
         for word in find_rna_enum_words(text):
@@ -1285,7 +1307,7 @@ def render_stub(
     # or to `gpu.types.Buffer` along with `Buffer` from `collections.abc`.
     name_modules: dict[str, set[str]] = {}
     for mod, name in imports:
-        if mod not in {"__bare__", current_module}:
+        if mod not in {"__bare__", TYPE_VAR_IMPORT, current_module}:
             name_modules.setdefault(name, set()).add(mod)
     for name, mods in sorted(name_modules.items()):
         if name in local_classes:
@@ -1301,7 +1323,7 @@ def render_stub(
     stdlib_groups: dict[str, set[str]] = {}
     stub_groups: dict[str, set[str]] = {}
     for mod, name in imports:
-        if mod in {"typing", current_module, "__bare__"}:
+        if mod in {"typing", current_module, "__bare__", TYPE_VAR_IMPORT}:
             continue
         if name in local_classes:
             continue
@@ -1339,9 +1361,11 @@ def render_stub(
     if has_imports:
         fw("\n")
 
-    # Write TypeVar declarations needed by generic classes.
-    if ("typing", "TypeVar") in imports:
-        fw("_T = TypeVar('_T')\n")
+    # Write TypeVar declarations needed by generic classes & functions.
+    type_vars = sorted(name for mod, name in imports if mod == TYPE_VAR_IMPORT)
+    for name in type_vars:
+        fw("{:s} = {:s}\n".format(name, TYPE_VARS[name]))
+    if type_vars:
         fw("\n")
 
     return "".join(header_chunks) + "".join(body_chunks)
@@ -1393,7 +1417,7 @@ def write_class(
     # `bpy_prop_array` and `bpy_prop_collection` are generic over their element type.
     if cls.name in {"bpy_prop_array", "bpy_prop_collection"}:
         imports.add(("typing", "Generic"))
-        imports.add(("typing", "TypeVar"))
+        track_type_var("_T", imports)
         resolved.append("Generic[_T]")
 
     # `bpy_prop_collection_idprop` is the value of a `CollectionProperty`: its items are
@@ -1401,7 +1425,7 @@ def write_class(
     # So it is generic too, through its `bpy_prop_collection[_T]` base.
     is_idprop_collection = cls.name == "bpy_prop_collection_idprop"
     if is_idprop_collection:
-        imports.add(("typing", "TypeVar"))
+        track_type_var("_T", imports)
         resolved = ["bpy_prop_collection[_T]" if b == "bpy_prop_collection" else b for b in resolved]
 
     if resolved:
