@@ -54,32 +54,32 @@ namespace blender {
  * \{ */
 
 #define BPY_PROPDEF_OPTIONS_DOC \
-  "   :param options: Enumerator in :ref:`rna_enum_property_flag_items`.\n" \
-  "   :type options: set[str]\n"
+  "   :param options: Options of the property.\n" \
+  "   :type options: set[Literal[:ref:`rna_enum_property_flag_items`]]\n"
 
 #define BPY_PROPDEF_OPTIONS_ENUM_DOC \
-  "   :param options: Enumerator in :ref:`rna_enum_property_flag_enum_items`.\n" \
-  "   :type options: set[str]\n"
+  "   :param options: Options of the property.\n" \
+  "   :type options: set[Literal[:ref:`rna_enum_property_flag_enum_items`]]\n"
 
 #define BPY_PROPDEF_OPTIONS_OVERRIDE_DOC \
-  "   :param override: Enumerator in :ref:`rna_enum_property_override_flag_items`.\n" \
-  "   :type override: set[str]\n"
+  "   :param override: Library override options of the property.\n" \
+  "   :type override: set[Literal[:ref:`rna_enum_property_override_flag_items`]]\n"
 
 #define BPY_PROPDEF_OPTIONS_OVERRIDE_COLLECTION_DOC \
-  "   :param override: Enumerator in :ref:`rna_enum_property_override_flag_collection_items`.\n" \
-  "   :type override: set[str]\n"
+  "   :param override: Library override options of the property.\n" \
+  "   :type override: set[Literal[:ref:`rna_enum_property_override_flag_collection_items`]]\n"
 
 #define BPY_PROPDEF_SUBTYPE_STRING_DOC \
-  "   :param subtype: Enumerator in :ref:`rna_enum_property_subtype_string_items`.\n" \
-  "   :type subtype: str\n"
+  "   :param subtype: Subtype of the property.\n" \
+  "   :type subtype: Literal[:ref:`rna_enum_property_subtype_string_items`]\n"
 
 #define BPY_PROPDEF_SUBTYPE_NUMBER_DOC \
-  "   :param subtype: Enumerator in :ref:`rna_enum_property_subtype_number_items`.\n" \
-  "   :type subtype: str\n"
+  "   :param subtype: Subtype of the property.\n" \
+  "   :type subtype: Literal[:ref:`rna_enum_property_subtype_number_items`]\n"
 
 #define BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC \
-  "   :param subtype: Enumerator in :ref:`rna_enum_property_subtype_number_array_items`.\n" \
-  "   :type subtype: str\n"
+  "   :param subtype: Subtype of the property.\n" \
+  "   :type subtype: Literal[:ref:`rna_enum_property_subtype_number_array_items`]\n"
 
 /** \} */
 
@@ -3375,8 +3375,8 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "   :type translation_context: str\n"
 
 #define BPY_PROPDEF_UNIT_DOC \
-  "   :param unit: Enumerator in :ref:`rna_enum_property_unit_items`.\n" \
-  "   :type unit: str\n"
+  "   :param unit: Unit of the property.\n" \
+  "   :type unit: Literal[:ref:`rna_enum_property_unit_items`]\n"
 
 #define BPY_PROPDEF_DEFAULT_DOC(ty) \
   "   :param default: The default value for this property.\n" \
