@@ -2621,6 +2621,14 @@ def pyrna2sphinx(basepath: Path) -> None:
     # The Type tag of each refined subclass, written for the stubs only.
     type_tags = rna_type_tags() if USE_STUB_GEN and "bpy.types" not in GLOBAL.exclude_modules else None
 
+    if type_tags is not None:
+        # Every instance of a base whose tag allows a single subclass is of that subclass (`ActionStrip`):
+        # its pointers, collections and return values give the subclass. Parameters keep the base.
+        for struct in structs.values():
+            for prop in (*struct.properties, *(ret for func in struct.functions for ret in func.return_values)):
+                if prop.fixed_type is not None and (refined_id := type_tags.refined.get(prop.fixed_type.identifier)):
+                    prop.fixed_type = rna_info.GetInfoStructRNA(getattr(bpy.types, refined_id).bl_rna)
+
     # Build set of struct identifiers that are collection wrappers
     # (e.g. BlendDataObjects wraps `BlendData.objects`).  These should
     # inherit from `bpy_prop_collection` rather than `bpy_struct`.

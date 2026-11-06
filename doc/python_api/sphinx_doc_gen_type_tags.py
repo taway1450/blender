@@ -49,6 +49,8 @@ class TypeTags(NamedTuple):
     values: dict[str, dict[str, list[str]]]
     # The tag views of the structs whose tag decides the type of other attributes.
     views: list[TagView]
+    # Base struct identifier -> the one subclass its tag allows, so every instance is that subclass.
+    refined: dict[str, str]
     # The tag values the probe could not make an instance of: `"Strip.type 'MOVIE': error"`.
     missing: list[str]
 
@@ -354,6 +356,17 @@ def record(values: dict[str, dict[str, list[str]]], family: Family) -> None:
             struct_values.append(value)
 
 
+def record_refined(refined: dict[str, str], family: Family) -> None:
+    """When the base's tag is an enum with a single value, its instances are all of one subclass."""
+    base, attr, instances = family
+    prop = getattr(bpy.types, base).bl_rna.properties[attr]
+    if prop.type != 'ENUM' or len(prop.enum_items) != 1 or not instances:
+        return
+    struct_ids = {type(instance).bl_rna.identifier for instance in instances}
+    if len(struct_ids) == 1 and (struct_id := struct_ids.pop()) != base:
+        refined[base] = struct_id
+
+
 def common_base(struct_ids: set[str]) -> str:
     """The nearest struct all of ``struct_ids`` derive from."""
     ancestors = [struct_ancestors(struct_id) for struct_id in sorted(struct_ids)]
@@ -381,13 +394,14 @@ def record_views(views: list[TagView], missing: list[str], family: ViewFamily) -
 
 def probe() -> TypeTags:
     """Make the instances of every family and read their subclasses and tags."""
-    tags = TypeTags(values={}, views=[], missing=[])
+    tags = TypeTags(values={}, views=[], refined={}, missing=[])
     with tempfile.TemporaryDirectory() as directory:
         p = Probe(directory)
         try:
             for families in FAMILIES:
                 for family in families(p):
                     record(tags.values, family)
+                    record_refined(tags.refined, family)
             for view_families in VIEW_FAMILIES:
                 for view_family in view_families(p):
                     record_views(tags.views, p.missing, view_family)
