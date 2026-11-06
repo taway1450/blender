@@ -179,7 +179,7 @@ class stub:
 def rna_info_BuildRNAInfo_cache() -> stub.RnaInfo:
     ret: stub.RnaInfo | None = rna_info_BuildRNAInfo_cache.ret  # type: ignore[attr-defined]
     if ret is None:
-        ret = rna_info.BuildRNAInfo()
+        ret = rna_info.BuildRNAInfo(keep_ui=USE_STUB_GEN)
         rna_info_BuildRNAInfo_cache.ret = ret  # type: ignore[attr-defined]
     return ret
 
@@ -277,6 +277,7 @@ USE_ONLY_BUILTIN_RNA_TYPES: Final = True
 
 # Structs whose subclasses are documented without members: the menus, panels and headers
 # that Blender's bundled UI registers from Python add nothing to their base that scripts use.
+# Written for the stubs only (see `USE_STUB_GEN`): the API reference leaves these structs out.
 BARE_SUBCLASS_BASES: Final = {"Header", "Menu", "Panel"}
 
 # The metaclasses `_bpy_types` gives the registrable classes (`Operator`, `Panel`, `Node`, ...):
@@ -2734,7 +2735,7 @@ def pyrna2sphinx(basepath: Path) -> None:
         subclass_ids = [
             s.identifier for s in structs.values()
             if s.base is struct
-            if not rna_info.rna_id_ignore(s.identifier)
+            if not rna_info.rna_id_ignore(s.identifier, keep_ui=USE_STUB_GEN)
         ]
         subclass_ids.sort()
         if subclass_ids:
@@ -2769,7 +2770,7 @@ def pyrna2sphinx(basepath: Path) -> None:
         write_indented_lines("   ", fw, struct.description, False)
         fw("\n")
 
-        if base_id in BARE_SUBCLASS_BASES:
+        if USE_STUB_GEN and base_id in BARE_SUBCLASS_BASES:
             # A menu, panel or header of the bundled UI: only the class itself, so that scripts can
             # find it (e.g. `bpy.types.VIEW3D_MT_object.append(draw)`). Its members are its base's.
             file.close()
@@ -3024,7 +3025,7 @@ def pyrna2sphinx(basepath: Path) -> None:
                 subclass_ids = [
                     s.identifier for s in structs.values()
                     if s.base is None
-                    if not rna_info.rna_id_ignore(s.identifier)
+                    if not rna_info.rna_id_ignore(s.identifier, keep_ui=USE_STUB_GEN)
                 ]
                 if subclass_ids:
                     fw(".. toctree::\n")

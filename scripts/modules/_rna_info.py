@@ -48,12 +48,24 @@ def get_direct_functions(rna_type):
     return _get_direct_attr(rna_type, "functions")
 
 
-def rna_id_ignore(rna_id):
+def rna_id_ignore(rna_id, *, keep_ui=False):
+    """
+    Whether to leave out the struct or property ``rna_id``. With ``keep_ui``, the menus, panels and headers
+    that the bundled UI registers (``VIEW3D_MT_object``) are kept, for the stubs (``USE_STUB_GEN`` in
+    ``sphinx_doc_gen.py``).
+    """
     if rna_id == "rna_type":
         return True
 
     if "_OT_" in rna_id:
         return True
+    if not keep_ui:
+        if "_MT_" in rna_id:
+            return True
+        if "_PT_" in rna_id:
+            return True
+        if "_HT_" in rna_id:
+            return True
     if "_KSI_" in rna_id:
         return True
     return False
@@ -760,7 +772,8 @@ def GetInfoOperatorRNA(bl_rna):
     return _GetInfoRNA(bl_rna, InfoOperatorRNA)
 
 
-def BuildRNAInfo():
+def BuildRNAInfo(*, keep_ui=False):
+    # `keep_ui`: see `rna_id_ignore`.
 
     # needed on successive calls to prevent stale data access
     for cls in (InfoStructRNA, InfoFunctionRNA, InfoOperatorRNA, InfoPropertyRNA):
@@ -860,7 +873,7 @@ def BuildRNAInfo():
 
         identifier = rna_struct.identifier
 
-        if not rna_id_ignore(identifier):
+        if not rna_id_ignore(identifier, keep_ui=keep_ui):
             structs.append((base_id(rna_struct), identifier, rna_struct))
 
             # Simple lookup
@@ -918,7 +931,7 @@ def BuildRNAInfo():
         for rna_prop in get_direct_properties(rna_struct):
             rna_prop_identifier = rna_prop.identifier
 
-            if rna_prop_identifier == 'RNA' or rna_id_ignore(rna_prop_identifier):
+            if rna_prop_identifier == 'RNA' or rna_id_ignore(rna_prop_identifier, keep_ui=keep_ui):
                 continue
 
             for rna_prop_ptr in (getattr(rna_prop, "fixed_type", None), getattr(rna_prop, "srna", None)):
@@ -930,7 +943,7 @@ def BuildRNAInfo():
         for rna_func in get_direct_functions(rna_struct):
             for rna_prop_identifier, rna_prop in rna_func.parameters.items():
 
-                if rna_prop_identifier == 'RNA' or rna_id_ignore(rna_prop_identifier):
+                if rna_prop_identifier == 'RNA' or rna_id_ignore(rna_prop_identifier, keep_ui=keep_ui):
                     continue
 
                 rna_prop_ptr = getattr(rna_prop, "fixed_type", None)
