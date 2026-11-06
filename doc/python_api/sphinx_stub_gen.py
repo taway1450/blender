@@ -776,6 +776,8 @@ TYPE_VARS: dict[str, str] = {
     "_T": "TypeVar('_T')",
     "_F": "TypeVar('_F', bound=Callable[..., Any])",
     "_C": "TypeVar('_C', bound=type)",
+    # The type of a `default` argument, returned when there is no value.
+    "_D": "TypeVar('_D')",
 }
 # Pseudo module of `imports` entries naming the type variables a stub uses.
 TYPE_VAR_IMPORT = "__typevar__"
@@ -1214,8 +1216,9 @@ def sort_classes_by_hierarchy(classes: list[ClassInfo]) -> list[ClassInfo]:
         if cls.name in written:
             return
         written.add(cls.name)
-        for base in cls.bases:
-            base_cls = by_name.get(base)
+        # A collection wrapper's base is subscripted by its element type (see `write_class`).
+        for base in (*cls.bases, collection_element_map.get(cls.name)):
+            base_cls = by_name.get(base) if base else None
             if base_cls is not None:
                 visit(base_cls)
         result.append(cls)
@@ -1430,6 +1433,19 @@ def write_class(
         track_type_var("_T", imports)
         resolved = ["bpy_prop_collection[_T]" if b == "bpy_prop_collection" else b for b in resolved]
 
+    # A collection wrapper (e.g. `Windows` holds `Window`s) is a `bpy_prop_collection` of its
+    # elements, so it inherits the typed item access, iteration and `get()`.
+    elem_type = collection_element_map.get(cls.name)
+    if elem_type and "bpy_prop_collection" in resolved:
+        loc = class_locations.module_of(elem_type, current_module)
+        if loc and loc != current_module:
+            imports.add((loc, elem_type))
+        resolved = [
+            "bpy_prop_collection[{:s}]".format(elem_type) if b == "bpy_prop_collection" else b
+            for b in resolved
+        ]
+        elem_type = None
+
     if resolved:
         fw("class {:s}({:s}):\n".format(cls.name, ", ".join(resolved)))
     else:
@@ -1480,6 +1496,17 @@ def write_class(
             continue
         if is_idprop_collection and method.name == "add":
             method = replace(method, return_type="_T")
+        if cls.name == "bpy_prop_collection" and method.name == "get":
+            # `get(key, default=None)` returns the member or `default`,
+            # as `pyrna_prop_collection_get` parses both arguments positionally.
+            imports.add(("typing", "overload"))
+            track_type_var("_D", imports)
+            fw("    @overload\n")
+            fw("    def get(self, key: str | tuple[str, str | None], /) -> _T | None: ...\n")
+            fw("    @overload\n")
+            fw("    def get(self, key: str | tuple[str, str | None], default: _D, /) -> _T | _D: ...\n")
+            has_members = True
+            continue
         write_method(
             fw, method, imports, current_module, class_locations,
             has_items_method=has_items_method,
@@ -1507,8 +1534,7 @@ def write_class(
         has_members = True
 
     # Collection element overloads: if this class is a collection wrapper
-    # (e.g. Windows wraps Window), write typed __getitem__ / __iter__.
-    elem_type = collection_element_map.get(cls.name)
+    # that doesn't inherit them from `bpy_prop_collection`, write typed __getitem__ / __iter__.
     if elem_type:
         # Track import for the element type.
         loc = class_locations.module_of(elem_type, current_module)
