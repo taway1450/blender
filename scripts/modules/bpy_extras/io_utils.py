@@ -196,8 +196,8 @@ def orientation_helper(axis_forward='Y', axis_up='Z'):
     :type axis_forward: Literal['X', 'Y', 'Z', '-X', '-Y', '-Z']
     :param axis_up: The default up axis.
     :type axis_up: Literal['X', 'Y', 'Z', '-X', '-Y', '-Z']
-    :return: A class decorator.
-    :rtype: Callable[[type], type]
+    :return: A class decorator, returning the class it decorates.
+    :rtype: Callable[[_C], _C]
     """
 
     def wrapper(cls):
