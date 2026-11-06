@@ -529,6 +529,20 @@ RST_NOINDEX_ATTR = {
     ("bpy.types", "RenderEngine", "render"),
 }
 
+# Attributes Blender sets on a registered class while calling one of its callbacks.
+# They are neither RNA properties nor Python properties, so introspection can't find them.
+# Maps the struct identifier to `(attribute, description, type)` tuples.
+RNA_STRUCT_RUNTIME_ATTRS: dict[str, tuple[tuple[str, str, str], ...]] = {
+    # `USERPREF_PT_addons.draw_addon_preferences` sets the class's `layout` while `draw` runs.
+    "AddonPreferences": (
+        (
+            "layout",
+            "Defines the structure of the preferences in the UI, set while ``draw`` runs (never None)",
+            ":class:`UILayout`",
+        ),
+    ),
+}
+
 # Underscore-prefixed attributes to include in documentation
 # (these would otherwise be skipped). Maps module name to the identifiers.
 # NOTE: every inclusion must justify itself as this is something we should typically avoid.
@@ -2719,6 +2733,12 @@ def pyrna2sphinx(basepath: Path) -> None:
             written_props = {prop.identifier for prop in sorted_struct_properties
                              if prop.identifier not in struct_exclude}
             pycontext_members2sphinx("   ", fw, written_props)
+
+        # Attributes set while a callback runs.
+        for identifier, description, attr_type in RNA_STRUCT_RUNTIME_ATTRS.get(struct_id, ()):
+            fw("   .. data:: {:s}\n\n".format(identifier))
+            fw("      {:s}\n\n".format(description))
+            fw("      :type: {:s}\n\n".format(attr_type))
 
         # Python attributes.
         py_properties = struct.get_py_properties()
