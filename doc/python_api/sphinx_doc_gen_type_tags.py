@@ -30,9 +30,25 @@ NAME = "type_tag_probe"
 Family = tuple[str, str, list[Any]]
 
 
+class TagView(NamedTuple):
+    """
+    What a tag value implies for the other attributes of a struct that is not refined:
+    ``_Object_MESH``, an :class:`bpy.types.Object` whose ``type`` is ``'MESH'``, has a :class:`bpy.types.Mesh`
+    as its ``data``.
+    """
+    identifier: str
+    base: str
+    attr: str
+    value: str
+    # `(attribute, the struct identifier of its value or None when it is always None, whether it can be None)`.
+    members: list[tuple[str, str | None, bool]]
+
+
 class TypeTags(NamedTuple):
     # Struct identifier -> {tag attribute: the values of its instances}, for the subclasses of a base.
     values: dict[str, dict[str, list[str]]]
+    # The tag views of the structs whose tag decides the type of other attributes.
+    views: list[TagView]
     # The tag values the probe could not make an instance of: `"Strip.type 'MOVIE': error"`.
     missing: list[str]
 
@@ -257,6 +273,74 @@ FAMILIES: tuple[Callable[[Probe], Iterator[Family]], ...] = (
 
 
 # -----------------------------------------------------------------------------
+# Tag views: a base struct, its tag attribute, the attributes the tag decides,
+# and instances of the base for each tag value.
+
+ViewFamily = tuple[str, str, tuple[str, ...], dict[str, list[Any]]]
+
+
+def object_views(p: Probe) -> Iterator[ViewFamily]:
+    # Objects of each type, with every variant of their data, as the data may be refined itself (`Light`).
+    data = bpy.data
+
+    def empty_image() -> Any:
+        # An empty can display an image, its data.
+        ob = new_object(p, None)
+        ob.data = p.keep(data.images.new(NAME, 4, 4))
+        return ob
+
+    makers: dict[str, list[Callable[[], Any]]] = {
+        'MESH': [lambda: new_object(p, data.meshes.new(NAME))],
+        'CURVE': [lambda: new_object(p, data.curves.new(NAME, 'CURVE'))],
+        'SURFACE': [lambda: new_object(p, data.curves.new(NAME, 'SURFACE'))],
+        'FONT': [lambda: new_object(p, data.curves.new(NAME, 'FONT'))],
+        'META': [lambda: new_object(p, data.metaballs.new(NAME))],
+        'CURVES': [lambda: new_object(p, data.hair_curves.new(NAME))],
+        'POINTCLOUD': [lambda: new_object(p, data.pointclouds.new(NAME))],
+        'VOLUME': [lambda: new_object(p, data.volumes.new(NAME))],
+        'GREASEPENCIL': [lambda: new_object(p, data.grease_pencils.new(NAME))],
+        'ARMATURE': [lambda: new_object(p, data.armatures.new(NAME))],
+        'LATTICE': [lambda: new_object(p, data.lattices.new(NAME))],
+        'CAMERA': [lambda: new_object(p, data.cameras.new(NAME))],
+        'SPEAKER': [lambda: new_object(p, data.speakers.new(NAME))],
+        'LIGHT': [
+            lambda value=value: new_object(p, data.lights.new(NAME, value)) for value in enum_ids("Light", "type")
+        ],
+        'LIGHT_PROBE': [
+            lambda value=value: new_object(p, data.lightprobes.new(NAME, value))
+            for value in enum_ids("LightProbe", "type")
+        ],
+        'EMPTY': [lambda: new_object(p, None), empty_image],
+    }
+    instances: dict[str, list[Any]] = {}
+    for value in enum_ids("Object", "type"):
+        if value not in makers:
+            p.missing.append("Object.type {!r}: no data to make an object of".format(value))
+            continue
+        try:
+            instances[value] = [make() for make in makers[value]]
+        except Exception as ex:
+            p.missing.append("Object.type {!r}: {:s}".format(value, str(ex).strip()))
+    yield "Object", "type", ("data",), instances
+
+
+def fluid_views(p: Probe) -> Iterator[ViewFamily]:
+    # The settings pointer of each fluid type (one fluid modifier per object).
+    instances: dict[str, list[Any]] = {}
+    for value in enum_ids("FluidModifier", "fluid_type"):
+        md = mesh_object(p).modifiers.new(NAME, 'FLUID')
+        md.fluid_type = value
+        instances[value] = [md]
+    yield "FluidModifier", "fluid_type", ("domain_settings", "effector_settings", "flow_settings"), instances
+
+
+VIEW_FAMILIES: tuple[Callable[[Probe], Iterator[ViewFamily]], ...] = (
+    object_views,
+    fluid_views,
+)
+
+
+# -----------------------------------------------------------------------------
 # Probe
 
 def record(values: dict[str, dict[str, list[str]]], family: Family) -> None:
@@ -270,15 +354,43 @@ def record(values: dict[str, dict[str, list[str]]], family: Family) -> None:
             struct_values.append(value)
 
 
+def common_base(struct_ids: set[str]) -> str:
+    """The nearest struct all of ``struct_ids`` derive from."""
+    ancestors = [struct_ancestors(struct_id) for struct_id in sorted(struct_ids)]
+    return next(struct_id for struct_id in ancestors[0] if all(struct_id in other for other in ancestors[1:]))
+
+
+def record_views(views: list[TagView], missing: list[str], family: ViewFamily) -> None:
+    base, attr, member_ids, instances = family
+    for value, value_instances in instances.items():
+        if any(getattr(instance, attr) != value for instance in value_instances):
+            missing.append("{:s}.{:s} {!r}: the instances have another value".format(base, attr, value))
+            continue
+        members = []
+        for member_id in member_ids:
+            member_values = [getattr(instance, member_id) for instance in value_instances]
+            struct_ids = {type(member).bl_rna.identifier for member in member_values if member is not None}
+            members.append((
+                member_id,
+                # The nearest common base of the variants (`Light` for the data of a light object).
+                common_base(struct_ids) if struct_ids else None,
+                any(member is None for member in member_values),
+            ))
+        views.append(TagView("_{:s}_{:s}".format(base, value), base, attr, value, members))
+
+
 def probe() -> TypeTags:
     """Make the instances of every family and read their subclasses and tags."""
-    tags = TypeTags(values={}, missing=[])
+    tags = TypeTags(values={}, views=[], missing=[])
     with tempfile.TemporaryDirectory() as directory:
         p = Probe(directory)
         try:
             for families in FAMILIES:
                 for family in families(p):
                     record(tags.values, family)
+            for view_families in VIEW_FAMILIES:
+                for view_family in view_families(p):
+                    record_views(tags.views, p.missing, view_family)
         finally:
             bpy.data.batch_remove([id_data for id_data in p.ids if id_data is not None])
         tags.missing.extend(p.missing)

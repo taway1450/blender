@@ -2548,6 +2548,37 @@ def write_rna_metaclasses(basepath: Path) -> None:
                 fw("      (readonly)\n\n")
 
 
+def write_type_tag_views(basepath: Path, type_tags: Any) -> None:
+    """
+    Write a page for each tag view of `rna_type_tags` (``_Object_MESH``: an :class:`Object` whose ``type``
+    is ``'MESH'`` has a :class:`Mesh` as its ``data``), so the stubs declare them.
+    The pages are in no table of contents, as the views are private: they don't exist at runtime.
+    """
+    for view in type_tags.views:
+        base_properties = getattr(bpy.types, view.base).bl_rna.properties
+        members = [(view.attr, "Literal[{!r}]".format(view.value))]
+        for identifier, struct_id, can_be_none in view.members:
+            if struct_id is None:
+                members.append((identifier, "None"))
+            else:
+                members.append((identifier, ":class:`{:s}`{:s}".format(struct_id, " | None" if can_be_none else "")))
+
+        with open(basepath / "bpy.types.{:s}.rst".format(view.identifier), "w", encoding="utf-8") as fh:
+            fw = fh.write
+            fw(":orphan:\n\n")
+            fw(title_string(view.identifier, "="))
+            fw(".. currentmodule:: bpy.types\n\n")
+            fw(".. class:: {:s}({:s})\n\n".format(view.identifier, view.base))
+            fw("   A :class:`{:s}` whose ``{:s}`` is ``{!r}``, for type checkers (not a class at runtime)\n\n".format(
+                view.base, view.attr, view.value))
+            for identifier, member_type in members:
+                is_readonly = base_properties[identifier].is_readonly
+                fw("   .. {:s}:: {:s}\n\n".format("data" if is_readonly else "attribute", identifier))
+                fw("      :type: {:s}\n\n".format(member_type))
+                if is_readonly:
+                    fw("      (readonly)\n\n")
+
+
 def pyrna2sphinx(basepath: Path) -> None:
     """
     ``bpy.types`` and ``bpy.ops``.
@@ -3133,6 +3164,9 @@ def pyrna2sphinx(basepath: Path) -> None:
 
         if USE_STUB_GEN:
             write_rna_metaclasses(basepath)
+
+        if type_tags is not None:
+            write_type_tag_views(basepath, type_tags)
 
     # Operators.
     def write_ops() -> None:
