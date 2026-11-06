@@ -553,6 +553,9 @@ class InfoPropertyRNA:
                         bracket_open_id,
                         class_fmt.format(self.fixed_type.identifier),
                     )
+            elif self.fixed_type.identifier == "AnyType":
+                # A pointer to `AnyType` accepts data of any type (see `RNA_struct_is_a`).
+                type_str += class_fmt.format("bpy_struct")
             else:
                 type_str += class_fmt.format(self.fixed_type.identifier)
 
