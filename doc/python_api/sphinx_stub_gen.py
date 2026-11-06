@@ -1392,6 +1392,18 @@ def write_stub(output_dir: Path, module_name: str, content: str) -> Path:
     return stub_path
 
 
+# The builtin `type` in an annotation: `-> type`, `default: type | None`, but not the parameter,
+# method or attribute named `type` (`type: str`, `type='KEYFRAME'`, `def type(`) or a string.
+BUILTIN_TYPE_ANNOTATION_RE = re.compile(r"(?<=-> )type\b|(?<![\w.'\"])(?<!def )type\b(?![\w'\"(])(?!\s*[:=])")
+
+
+def builtin_type_writer(fw: Callable[[str], None]) -> Callable[[str], None]:
+    """``fw``, writing ``builtins.type`` for the builtin `type` in annotations."""
+    def write(text: str) -> None:
+        fw(BUILTIN_TYPE_ANNOTATION_RE.sub("builtins.type", text))
+    return write
+
+
 def write_class(
     fw: Callable[[str], None],
     cls: ClassInfo,
@@ -1463,6 +1475,11 @@ def write_class(
         fw("class {:s}({:s}):\n".format(cls.name, ", ".join(resolved)))
     else:
         fw("class {:s}:\n".format(cls.name))
+
+    if any(attr.name == "type" for attr in cls.attributes):
+        # A `type` attribute (`Modifier.type`) shadows the builtin in the annotations of the class body.
+        imports.add(("__bare__", "builtins"))
+        fw = builtin_type_writer(fw)
 
     has_members = False
 
