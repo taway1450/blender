@@ -10522,6 +10522,7 @@ void BPY_free_srna_pytype(StructRNA *srna)
   ":class:`bpy.types.Menu` | " \
   ":class:`bpy.types.Header` | " \
   ":class:`bpy.types.Operator` | " \
+  ":class:`bpy.types.Macro` | " \
   ":class:`bpy.types.KeyingSetInfo` | " \
   ":class:`bpy.types.RenderEngine` | " \
   ":class:`bpy.types.AssetShelf` | " \
@@ -10531,8 +10532,11 @@ void BPY_free_srna_pytype(StructRNA *srna)
   ":class:`bpy.types.NodeTree` | " \
   ":class:`bpy.types.Node` | " \
   ":class:`bpy.types.NodeSocket` | " \
+  ":class:`bpy.types.NodeTreeInterfaceSocket` | " \
   ":class:`bpy.types.Gizmo` | " \
-  ":class:`bpy.types.GizmoGroup`" \
+  ":class:`bpy.types.GizmoGroup` | " \
+  ":class:`bpy.types.KeyConfigPreferences` | " \
+  ":class:`bpy.types.USDHook`" \
   "]"
 
 /**
