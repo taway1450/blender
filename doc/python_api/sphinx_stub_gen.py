@@ -1250,8 +1250,12 @@ def render_stub(
     local_classes = {cls.name for cls in module.classes}
 
     # Write classes (hierarchy-sorted so locally-defined bases come first).
+    classes_by_name = {cls.name: cls for cls in module.classes}
     for cls in sort_classes_by_hierarchy(module.classes):
-        write_class(fw, cls, imports, current_module, class_locations)
+        write_class(
+            fw, cls, imports, current_module, class_locations,
+            base_attr_types=base_attr_types(cls, classes_by_name),
+        )
         fw("\n")
 
     for func in module.functions:
@@ -1404,14 +1408,35 @@ def builtin_type_writer(fw: Callable[[str], None]) -> Callable[[str], None]:
     return write
 
 
+def base_attr_types(cls: ClassInfo, classes_by_name: dict[str, ClassInfo]) -> dict[str, str | None]:
+    """The RST type of each attribute that a base of ``cls`` in the same module declares, the nearest base first."""
+    result: dict[str, str | None] = {}
+    seen: set[str] = set()
+    pending = list(cls.bases)
+    while pending:
+        base = classes_by_name.get(pending.pop(0))
+        if base is None or base.name in seen:
+            continue
+        seen.add(base.name)
+        for attr in base.attributes:
+            result.setdefault(attr.name, attr.type_str)
+        pending.extend(base.bases)
+    return result
+
+
 def write_class(
     fw: Callable[[str], None],
     cls: ClassInfo,
     imports: set[tuple[str, str]],
     current_module: str,
     class_locations: ClassLocations,
+    *,
+    base_attr_types: dict[str, str | None] | None = None,
 ) -> None:
-    """Write a class definition."""
+    """
+    Write a class definition. ``base_attr_types`` are the types of the attributes its bases declare
+    (see `base_attr_types`): a class that declares one of them with another type narrows it.
+    """
     # Merge explicit CLASS_BASES overrides with RST-parsed base classes.
     # Use both lists (overrides first) so that e.g. `mathutils.Vector` gets
     # Sequence[float] from the override without discarding any RST-parsed base.
@@ -1599,7 +1624,8 @@ def write_class(
         has_members = True
 
     for attr in cls.attributes:
-        if write_attribute(fw, attr, imports, current_module, class_locations):
+        is_narrowed = base_attr_types is not None and base_attr_types.get(attr.name, attr.type_str) != attr.type_str
+        if write_attribute(fw, attr, imports, current_module, class_locations, is_narrowed=is_narrowed):
             has_members = True
 
     extra_members = CLASS_EXTRA_MEMBERS.get((current_module, cls.name))
@@ -1692,8 +1718,13 @@ def write_attribute(
     imports: set[tuple[str, str]],
     current_module: str,
     class_locations: ClassLocations,
+    *,
+    is_narrowed: bool = False,
 ) -> bool:
-    """Write an attribute declaration. Returns True if written."""
+    """
+    Write an attribute declaration. Returns True if written.
+    ``is_narrowed``: the attribute narrows the type a base declares (`SubsurfModifier.type` is ``'SUBSURF'``).
+    """
     name = attr.name
 
     # Skip attributes whose names aren't valid Python identifiers.
@@ -1714,7 +1745,11 @@ def write_attribute(
     # Initialize with `= ...` so the name is a real class attribute. Without it,
     # `from __future__ import annotations` turns `name: type` into a string-only entry in `__annotations__`,
     # so `Class.name` raises `AttributeError` at runtime - which breaks stubs that reference it as a default value.
-    fw("    {:s}: {:s} = ...\n".format(name, type_ann))
+    #
+    # A narrower attribute is a deliberate override: the base's type covers all its subclasses,
+    # and this one always has the narrower value (type checkers report narrowing a mutable attribute).
+    comment = "  # ty: ignore[invalid-mutable-override]" if is_narrowed else ""
+    fw("    {:s}: {:s} = ...{:s}\n".format(name, type_ann, comment))
     return True
 
 
