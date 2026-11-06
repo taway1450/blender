@@ -1996,10 +1996,121 @@ def pyclass2sphinx(
                 # Python-defined static methods need signature extraction.
                 pyfunc2sphinx("   ", fw, module_name, type_name, key, descr, struct=None, is_class=True)
 
+    # Properties declared as class annotations (`name: bpy.props.XProperty(...)`), e.g. by the
+    # `bpy_extras.io_utils.ImportHelper` mixin: registered classes inheriting them get the property.
+    # With `from __future__ import annotations` they are strings, the declarations as written.
+    try:
+        annotations = inspect.get_annotations(value, eval_str=True)
+    except Exception:
+        annotations = inspect.get_annotations(value)
+    for key, prop in sorted(annotations.items()):
+        if isinstance(prop, bpy.props._PropertyDeferred):
+            pyprop_deferred2sphinx("   ", fw, key, prop)
+
     if USE_STUB_GEN:
         write_dunder_methods(fw, value, module_name, type_name)
 
     fw("\n\n")
+
+
+# Float vector subtypes read as a `mathutils` type, with the lengths they need
+# (see `pyrna_math_object_from_array`).
+PYPROP_FLOAT_VECTOR_MATH_TYPES: dict[str, tuple[set[int], str]] = {
+    **{
+        subtype: ({2, 3, 4}, ":class:`mathutils.Vector`")
+        for subtype in (
+            "TRANSLATION", "DIRECTION", "VELOCITY", "ACCELERATION", "XYZ", "XYZ_LENGTH", "COORDINATES",
+        )
+    },
+    "MATRIX": ({9, 16}, ":class:`mathutils.Matrix`"),
+    "EULER": ({3}, ":class:`mathutils.Euler`"),
+    "QUATERNION": ({4}, ":class:`mathutils.Quaternion`"),
+    "COLOR": ({3}, ":class:`mathutils.Color`"),
+    "COLOR_GAMMA": ({3}, ":class:`mathutils.Color`"),
+}
+
+
+def pyprop_deferred_type(function_name: str, keywords: dict[str, object]) -> str | None:
+    """
+    The type of the value a property declared with ``function_name(**keywords)`` has on an instance,
+    or None when it isn't known here (only the commonly used declarations are supported).
+    """
+    scalar_type = {
+        "BoolProperty": "bool",
+        "IntProperty": "int",
+        "FloatProperty": "float",
+        "StringProperty": "str",
+    }.get(function_name)
+    if scalar_type is not None:
+        return scalar_type
+    if function_name == "EnumProperty":
+        items = keywords.get("items")
+        if isinstance(items, (tuple, list)) and items:
+            enum_type = "Literal[{:s}]".format(", ".join(repr(item[0]) for item in items if item))
+        else:
+            enum_type = "str"
+        if "ENUM_FLAG" in keywords.get("options", ()):
+            return "set[{:s}]".format(enum_type)
+        return enum_type
+    size = keywords.get("size", 3)
+    if not isinstance(size, int):
+        return None
+    if function_name == "FloatVectorProperty":
+        sizes, math_type = PYPROP_FLOAT_VECTOR_MATH_TYPES.get(keywords.get("subtype", "NONE"), (set(), ""))
+        return math_type if size in sizes else ":class:`bpy_prop_array`\\ [float]"
+    if function_name == "IntVectorProperty":
+        return ":class:`bpy_prop_array`\\ [int]"
+    if function_name == "BoolVectorProperty":
+        return ":class:`bpy_prop_array`\\ [bool]"
+    return None
+
+
+def pyprop_deferred_value_repr(value: object) -> str | None:
+    """
+    Python source for an argument of a property declaration,
+    or None when it isn't a literal (a callback, a class, ...).
+    """
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return repr(value)
+    if isinstance(value, (set, frozenset, tuple, list)):
+        items = [pyprop_deferred_value_repr(item) for item in value]
+        if None in items:
+            return None
+        if isinstance(value, (set, frozenset)):
+            # Sorted, so the docs are the same for every run.
+            return "{{{:s}}}".format(", ".join(sorted(items))) if items else "set()"
+        if isinstance(value, list):
+            return "[{:s}]".format(", ".join(items))
+        return "({:s}{:s})".format(", ".join(items), "," if len(items) == 1 else "")
+    return None
+
+
+def pyprop_deferred2sphinx(ident: str, fw: WriteFn, identifier: str, prop: object) -> None:
+    """
+    Write a property declared as a class annotation (a ``bpy.props._PropertyDeferred``).
+
+    ``:type:`` is the type of the value on an instance, ``:declaration:`` the ``bpy.props`` call,
+    without the arguments that aren't literals (callbacks such as ``update``).
+    """
+    function_name = prop.function.__name__
+    keywords = prop.keywords
+    arguments = {
+        key: value_repr for key, value in keywords.items()
+        # Registration adds the annotation's name as `attr`, it isn't part of the declaration.
+        if key != "attr" and (value_repr := pyprop_deferred_value_repr(value)) is not None
+    }
+    fw(ident + ".. attribute:: {:s}\n\n".format(identifier))
+    description = keywords.get("description")
+    if isinstance(description, str) and description:
+        write_indented_lines(ident + "   ", fw, description, False)
+        fw("\n")
+    prop_type = pyprop_deferred_type(function_name, keywords)
+    if prop_type is not None:
+        fw(ident + "   :type: {:s}\n".format(prop_type))
+    fw(ident + "   :declaration: ``{:s}({:s})``\n\n".format(
+        function_name,
+        ", ".join("{:s}={:s}".format(key, value_repr) for key, value_repr in arguments.items()),
+    ))
 
 
 # Changes In Blender will force errors here.

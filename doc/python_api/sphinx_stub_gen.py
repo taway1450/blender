@@ -80,6 +80,8 @@ class AttrInfo:
     """A class attribute or data descriptor extracted from RST."""
     name: str
     type_str: str | None = None
+    # The `bpy.props` call of a property declared as a class annotation (`:declaration:`).
+    declaration: str | None = None
 
 
 @dataclass
@@ -604,7 +606,7 @@ def extract_attribute(node: ApiNode) -> AttrInfo:
     fields = node_fields(node)
 
     type_str = fields.get("type")
-    return AttrInfo(name=name, type_str=type_str)
+    return AttrInfo(name=name, type_str=type_str, declaration=fields.get("declaration"))
 
 
 def extract_function(node: ApiNode, source_path: Path) -> FunctionInfo:
@@ -1647,6 +1649,12 @@ def write_attribute(
     else:
         imports.add(("typing", "Any"))
         type_ann = "Any"
+    if attr.declaration:
+        # A property declared as a class annotation: tools that don't know `bpy.props`
+        # read the value type, the others the declaration.
+        imports.add(("typing", "Annotated"))
+        imports.add(("bpy.props", attr.declaration.split("(", 1)[0]))
+        type_ann = "Annotated[{:s}, {:s}]".format(type_ann, attr.declaration)
     # Initialize with `= ...` so the name is a real class attribute. Without it,
     # `from __future__ import annotations` turns `name: type` into a string-only entry in `__annotations__`,
     # so `Class.name` raises `AttributeError` at runtime - which breaks stubs that reference it as a default value.
