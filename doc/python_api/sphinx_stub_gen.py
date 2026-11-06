@@ -22,7 +22,7 @@ import fnmatch
 import re
 import sys
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import NamedTuple
 
@@ -1396,6 +1396,14 @@ def write_class(
         imports.add(("typing", "TypeVar"))
         resolved.append("Generic[_T]")
 
+    # `bpy_prop_collection_idprop` is the value of a `CollectionProperty`: its items are
+    # instances of the `PropertyGroup` passed as `type=`, and `add()` returns a new one.
+    # So it is generic too, through its `bpy_prop_collection[_T]` base.
+    is_idprop_collection = cls.name == "bpy_prop_collection_idprop"
+    if is_idprop_collection:
+        imports.add(("typing", "TypeVar"))
+        resolved = ["bpy_prop_collection[_T]" if b == "bpy_prop_collection" else b for b in resolved]
+
     if resolved:
         fw("class {:s}({:s}):\n".format(cls.name, ", ".join(resolved)))
     else:
@@ -1444,6 +1452,8 @@ def write_class(
     for method in cls.methods:
         if method.name in skip_methods:
             continue
+        if is_idprop_collection and method.name == "add":
+            method = replace(method, return_type="_T")
         write_method(
             fw, method, imports, current_module, class_locations,
             has_items_method=has_items_method,
