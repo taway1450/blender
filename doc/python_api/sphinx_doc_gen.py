@@ -1912,22 +1912,38 @@ CLASS_OVERRIDES: dict[tuple[str, str], ClassOverrides] = {
         excluded_dunders={"__lt__", "__le__", "__gt__", "__ge__"},
     ),
     # bmesh element sequence types return their element, not float.
+    # Iterating gives a `BMIter` (`BMEditSelIter`) yielding the elements (`bpy_bmelemseq_iter`).
     ("bmesh.types", "BMElemSeq"): ClassOverrides(
-        dunders={"__getitem__": DunderInfo(
-            return_type=":class:`BMVert` | :class:`BMEdge` | :class:`BMFace`")},
+        dunders={
+            "__getitem__": DunderInfo(return_type=":class:`BMVert` | :class:`BMEdge` | :class:`BMFace`"),
+            "__iter__": DunderInfo(
+                return_type="Iterator[:class:`BMVert` | :class:`BMEdge` | :class:`BMFace`]"),
+        },
     ),
     ("bmesh.types", "BMVertSeq"): ClassOverrides(
-        dunders={"__getitem__": DunderInfo(return_type=":class:`BMVert`")},
+        dunders={
+            "__getitem__": DunderInfo(return_type=":class:`BMVert`"),
+            "__iter__": DunderInfo(return_type="Iterator[:class:`BMVert`]"),
+        },
     ),
     ("bmesh.types", "BMEdgeSeq"): ClassOverrides(
-        dunders={"__getitem__": DunderInfo(return_type=":class:`BMEdge`")},
+        dunders={
+            "__getitem__": DunderInfo(return_type=":class:`BMEdge`"),
+            "__iter__": DunderInfo(return_type="Iterator[:class:`BMEdge`]"),
+        },
     ),
     ("bmesh.types", "BMFaceSeq"): ClassOverrides(
-        dunders={"__getitem__": DunderInfo(return_type=":class:`BMFace`")},
+        dunders={
+            "__getitem__": DunderInfo(return_type=":class:`BMFace`"),
+            "__iter__": DunderInfo(return_type="Iterator[:class:`BMFace`]"),
+        },
     ),
     ("bmesh.types", "BMEditSelSeq"): ClassOverrides(
-        dunders={"__getitem__": DunderInfo(
-            return_type=":class:`BMVert` | :class:`BMEdge` | :class:`BMFace`")},
+        dunders={
+            "__getitem__": DunderInfo(return_type=":class:`BMVert` | :class:`BMEdge` | :class:`BMFace`"),
+            "__iter__": DunderInfo(
+                return_type="Iterator[:class:`BMVert` | :class:`BMEdge` | :class:`BMFace`]"),
+        },
     ),
     ("bmesh.types", "BMLayerCollection"): ClassOverrides(
         dunders={"__getitem__": DunderInfo(return_type=":class:`BMLayerItem`")},
