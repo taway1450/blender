@@ -82,6 +82,8 @@ class AttrInfo:
     type_str: str | None = None
     # The `bpy.props` call of a property declared as a class annotation (`:declaration:`).
     declaration: str | None = None
+    # Written as ``.. data::``: a read-only attribute (``.. attribute::`` can be assigned).
+    readonly: bool = False
 
 
 @dataclass
@@ -613,7 +615,12 @@ def extract_attribute(node: ApiNode) -> AttrInfo:
     fields = node_fields(node)
 
     type_str = fields.get("type")
-    return AttrInfo(name=name, type_str=type_str, declaration=fields.get("declaration"))
+    return AttrInfo(
+        name=name,
+        type_str=type_str,
+        declaration=fields.get("declaration"),
+        readonly=node["directive_type"] == "data",
+    )
 
 
 def extract_function(node: ApiNode, source_path: Path) -> FunctionInfo:
@@ -1188,6 +1195,16 @@ CLASS_BASES: dict[tuple[str, str], list[tuple[str, str]]] = {
     ("mathutils", "Matrix"): [("Sequence[Sequence[float]]", "collections.abc")],
 }
 
+# The value a writable attribute of a math type takes: the math object or any sequence of its components,
+# which `pyrna_py_to_array` accepts as it does for any array property (`ob.location = (1, 1, 1)`).
+SETTER_VALUE_TYPES: dict[str, str] = {
+    "Color": "Color | Sequence[float]",
+    "Euler": "Euler | Sequence[float]",
+    "Quaternion": "Quaternion | Sequence[float]",
+    "Vector": "Vector | Sequence[float]",
+    "Matrix": "Matrix | Sequence[Sequence[float]]",
+}
+
 # `__getitem__` element types for C-extension classes implementing the sequence
 # protocol whose doc tree alone cannot drive the overloads (mathutils types are
 # the canonical case - they aren't RNA-backed). Each value is the element type
@@ -1628,9 +1645,14 @@ def write_class(
         fw("    def __iter__(self) -> Iterator[{:s}]: ...\n".format(sequence_elem_type))
         has_members = True
 
+    # A `property` attribute (`Context.property`) shadows the builtin decorator in the class body.
+    property_decorator = "builtins.property" if any(attr.name == "property" for attr in cls.attributes) else "property"
     for attr in cls.attributes:
         is_narrowed = base_attr_types is not None and base_attr_types.get(attr.name, attr.type_str) != attr.type_str
-        if write_attribute(fw, attr, imports, current_module, class_locations, is_narrowed=is_narrowed):
+        if write_attribute(
+                fw, attr, imports, current_module, class_locations,
+                is_narrowed=is_narrowed, property_decorator=property_decorator,
+        ):
             has_members = True
 
     extra_members = CLASS_EXTRA_MEMBERS.get((current_module, cls.name))
@@ -1725,10 +1747,12 @@ def write_attribute(
     class_locations: ClassLocations,
     *,
     is_narrowed: bool = False,
+    property_decorator: str = "property",
 ) -> bool:
     """
     Write an attribute declaration. Returns True if written.
     ``is_narrowed``: the attribute narrows the type a base declares (`SubsurfModifier.type` is ``'SUBSURF'``).
+    ``property_decorator``: how the class body spells the builtin `property` (``Context.property`` shadows it).
     """
     name = attr.name
 
@@ -1741,6 +1765,18 @@ def write_attribute(
     else:
         imports.add(("typing", "Any"))
         type_ann = "Any"
+    setter_type = SETTER_VALUE_TYPES.get(type_ann)
+    if setter_type is not None and not attr.readonly and not attr.declaration and not is_narrowed:
+        # A writable math attribute reads as the math object but takes any sequence of its components,
+        # as `pyrna_py_to_array` does (`ob.location = (1, 1, 1)`): a property with a wider setter.
+        imports.add(("collections.abc", "Sequence"))
+        if property_decorator != "property":
+            imports.add(("__bare__", "builtins"))
+        fw("    @{:s}\n".format(property_decorator))
+        fw("    def {:s}(self) -> {:s}: ...\n".format(name, type_ann))
+        fw("    @{:s}.setter\n".format(name))
+        fw("    def {:s}(self, value: {:s}) -> None: ...\n".format(name, setter_type))
+        return True
     if attr.declaration:
         # A property declared as a class annotation: tools that don't know `bpy.props`
         # read the value type, the others the declaration.
