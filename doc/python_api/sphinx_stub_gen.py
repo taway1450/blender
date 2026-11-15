@@ -1294,6 +1294,10 @@ def render_stub(
             runtime_default_names |= extract_default_root_names(method.params)
     for func in module.functions:
         runtime_default_names |= extract_default_root_names(func.params)
+    # Base classes are evaluated at runtime too, e.g. `freestyle.functions` classes
+    # deriving from `freestyle.types` ones.
+    for cls in module.classes:
+        runtime_default_names.update(cls.bases)
 
     # Register imports for cross-stub classes named in defaults:
     # these are bare identifiers like `IntegrationType` in `=IntegrationType.MEAN`,

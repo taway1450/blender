@@ -41,6 +41,7 @@ __all__ = (
 )
 
 import argparse
+import dataclasses
 import sys
 import inspect
 import shutil
@@ -1991,6 +1992,57 @@ def write_dunder_methods(fw: WriteFn, class_value: type, module_name: str, type_
             fw("\n")
 
 
+def pyclass_bases_str(value: type, module_name: str) -> str:
+    """
+    The bases of a class for its ``.. class::`` directive, e.g. ``(UnaryFunction1DDouble)``,
+    or an empty string for a class that only derives from ``object``.
+    A base from another module is qualified with it, unless it is a C type without a module
+    (e.g. Freestyle's ``Interface1D``), which is referenced by name alone.
+    """
+    bases = []
+    for base in value.__bases__:
+        if base is object:
+            continue
+        base_module = base.__module__
+        if base_module in {"builtins", module_name}:
+            bases.append(base.__name__)
+        else:
+            bases.append("{:s}.{:s}".format(base_module, base.__qualname__))
+    return "({:s})".format(", ".join(bases)) if bases else ""
+
+
+def pyinit2sphinx(ident: str, fw: WriteFn, py_init: Callable[..., object]) -> None:
+    """
+    The constructor of a pure Python class. Parameters its docstring doesn't document
+    get their annotation as the type (``Any`` without one).
+    """
+    sig = inspect.signature(py_init)
+    params = list(sig.parameters.values())[1:]  # Without `self`.
+    sig_plain = sig.replace(
+        parameters=[param.replace(annotation=inspect.Parameter.empty) for param in params],
+        return_annotation=inspect.Signature.empty,
+    )
+    fw(ident + ".. method:: __init__{:s}\n\n".format(str(sig_plain)))
+    doc = py_init.__doc__ or ""
+    if doc:
+        write_indented_lines(ident + "   ", fw, doc)
+        fw("\n")
+    for param in params:
+        if param.kind in {inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD}:
+            continue
+        if ":type {:s}:".format(param.name) in doc:
+            continue
+        if param.annotation is inspect.Parameter.empty:
+            param_type = "Any"
+        elif isinstance(param.annotation, str):
+            param_type = param.annotation
+        else:
+            param_type = inspect.formatannotation(param.annotation)
+        fw(ident + "   :param {:s}: Undocumented.\n".format(param.name))
+        fw(ident + "   :type {:s}: {:s}\n".format(param.name, param_type))
+    fw("\n")
+
+
 def pyclass2sphinx(
         fw: WriteFn,
         module_name: str,
@@ -2000,18 +2052,32 @@ def pyclass2sphinx(
 ) -> None:
     # NOTE: for `.. class::` identifiers, the type name alone is enough
     # because the module has already been set via `.. module::`.
+    class_signature = type_name + pyclass_bases_str(value, module_name)
     if value.__doc__:
         if value.__doc__.startswith(".. class::"):
             fw(value.__doc__)
         else:
-            fw(".. class:: {:s}\n\n".format(type_name))
+            fw(".. class:: {:s}\n\n".format(class_signature))
             write_indented_lines("   ", fw, value.__doc__, True)
     else:
-        fw(".. class:: {:s}\n\n".format(type_name))
+        fw(".. class:: {:s}\n\n".format(class_signature))
     fw("\n")
 
     if write_class_examples:
         write_example_ref("   ", fw, module_name + "." + type_name)
+
+    # The constructor of a pure Python class (a dataclass's generated one included),
+    # unless the class docstring documents it already.
+    py_init = value.__dict__.get("__init__")
+    if type(py_init) == FunctionType and ".. method:: __init__" not in (value.__doc__ or ""):
+        pyinit2sphinx("   ", fw, py_init)
+
+    # The fields of a dataclass, which are instance attributes (not in the class `__dict__`).
+    if dataclasses.is_dataclass(value):
+        for field in dataclasses.fields(value):
+            field_type = field.type if isinstance(field.type, str) else inspect.formatannotation(field.type)
+            fw("   .. attribute:: {:s}\n\n".format(field.name))
+            fw("      :type: {:s}\n\n".format(field_type))
 
     descr_items = [(key, descr) for key, descr in sorted(value.__dict__.items()) if not key.startswith("_")]
 
