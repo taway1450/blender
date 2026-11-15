@@ -2843,6 +2843,10 @@ def pyrna2sphinx(basepath: Path) -> None:
             collection_id=_BPY_PROP_COLLECTION_ID,
             enum_descr_override=enum_descr_override,
         )
+        # A returned string without `PROP_NEVER_NULL` can be None: C gives None for a null string,
+        # and a Python callback may return None (e.g. `Operator.description`), see `pyrna_py_to_prop`.
+        if is_return and prop.type == "string" and not prop.is_never_none:
+            type_descr += " | None"
         # When true, list the properties of `prop.fixed_type` under the argument as the `dict` keys.
         # Needed because the type isn't documented, so it can't be linked to.
         use_inline_keys_from_type = False
