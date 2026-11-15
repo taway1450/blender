@@ -1486,7 +1486,13 @@ def write_class(
         resolved.append(b)
 
     # `bpy_prop_array` and `bpy_prop_collection` are generic over their element type.
-    if cls.name in {"bpy_prop_array", "bpy_prop_collection"}:
+    # An array implements the sequence protocol (`len`, items, slices, iteration, `in`),
+    # so it can be passed where a sequence is expected (`Vector(ob.color)`).
+    if cls.name == "bpy_prop_array":
+        imports.add(("collections.abc", "Sequence"))
+        track_type_var("_T", imports)
+        resolved.append("Sequence[_T]")
+    elif cls.name == "bpy_prop_collection":
         imports.add(("typing", "Generic"))
         track_type_var("_T", imports)
         resolved.append("Generic[_T]")
