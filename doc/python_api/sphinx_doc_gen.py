@@ -1945,6 +1945,10 @@ CLASS_OVERRIDES: dict[tuple[str, str], ClassOverrides] = {
                 return_type="Iterator[:class:`BMVert` | :class:`BMEdge` | :class:`BMFace`]"),
         },
     ),
+    # `py_imbuf_buffer_enter` returns a `memoryview` of the pixels, not the buffer object.
+    ("imbuf.types", "ImBufBuffer"): ClassOverrides(
+        dunders={"__enter__": DunderInfo(return_type="memoryview")},
+    ),
     ("bmesh.types", "BMLayerCollection"): ClassOverrides(
         dunders={"__getitem__": DunderInfo(return_type=":class:`BMLayerItem`")},
     ),
