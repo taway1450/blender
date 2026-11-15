@@ -584,6 +584,23 @@ RNA_STRUCT_RUNTIME_ATTRS: dict[str, tuple[tuple[str, str, str], ...]] = {
     ),
 }
 
+# Int arrays flagged `PROP_THICK_WRAP` read as a `tuple`, not a `bpy_prop_array`
+# (see `pyrna_math_object_from_array`), so they compare with tuples and can be dictionary keys.
+# RNA doesn't expose the flag, so they are listed here and checked against the runtime by
+# `rna_thick_wrap_arrays_check`. Maps `(struct, property)` to the type.
+RNA_THICK_WRAP_ARRAYS: dict[tuple[str, str], str] = {
+    ("BlendData", "version"): "tuple[int, int, int]",
+    ("Library", "version"): "tuple[int, int, int]",
+    ("Preferences", "version"): "tuple[int, int, int]",
+}
+
+
+def rna_thick_wrap_arrays_check() -> None:
+    """Check that the arrays in ``RNA_THICK_WRAP_ARRAYS`` readable without a library are still tuples."""
+    for struct_id, value in (("BlendData", bpy.data), ("Preferences", bpy.context.preferences)):
+        assert type(value.version) is tuple, "{:s}.version is no longer a tuple".format(struct_id)
+
+
 # Underscore-prefixed attributes to include in documentation
 # (these would otherwise be skipped). Maps module name to the identifiers.
 # NOTE: every inclusion must justify itself as this is something we should typically avoid.
@@ -2558,10 +2575,12 @@ def pyrna_prop_body2sphinx(
         prop: stub.InfoPropertyRNA,
         *,
         class_fmt: str = ":class:`{:s}`",
+        type_override: str | None = None,
 ) -> None:
     """
     Write the body of a property: its description, enum items & type.
     The first line (e.g. ``.. attribute:: name``) is the responsibility of the caller.
+    ``type_override`` replaces the type RNA gives.
     """
     enum_descr_override = None
     if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
@@ -2574,6 +2593,8 @@ def pyrna_prop_body2sphinx(
         collection_id=_BPY_PROP_COLLECTION_ID,
         enum_descr_override=enum_descr_override,
     )
+    if type_override is not None:
+        type_descr = type_override
 
     prop_description = format_description_and_type_info(prop.description, type_info)
     if prop_description:
@@ -2686,6 +2707,7 @@ def pyrna2sphinx(basepath: Path) -> None:
     """
     # `structs, funcs, ops, props = rna_info.BuildRNAInfo()`
     structs, _funcs, ops, _props = rna_info_BuildRNAInfo_cache()
+    rna_thick_wrap_arrays_check()
 
     if USE_ONLY_BUILTIN_RNA_TYPES:
         # Ignore properties that use non `bpy.types` properties.
@@ -2959,7 +2981,9 @@ def pyrna2sphinx(basepath: Path) -> None:
                 fw("      :noindex:\n")
             fw("\n")
 
-            pyrna_prop_body2sphinx("      ", fw, prop)
+            pyrna_prop_body2sphinx(
+                "      ", fw, prop, type_override=RNA_THICK_WRAP_ARRAYS.get((struct_id, identifier)),
+            )
 
         # Screen context members (only for Context struct).
         if struct_id == "Context":
