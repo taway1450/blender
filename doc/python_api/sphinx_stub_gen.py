@@ -1205,6 +1205,21 @@ SETTER_VALUE_TYPES: dict[str, str] = {
     "Matrix": "Matrix | Sequence[Sequence[float]]",
 }
 
+BPY_PROP_ARRAY_RE = re.compile(r"bpy_prop_array\[(.+)\]")
+
+
+def attribute_setter_type(type_ann: str) -> str | None:
+    """
+    The value an attribute of type ``type_ann`` takes on assignment, when that is wider than ``type_ann``:
+    a math object or an array (``bpy_prop_array[float]``) takes any sequence of its elements.
+    """
+    if (setter_type := SETTER_VALUE_TYPES.get(type_ann)) is not None:
+        return setter_type
+    if (match := BPY_PROP_ARRAY_RE.fullmatch(type_ann)) is not None:
+        elem_type = match.group(1)
+        return "Sequence[{:s}]".format(attribute_setter_type(elem_type) or elem_type)
+    return None
+
 # `__getitem__` element types for C-extension classes implementing the sequence
 # protocol whose doc tree alone cannot drive the overloads (mathutils types are
 # the canonical case - they aren't RNA-backed). Each value is the element type
@@ -1561,6 +1576,8 @@ def write_class(
     if is_generic_collection:
         imports.add(("collections.abc", "Iterator"))
         skip_methods.update(("__iter__", "__getitem__"))
+        if cls.name == "bpy_prop_array":
+            skip_methods.add("__setitem__")
     elif is_collection_wrapper:
         skip_methods.update(("__iter__", "__getitem__"))
     elif sequence_elem_type is not None:
@@ -1602,6 +1619,12 @@ def write_class(
         fw("    def __getitem__(self, key: int, /) -> _T: ...\n")
         fw("    @overload\n")
         fw("    def __getitem__(self, key: slice, /) -> tuple[_T, ...]: ...\n")
+        # An item takes an element, a slice any iterable of elements (`image.pixels[:] = buffer`).
+        imports.add(("collections.abc", "Iterable"))
+        fw("    @overload\n")
+        fw("    def __setitem__(self, key: int, value: _T, /) -> None: ...\n")
+        fw("    @overload\n")
+        fw("    def __setitem__(self, key: slice, value: Iterable[_T], /) -> None: ...\n")
         fw("    def __iter__(self) -> Iterator[_T]: ...\n")
         has_members = True
 
@@ -1771,10 +1794,10 @@ def write_attribute(
     else:
         imports.add(("typing", "Any"))
         type_ann = "Any"
-    setter_type = SETTER_VALUE_TYPES.get(type_ann)
+    setter_type = attribute_setter_type(type_ann)
     if setter_type is not None and not attr.readonly and not attr.declaration and not is_narrowed:
-        # A writable math attribute reads as the math object but takes any sequence of its components,
-        # as `pyrna_py_to_array` does (`ob.location = (1, 1, 1)`): a property with a wider setter.
+        # A writable math or array attribute reads as the math object or the array but takes any sequence of
+        # its elements, as `pyrna_py_to_array` does (`ob.location = (1, 1, 1)`): a property with a wider setter.
         imports.add(("collections.abc", "Sequence"))
         if property_decorator != "property":
             imports.add(("__bare__", "builtins"))
