@@ -755,6 +755,27 @@ def write_enum_aliases_module(output_dir: Path) -> Path | None:
     return stub_path
 
 
+# Stubs written by hand for C modules without API docs (`_cycles`, `_bpy`, ...),
+# copied into the output as `<module>/__init__.pyi`.
+HANDWRITTEN_STUBS_DIR = Path(__file__).parent / "stubs_handwritten"
+
+
+def write_handwritten_stubs(output_dir: Path, generated: set[str]) -> list[Path]:
+    """Copy the hand-written stubs into *output_dir*, return their paths."""
+    stub_paths: list[Path] = []
+    for source in sorted(HANDWRITTEN_STUBS_DIR.glob("*.pyi")):
+        module_name = source.stem
+        if module_name in generated:
+            print("Error: hand-written stub {:s} clashes with a generated module".format(source.name), file=sys.stderr)
+            State.structure_errors += 1
+            continue
+        content = "# Copied by sphinx_stub_gen.py from stubs_handwritten/{:s} - do not edit\n{:s}".format(
+            source.name, source.read_text(encoding="utf-8"),
+        )
+        stub_paths.append(write_stub(output_dir, module_name, content))
+    return stub_paths
+
+
 # ----------------------------------------------------------------------------
 # Type Conversion
 
@@ -2132,6 +2153,11 @@ def main() -> int:
         stub_paths.append(stub_path)
         if GLOBAL.verbose:
             print("Generated: {:s}".format(str(stub_path)))
+
+    for stub_path in write_handwritten_stubs(output_dir, {name for name, _ in stub_contents}):
+        stub_paths.append(stub_path)
+        if GLOBAL.verbose:
+            print("Copied: {:s}".format(str(stub_path)))
 
     print("\nStubs written to: {:s}".format(str(output_dir)))
     print("Add to mypy config: mypy_path = doc/python_api/stubs")
