@@ -50,6 +50,7 @@ import warnings
 
 from collections.abc import (
     Callable,
+    Iterable,
     Iterator,
     Sequence,
 )
@@ -1369,6 +1370,23 @@ def pyprop2sphinx(ident: str, fw: WriteFn, identifier: str, py_prop: stub.PyProp
         fw(ident + "   (readonly)\n\n")
 
 
+def pyvalues_type_str(values: Iterable[object], module_name: str) -> str:
+    """
+    The RST type of the items of a container, e.g. ``str`` or ``:class:`imbuf.types.ImBufFileType```,
+    a union for items of several types, ``Any`` for none.
+    """
+    names = []
+    for value_type in sorted({type(value) for value in values}, key=lambda value_type: value_type.__qualname__):
+        type_module = value_type.__module__
+        if type_module == "builtins":
+            names.append(value_type.__name__)
+        elif type_module == module_name:
+            names.append(":class:`{:s}`".format(value_type.__qualname__))
+        else:
+            names.append(":class:`{:s}.{:s}`".format(type_module, value_type.__qualname__))
+    return " | ".join(names) if names else "Any"
+
+
 def pymodule2sphinx(
         basepath: Path,
         module_name: str,
@@ -1561,6 +1579,17 @@ def pymodule2sphinx(
             write_indented_lines("   ", fw, "Constant value {!r}".format(value), False)
             fw("\n")
             fw("   :type: {:s}\n\n".format(value_type.__name__))
+        elif value_type is frozenset:
+            fw(".. data:: {:s}\n\n".format(attribute))
+            fw("   A frozen set.\n\n")
+            fw("   :type: frozenset[{:s}]\n\n".format(pyvalues_type_str(value, module_name)))
+        elif value_type is types.MappingProxyType:
+            fw(".. data:: {:s}\n\n".format(attribute))
+            fw("   A read-only dictionary.\n\n")
+            fw("   :type: MappingProxyType[{:s}, {:s}]\n\n".format(
+                pyvalues_type_str(value.keys(), module_name),
+                pyvalues_type_str(value.values(), module_name),
+            ))
         else:
             BPY_LOGGER.debug("\tnot documenting %s.%s of %r type", module_name, attribute, value_type.__name__)
             continue

@@ -773,6 +773,7 @@ STDLIB_TYPE_MODULES: dict[str, str] = {
     "MutableSequence": "collections.abc",
     "Sequence": "collections.abc",
 
+    "MappingProxyType": "types",
     "ModuleType": "types",
 }
 
