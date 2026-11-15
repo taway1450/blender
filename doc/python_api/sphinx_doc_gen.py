@@ -1710,6 +1710,9 @@ class ClassOverrides(NamedTuple):
     # Use for slots that exist in the type's protocol struct but always raise
     # (e.g. `Vector.__imatmul__` exists but unconditionally errors).
     excluded_dunders: set[str] | None = None
+    # Read-only attributes introspection can't find (not in the type's `__dict__`),
+    # mapped to their `(description, RST type)`.
+    attributes: dict[str, tuple[str, str]] | None = None
 
 
 CLASS_OVERRIDES: dict[tuple[str, str], ClassOverrides] = {
@@ -1865,6 +1868,11 @@ CLASS_OVERRIDES: dict[tuple[str, str], ClassOverrides] = {
             ),
             # Not in `DUNDER_METHODS`: most types with the slot raise on `del`.
             "__delitem__": DunderInfo("(key)", {"key": DunderParam("str", "ID property name.")}, ""),
+        },
+        # `pyrna_subtype_set_rna` sets `bl_rna` on each RNA class (also read from instances),
+        # so it is never in `bpy_struct.__dict__`.
+        attributes={
+            "bl_rna": ("The RNA type of this struct, a class attribute.", ":class:`Struct`"),
         },
     ),
     # bpy_prop_collection returns bpy_struct elements, not float.
@@ -3252,6 +3260,12 @@ def pyrna2sphinx(basepath: Path) -> None:
             for key, descr in descr_items:
                 if type(descr) == GetSetDescriptorType:
                     py_descr2sphinx("   ", fw, descr, class_module_name, class_name, key, is_class=True)
+
+            overrides = CLASS_OVERRIDES.get((class_module_name, class_name), EMPTY_CLASS_OVERRIDES)
+            for key, (attr_descr, attr_type) in sorted((overrides.attributes or {}).items()):
+                fw("   .. data:: {:s}\n\n".format(key))
+                fw("      {:s}\n\n".format(attr_descr))
+                fw("      :type: {:s}\n\n".format(attr_type))
 
             if USE_STUB_GEN:
                 write_dunder_methods(fw, class_value, class_module_name, class_name)
