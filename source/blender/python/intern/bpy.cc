@@ -272,7 +272,9 @@ PyDoc_STRVAR(
     "   :param type: string in ['DATAFILES', 'SCRIPTS', 'EXTENSIONS', 'PYTHON'].\n"
     "   :type type: str\n"
     "   :param path: Optional subdirectory.\n"
-    "   :type path: str | bytes\n");
+    "   :type path: str | bytes\n"
+    "   :return: The path, empty when not found.\n"
+    "   :rtype: str\n");
 static PyObject *bpy_system_resource(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   const PyC_StringEnumItems type_items[] = {
