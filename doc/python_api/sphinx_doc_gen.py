@@ -1724,6 +1724,21 @@ CLASS_OVERRIDES: dict[tuple[str, str], ClassOverrides] = {
             "__radd__", "__rsub__", "__rmatmul__",
         },
     ),
+    # `Matrix.row` / `Matrix.col`: each item is a row or column `Vector` (`MatrixAccess_subscript`),
+    # a slice gives a tuple of them, and assigning takes a sequence of floats.
+    ("mathutils", "MatrixAccess"): ClassOverrides(
+        dunders={
+            "__getitem__": DunderInfo(overloads=[
+                DunderOverload("int", ":class:`Vector`"),
+                DunderOverload("slice", "tuple[:class:`Vector`, ...]"),
+            ]),
+            "__iter__": DunderInfo(return_type="Iterator[:class:`Vector`]"),
+            "__setitem__": DunderInfo(params={
+                "key": DunderParam("int", "Index."),
+                "value": DunderParam("Sequence[float]", "Row or column to assign."),
+            }),
+        },
+    ),
     ("mathutils", "Color"): ClassOverrides(
         dunders={
             # `Color_mul` only accepts a scalar (col * col is unsupported).
