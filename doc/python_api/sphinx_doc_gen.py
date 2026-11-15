@@ -624,6 +624,17 @@ def is_attr_private(module_name: str, attribute: str) -> bool:
     return False
 
 
+# Public attributes of a module with `__all__` that aren't in it, to document anyway
+# (only `__all__` is documented otherwise). Maps module name to the identifiers.
+# NOTE: scripts use these (they have no private name), so they belong in the documented API.
+PUBLIC_ATTR_INCLUDE: dict[str, set[str]] = {
+    "bpy.utils": {
+        "is_path_builtin",
+        "system_resource",
+    },
+}
+
+
 MODULE_GROUPING: dict[str, tuple[str | tuple[str, str], ...]] = {
     "bmesh.types": (
         ("Base Mesh Type", "-"),
@@ -1373,7 +1384,7 @@ def pymodule2sphinx(
     module_dir = sorted(dir(module))
 
     if module_all:
-        module_dir = module_all
+        module_dir = [*module_all, *sorted(PUBLIC_ATTR_INCLUDE.get(module_name, set()) - set(module_all))]
 
     # TODO: currently only used for classes.
     # Grouping support.
