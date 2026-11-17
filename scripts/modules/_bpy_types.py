@@ -162,16 +162,9 @@ class Texture(_types.ID):
 
         :type: tuple[:class:`Material`, ...]
 
-        .. note:: Takes ``O(len(bpy.data.materials) * len(material.texture_slots))`` time.
+        .. note:: Materials have no texture slots since 2.80, so this is always empty.
         """
-        import bpy
-        return tuple(
-            mat for mat in bpy.data.materials
-            if self in (
-                slot.texture for slot in mat.texture_slots
-                if slot is not None
-            )
-        )
+        return ()
 
     @property
     def users_object_modifier(self):
