@@ -4,7 +4,7 @@
 
 """Functions for finding and working with Asset Browsers."""
 
-from typing import Iterable, Optional, Tuple
+from typing import Iterable, Optional
 
 import bpy
 from bpy_extras import asset_utils
@@ -26,7 +26,7 @@ def biggest_asset_browser_area(screen: bpy.types.Screen) -> Optional[bpy.types.A
     :return: the Area, or None if no Asset Browser area exists.
     """
 
-    def area_sorting_key(area: bpy.types.Area) -> Tuple[bool, int]:
+    def area_sorting_key(area: bpy.types.Area) -> int:
         """Return area size in pixels."""
         return area.width * area.height
 

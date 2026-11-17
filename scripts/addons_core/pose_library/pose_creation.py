@@ -25,10 +25,10 @@ from bpy.types import (
     Action,
     ActionChannelbag,
     ActionSlot,
-    Bone,
     Context,
     FCurve,
     Keyframe,
+    PoseBone,
 )
 
 FCurveValue = Union[float, int]
@@ -214,7 +214,7 @@ class PoseActionCreator:
         fcurve.update()
 
     @classmethod
-    def _current_value(cls, datablock: bpy.types.ID, data_path: str, array_index: int) -> FCurveValue:
+    def _current_value(cls, datablock: bpy.types.bpy_struct, data_path: str, array_index: int) -> FCurveValue:
         """Resolve an RNA path + array index to an actual value."""
         value_or_array = cls._path_resolve(datablock, data_path)
 
@@ -247,7 +247,7 @@ class PoseActionCreator:
         return cast(FCurveValue, value_or_array[array_index])  # type: ignore
 
     @staticmethod
-    def _path_resolve(datablock: bpy.types.ID, data_path: str) -> Union[FCurveValue, Iterable[FCurveValue]]:
+    def _path_resolve(datablock: bpy.types.bpy_struct, data_path: str) -> Union[FCurveValue, Iterable[FCurveValue]]:
         """Wrapper for datablock.path_resolve(data_path).
 
         Raise UnresolvablePathError when the path cannot be resolved.
@@ -260,14 +260,14 @@ class PoseActionCreator:
             raise UnresolvablePathError(str(ex)) from ex
 
     @functools.lru_cache(maxsize=1024)
-    def _find_bone(self, bone_name: str) -> Bone:
+    def _find_bone(self, bone_name: str) -> PoseBone:
         """Find a bone by name.
 
         Assumes the named bone exists, as the bones this class handles comes
         from the user's selection, and you can't select a non-existent bone.
         """
 
-        bone: Bone = self.params.armature_ob.pose.bones[bone_name]
+        bone: PoseBone = self.params.armature_ob.pose.bones[bone_name]
         return bone
 
     def _has_key_on_frame(self, fcurve: FCurve) -> bool:
@@ -355,7 +355,7 @@ def copy_fcurve_without_keys(dst_channelbag: ActionChannelbag, src_fcurve: FCurv
     return dst_fcurve
 
 
-def copy_keyframe(dst_fcurve: FCurve, src_keyframe: Keyframe) -> Keyframe:
+def copy_keyframe(dst_fcurve: FCurve, src_keyframe: Keyframe) -> Optional[Keyframe]:
     """Copy a keyframe from one FCurve to the other."""
 
     dst_keyframe = dst_fcurve.keyframe_points.insert(
