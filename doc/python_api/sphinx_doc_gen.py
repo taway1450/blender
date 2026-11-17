@@ -2444,6 +2444,19 @@ context_type_map = {
     "world": [("World", False)],
 }
 
+# Context members that no context callback lists, set on a layout with `UILayout.context_pointer_set`
+# (or given by a region's context callback) and read back from the context store,
+# so only buttons in that layout (or that region) see them:
+# `context_member: RNA type`. Outside it they are None.
+context_store_type_map = {
+    "animated_id": "ID",
+    "asset_shelf": "AssetShelf",
+    "constraint": "Constraint",
+    "freestyle_module": "FreestyleModuleSettings",
+    "keymap": "KeyMap",
+    "tool": "WorkSpaceTool",
+}
+
 if bpy.app.build_options.experimental_features:
     experimental: dict[str, list[tuple[str, bool]]] = {
         # No experimental members in context currently.
@@ -2549,6 +2562,18 @@ def pycontext_members2sphinx(ident: str, fw: WriteFn, written_props: set[str]) -
 
             fw("{:s}   :type: {:s}\n\n".format(ident, " | ".join(type_strs)))
             write_example_ref(ident + "   ", fw, "bpy.context." + member)
+
+    fw("\n{:s}.. rubric:: Context Store\n\n".format(ident))
+    for member, member_type in sorted(context_store_type_map.items()):
+        if member in unique:
+            raise SystemExit(
+                "Error: context key {!r} is also in context_store_type_map; update {:s}".format(member, __file__)
+            )
+        unique.add(member)
+        fw("{:s}.. data:: {:s}\n\n".format(ident, member))
+        fw("{:s}   Only set for the layout (or region) that provides it.\n\n".format(ident))
+        fw("{:s}   :type: :class:`{:s}` | None\n\n".format(ident, member_type))
+        write_example_ref(ident + "   ", fw, "bpy.context." + member)
 
     # A bit of a hack: add a trailing rubric so that the methods which follow
     # aren't visually grouped under the last context heading.
