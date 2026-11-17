@@ -18,6 +18,7 @@ class ViewOperator(bpy.types.Operator):
         rv3d = v3d.region_3d
 
         rv3d.view_location = self._initial_location + Vector(self.offset)
+        return {'FINISHED'}
 
     def modal(self, context, event):
         v3d = context.space_data
