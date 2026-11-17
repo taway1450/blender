@@ -13,7 +13,6 @@ from bpy.types import (
     Menu,
     Panel,
     UILayout,
-    UIList,
 )
 from _bl_ui_utils.layout import operator_context
 
@@ -78,7 +77,7 @@ class VIEW3D_AST_pose_library(bpy.types.AssetShelf):
         layout.operator("asset.open_containing_blend_file", icon='FILE_BLEND')
 
 
-def pose_library_asset_browser_context_menu(self: UIList, context: Context) -> None:
+def pose_library_asset_browser_context_menu(self: Menu, context: Context) -> None:
     def is_pose_library_asset_browser() -> bool:
         asset_library_ref = getattr(context, "asset_library_reference", None)
         if not asset_library_ref:
