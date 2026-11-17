@@ -57,7 +57,9 @@ class BlenderGlTF():
 
             # If needed, create not used images
             for img_idx in [i for i in range(len(gltf.data.images)) if gltf.data.images[i].blender_image_name is None]:
-                BlenderImage.create(gltf, img_idx)
+                img = gltf.data.images[img_idx]
+                use_ktx_loader = img.mime_type == "image/ktx2" or (img.uri or "").lower().endswith(".ktx2")
+                BlenderImage.create(gltf, img_idx, use_ktx_loader)
                 # Force image users (fake user)
                 bpy.data.images[gltf.data.images[img_idx].blender_image_name].use_fake_user = True
 
