@@ -2134,7 +2134,7 @@ static void rna_def_uilist(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(
       func, "data", "AnyType", "", "Data from which to take Collection property");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   parm = RNA_def_pointer(func, "item", "AnyType", "", "Item of the collection property");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
   parm = RNA_def_int(
@@ -2182,7 +2182,7 @@ static void rna_def_uilist(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(
       func, "data", "AnyType", "", "Data from which to take Collection property");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   parm = RNA_def_string(
       func, "property", nullptr, 0, "", "Identifier of property in data, for the collection");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
@@ -2497,7 +2497,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   RNA_def_function_return(func, RNA_def_boolean(func, "visible", false, "", ""));
   parm = RNA_def_pointer(
       func, "asset", "AssetRepresentation", "", "The asset to test for visibility");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "get_active_asset", nullptr);
   RNA_def_function_ui_description(
@@ -2519,9 +2519,9 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   parm = RNA_def_pointer(func, "context", "Context", "", "The context");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "asset", "AssetRepresentation", "", "The active asset");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "The layout to draw into");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
   prop = rna_def_asset_library_ui_reference_common(
       srna, "rna_AssetShelf_asset_library_get", "rna_AssetShelf_asset_library_set");
