@@ -466,6 +466,11 @@ class QuickSmoke(ObjectModeOperator, Operator):
             return {'CANCELLED'}
 
         for obj in mesh_objects:
+            if any(mod.type == 'FLUID' for mod in obj.modifiers):
+                self.report({'ERROR'}, rpt_("Object {!r} already has a fluid modifier").format(obj.name))
+                return {'CANCELLED'}
+
+        for obj in mesh_objects:
             fluid = obj.modifiers.new(name=data_("Fluid"), type='FLUID')
             fluid.fluid_type = 'FLOW'
 
@@ -566,6 +571,11 @@ class QuickLiquid(Operator):
         if not mesh_objects:
             self.report({'ERROR'}, "Select at least one mesh object")
             return {'CANCELLED'}
+
+        for obj in mesh_objects:
+            if any(mod.type == 'FLUID' for mod in obj.modifiers):
+                self.report({'ERROR'}, rpt_("Object {!r} already has a fluid modifier").format(obj.name))
+                return {'CANCELLED'}
 
         # set shading type to wireframe so that liquid particles are visible
         for area in bpy.context.screen.areas:
