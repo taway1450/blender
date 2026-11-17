@@ -578,11 +578,12 @@ class QuickLiquid(Operator):
                 return {'CANCELLED'}
 
         # set shading type to wireframe so that liquid particles are visible
-        for area in bpy.context.screen.areas:
-            if area.type == 'VIEW_3D':
-                for space in area.spaces:
-                    if space.type == 'VIEW_3D':
-                        space.shading.type = 'WIREFRAME'
+        if (screen := context.screen) is not None:
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    for space in area.spaces:
+                        if space.type == 'VIEW_3D':
+                            space.shading.type = 'WIREFRAME'
 
         for obj in mesh_objects:
             fluid = obj.modifiers.new(name=data_("Fluid"), type='FLUID')
