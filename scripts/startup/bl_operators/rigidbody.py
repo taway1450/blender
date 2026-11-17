@@ -169,10 +169,10 @@ class BakeToKeyframes(Operator):
 
             # clean up keyframes
             for obj in objects:
-                channelbag = anim_utils.action_get_channelbag_for_slot(
-                    obj.animation_data.action,
-                    obj.animation_data.action_slot,
-                )
+                if (adt := obj.animation_data) is None:
+                    # Nothing was keyed, e.g. the frame range is empty.
+                    continue
+                channelbag = anim_utils.action_get_channelbag_for_slot(adt.action, adt.action_slot)
                 if not channelbag:
                     continue
                 for fcu in channelbag.fcurves:
