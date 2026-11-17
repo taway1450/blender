@@ -6,11 +6,14 @@ import bpy
 import math
 
 from mathutils import Vector, Matrix
-from typing import Optional, Callable, Iterable, overload
+from typing import Optional, Callable, Iterable, Literal, TypeAlias, overload
 
 from .errors import MetarigError
 from .naming import get_name, make_derived_name, is_control_bone
 from .misc import pairwise, ArmatureObject
+
+# How a bone inherits the scale of its parent (`EditBone.inherit_scale`).
+InheritScale: TypeAlias = Literal['FULL', 'FIX_SHEAR', 'ALIGNED', 'AVERAGE', 'NONE', 'NONE_LEGACY']
 
 
 ########################
@@ -491,7 +494,7 @@ class BoneUtilityMixin(object):
         return get_name(self.get_bone(bone_name).parent)
 
     def set_bone_parent(self, bone_name: str, parent_name: Optional[str],
-                        use_connect=False, inherit_scale: Optional[str] = None):
+                        use_connect=False, inherit_scale: Optional[InheritScale] = None):
         """Set the parent of the bone."""
         eb = self.obj.data.edit_bones
         bone = eb[bone_name]
@@ -503,7 +506,7 @@ class BoneUtilityMixin(object):
 
     def parent_bone_chain(self, bone_names: Iterable[str],
                           use_connect: Optional[bool] = None,
-                          inherit_scale: Optional[str] = None):
+                          inherit_scale: Optional[InheritScale] = None):
         """Link bones into a chain with parenting. First bone may be None."""
         for parent, child in pairwise(bone_names):
             self.set_bone_parent(

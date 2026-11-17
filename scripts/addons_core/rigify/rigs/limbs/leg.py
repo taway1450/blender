@@ -6,7 +6,7 @@ import bpy
 import math
 import json
 
-from typing import Optional
+from typing import Literal, Optional
 from mathutils import Vector, Matrix
 
 from ...utils.rig import is_rig_base_bone
@@ -36,7 +36,7 @@ class Rig(BaseLimbRig):
     min_valid_orgs = max_valid_orgs = 4
 
     pivot_type: str
-    heel_euler_order: str
+    heel_euler_order: Literal['ZXY', 'XZY']
     use_ik_toe: bool
     use_toe_roll: bool
 

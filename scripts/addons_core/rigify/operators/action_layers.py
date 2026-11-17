@@ -356,9 +356,11 @@ class RIGIFY_OT_jump_to_action_slot(Operator):
 
 # noinspection PyPep8Naming
 class RIGIFY_UL_action_slots(UIList):
-    def draw_item(self, context: Context, layout: UILayout, data: Armature,
-                  action_slot: ActionSlot, icon, active_data, active_propname: str,
+    def draw_item(self, context: Context, layout: UILayout, data,
+                  action_slot, icon, active_data, active_propname: str,
                   slot_index: int = 0, flt_flag: int = 0):
+        # Drawn from `Armature.rigify_action_slots`.
+        assert isinstance(data, Armature) and isinstance(action_slot, ActionSlot)
         action_slots, action_slot_idx = get_action_slots_active(data)
         active_action = action_slots[action_slot_idx]
 

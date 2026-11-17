@@ -17,6 +17,8 @@ from rna_prop_ui import rna_idprop_quote_path as quote_property
 from .misc import force_lazy, ArmatureObject, Lazy, OptionalLazy
 
 if TYPE_CHECKING:
+    from _rna_enums import rna_enum_constraint_type_items
+
     from ..base_rig import BaseRig
 
 
@@ -51,7 +53,7 @@ def limit_rotation_ensure_legacy_behavior(constraint: bpy.types.Constraint):
 
 
 def make_constraint(
-        owner: Object | PoseBone, con_type: str,
+        owner: Object | PoseBone, con_type: 'rna_enum_constraint_type_items',
         target: Optional[Object] = None,
         subtarget: OptionalLazy[str] = None, *,
         insert_index: Optional[int] = None,
@@ -621,7 +623,7 @@ class MechanismUtilityMixin(object):
     Requires self.obj to be the armature object being worked on.
     """
 
-    def make_constraint(self, bone: str, con_type: str,
+    def make_constraint(self, bone: str, con_type: 'rna_enum_constraint_type_items',
                         subtarget: OptionalLazy[str] = None, *,
                         insert_index: Optional[int] = None,
                         space: Optional[str] = None,

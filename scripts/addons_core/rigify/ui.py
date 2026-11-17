@@ -19,7 +19,7 @@ from bpy.app.translations import (
 from bpy_extras import anim_utils
 
 from collections import defaultdict
-from typing import TYPE_CHECKING, Callable, Any
+from typing import TYPE_CHECKING, Callable, Any, Literal, TypeAlias
 from mathutils import Color
 
 from .utils.errors import MetarigError
@@ -49,6 +49,12 @@ from . import feature_set_list
 if TYPE_CHECKING:
     from . import RigifyName, RigifySelectionColors
 
+# The bone color themes a color set can be added from (`Armature.rigify_theme_to_add`).
+BoneTheme: TypeAlias = Literal[
+    'THEME01', 'THEME02', 'THEME03', 'THEME04', 'THEME05', 'THEME06', 'THEME07', 'THEME08', 'THEME09', 'THEME10',
+    'THEME11', 'THEME12', 'THEME13', 'THEME14', 'THEME15', 'THEME16', 'THEME17', 'THEME18', 'THEME19', 'THEME20',
+]
+
 
 def get_rigify_types(id_store: bpy.types.WindowManager) -> IdPropSequence['RigifyName']:
     return id_store.rigify_types  # noqa
@@ -70,7 +76,7 @@ def get_colors_index(armature: bpy.types.Armature) -> int:
     return armature.rigify_colors_index  # noqa
 
 
-def get_theme_to_add(armature: bpy.types.Armature) -> str:
+def get_theme_to_add(armature: bpy.types.Armature) -> BoneTheme:
     return armature.rigify_theme_to_add  # noqa
 
 
