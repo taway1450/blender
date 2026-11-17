@@ -519,7 +519,11 @@ class InfoPropertyRNA:
             if self.type in {"float", "int"}:
                 type_info.append("in [{:s}, {:s}]".format(range_str(self.min), range_str(self.max)))
             elif self.type == "enum":
-                if enum_descr_override:
+                if [item[0] for item in self.enum_items] == ["DEFAULT"]:
+                    # A dynamic enum whose static items are only a placeholder default
+                    # (e.g. `rna_enum_dummy_DEFAULT_items`), its real items come from a callback.
+                    enum_items_str = ""
+                elif enum_descr_override:
                     enum_items_str = enum_descr_override
                 else:
                     enum_items_str = ", ".join("'{:s}'".format(s[0]) for s in self.enum_items)
@@ -528,7 +532,7 @@ class InfoPropertyRNA:
                 if as_arg and self.default == '' and enum_items_str:
                     enum_items_str = "'', " + enum_items_str
                 if not enum_items_str:
-                    # Dynamically generated enums have no static items,
+                    # Dynamically generated enums have no static items (or only a placeholder),
                     # fall back to a plain string type.
                     if self.is_enum_flag:
                         type_str = "set[str]"
