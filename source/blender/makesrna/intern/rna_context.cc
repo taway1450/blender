@@ -262,6 +262,7 @@ void RNA_def_context(BlenderRNA *brna)
   /* WM */
   prop = RNA_def_property(srna, "window_manager", PROP_POINTER, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_struct_type(prop, "WindowManager");
   RNA_def_property_pointer_funcs(prop, "rna_Context_manager_get", nullptr, nullptr, nullptr);
 
@@ -361,6 +362,7 @@ void RNA_def_context(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "preferences", PROP_POINTER, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_struct_type(prop, "Preferences");
   RNA_def_property_pointer_funcs(prop, "rna_Context_preferences_get", nullptr, nullptr, nullptr);
 
