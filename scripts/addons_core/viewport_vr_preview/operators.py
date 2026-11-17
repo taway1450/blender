@@ -740,7 +740,9 @@ class VIEW3D_OT_vr_location_scouting_active_camera_to_capture(Operator):
 
     @classmethod
     def poll(cls, context):
-        return len(context.scene.vr_captures) > 0
+        scene = context.scene
+        camera = scene.camera
+        return len(scene.vr_captures) > 0 and camera is not None and camera.type == 'CAMERA'
 
     def execute(self, context):
         capture = properties.VRCapture.get_selected_capture(context)
