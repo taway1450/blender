@@ -272,7 +272,7 @@ class MoveModifierToNodes(Operator):
             objects = [context.object]
 
         for ob in objects:
-            modifier = ob.modifiers[modifier_name]
+            modifier = ob.modifiers.get(modifier_name)
             if not modifier:
                 continue
             old_group = modifier.node_group
