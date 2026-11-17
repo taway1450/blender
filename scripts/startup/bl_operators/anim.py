@@ -43,6 +43,13 @@ class ANIM_OT_keying_set_export(Operator):
         options={'HIDDEN'},
     )
 
+    @classmethod
+    def poll(cls, context):
+        if context.scene.keying_sets.active is None:
+            cls.poll_message_set("No active keying set to export")
+            return False
+        return True
+
     def execute(self, context):
         from bpy.utils import escape_identifier
 
@@ -53,8 +60,7 @@ class ANIM_OT_keying_set_export(Operator):
         if not f:
             raise Exception("Could not open file")
 
-        scene = context.scene
-        ks = scene.keying_sets.active
+        ks = context.scene.keying_sets.active
 
         f.write("# Keying Set: {:s}\n".format(ks.bl_idname))
 
