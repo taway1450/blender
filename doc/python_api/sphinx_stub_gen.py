@@ -1919,7 +1919,7 @@ def write_attribute(
     #
     # A narrower attribute is a deliberate override: the base's type covers all its subclasses,
     # and this one always has the narrower value (type checkers report narrowing a mutable attribute).
-    comment = "  # ty: ignore[invalid-mutable-override]" if is_narrowed else ""
+    comment = "  # ty: ignore[incompatible-mutable-override]" if is_narrowed else ""
     fw("    {:s}: {:s} = ...{:s}\n".format(name, type_ann, comment))
     return True
 
