@@ -131,6 +131,7 @@ from freestyle.functions import (
     GetSteerableViewMapDensityF1D,
     GetZF1D,
     QuantitativeInvisibilityF0D,
+    QuantitativeInvisibilityF1D,
     ZDiscontinuityF1D,
     pyCurvilinearLengthF0D,
     pyDensityAnisotropyF1D,
