@@ -26,6 +26,8 @@ if "bpy" in locals():
 
 
 import os
+from typing import Literal
+
 import bpy
 from bpy.props import (
     StringProperty,
@@ -62,7 +64,7 @@ class ImportSVG(bpy.types.Operator, ImportHelper):
         from . import import_svg
 
         if self.files:
-            ret = {'CANCELLED'}
+            ret: set[Literal['FINISHED', 'CANCELLED']] = {'CANCELLED'}
             for file in self.files:
                 path = os.path.join(self.directory, file.name)
                 if import_svg.load(self, context, filepath=path) == {'FINISHED'}:
