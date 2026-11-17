@@ -318,7 +318,9 @@ PyDoc_STRVAR(
     "   :type reuse_liboverrides: bool\n"
     "   :param create_liboverrides_runtime: If True and ``create_liboverride`` is True,\n"
     "      create (or search for existing) runtime liboverride.\n"
-    "   :type create_liboverrides_runtime: bool\n");
+    "   :type create_liboverrides_runtime: bool\n"
+    "   :return: A context manager giving the input and output library objects on entering.\n"
+    "   :rtype: contextlib.AbstractContextManager[tuple[Any, Any]]\n");
 static PyObject *bpy_lib_load(BPy_PropertyRNA *self, PyObject *args, PyObject *kw)
 {
   Main *bmain_base = CTX_data_main(BPY_context_get());
