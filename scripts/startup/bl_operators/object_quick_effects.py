@@ -298,6 +298,10 @@ class QuickExplode(ObjectModeOperator, Operator):
                 self.report({'ERROR'}, rpt_("Object {!r} already has a particle system").format(obj.name))
 
                 return {'CANCELLED'}
+            # Matches `MAX_MTFACE`: the fade needs a new UV map.
+            if self.fade and len(obj.data.uv_layers) >= 8:
+                self.report({'ERROR'}, rpt_("Object {!r} has no room for another UV map").format(obj.name))
+                return {'CANCELLED'}
 
         if self.style == 'BLEND':
             from_obj = mesh_objects[1]
