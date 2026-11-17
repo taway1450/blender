@@ -409,7 +409,7 @@ class ARMATURE_OT_copy_bone_color_to_selected(Operator):
             # Armature in edit mode:
             case('POSE', 'EDIT_ARMATURE'):
                 self.report({'ERROR'}, "Go to pose mode to copy pose bone colors")
-                return {'OPERATOR_CANCELLED'}
+                return {'CANCELLED'}
             case('EDIT', 'EDIT_ARMATURE'):
                 bone_source = context.active_bone
                 bones_dest = context.selected_bones
