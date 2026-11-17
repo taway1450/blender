@@ -120,7 +120,7 @@ class BlenderPointerAnim():
                     xmag_values = BinaryData.get_data_from_accessor(
                         gltf, xmag_animation.samplers[xmag_channel.sampler].output)
                 else:
-                    xmag_keys == keys.copy()
+                    xmag_keys = keys.copy()
                     xmag_values = [asset.orthographic.xmag] * len(keys)
 
                 if "ymag" in asset.multiple_channels_mag.keys():
@@ -131,7 +131,7 @@ class BlenderPointerAnim():
                     ymag_values = BinaryData.get_data_from_accessor(
                         gltf, ymag_animation.samplers[ymag_channel.sampler].output)
                 else:
-                    ymag_keys == keys.copy()
+                    ymag_keys = keys.copy()
                     ymag_values = [asset.orthographic.ymag] * len(keys)
 
                 # We will manage it only if keys are the same... TODO ?
