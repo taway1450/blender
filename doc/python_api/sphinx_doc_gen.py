@@ -1993,13 +1993,8 @@ CLASS_OVERRIDES: dict[tuple[str, str], ClassOverrides] = {
     ),
     # bmesh element sequence types return their element, not float.
     # Iterating gives a `BMIter` (`BMEditSelIter`) yielding the elements (`bpy_bmelemseq_iter`).
-    ("bmesh.types", "BMElemSeq"): ClassOverrides(
-        dunders={
-            "__getitem__": DunderInfo(return_type=":class:`BMVert` | :class:`BMEdge` | :class:`BMFace`"),
-            "__iter__": DunderInfo(
-                return_type="Iterator[:class:`BMVert` | :class:`BMEdge` | :class:`BMFace`]"),
-        },
-    ),
+    # `BMElemSeq` holds verts, edges, faces or loops depending on the attribute, its attributes name the element
+    # (`BMFace.loops` is a `BMElemSeq[BMLoop]`), so `sphinx_stub_gen.py` makes it generic over them.
     ("bmesh.types", "BMVertSeq"): ClassOverrides(
         dunders={
             "__getitem__": DunderInfo(return_type=":class:`BMVert`"),

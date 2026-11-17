@@ -704,6 +704,11 @@ enum_alias_map: dict[str, list[str]] = {}
 # E.g. `{"Windows": "Window", "BlendDataObjects": "Object", ...}`.
 collection_element_map: dict[str, str] = {}
 
+# Populated by `build_collection_element_map()`.
+# Collection wrapper classes seen with more than one element class, written as `Generic[_T]`.
+# E.g. `BMElemSeq`, one C type for `BMVert.link_edges` (`BMElemSeq[BMEdge]`) and `BMFace.loops` (`BMElemSeq[BMLoop]`).
+generic_collection_wrappers: set[str] = set()
+
 
 def parse_enum_items(enum_dir: Path) -> None:
     """Parse shared enum RST files into ``enum_alias_map``."""
@@ -924,8 +929,9 @@ def convert_rst_type(
     result = result.strip()
 
     # Strip element type from collection wrapper references
-    # (e.g. `Windows[Window]` -> `Windows`).  The wrapper classes
+    # (e.g. `Windows[Window]` -> `Windows`).  These wrapper classes
     # aren't generic; the element type is conveyed via typed overloads.
+    # References to `generic_collection_wrappers` keep it.
     result = strip_collection_wrappers(result)
 
     return result
@@ -1546,7 +1552,7 @@ def write_class(
         imports.add(("collections.abc", "Sequence"))
         track_type_var("_T", imports)
         resolved.append("Sequence[_T]")
-    elif cls.name == "bpy_prop_collection":
+    elif cls.name == "bpy_prop_collection" or cls.name in generic_collection_wrappers:
         imports.add(("typing", "Generic"))
         track_type_var("_T", imports)
         resolved.append("Generic[_T]")
@@ -1611,13 +1617,19 @@ def write_class(
     sequence_elem_type = SEQUENCE_ELEM_TYPES.get((current_module, cls.name))
     is_generic_collection = cls.name in {"bpy_prop_array", "bpy_prop_collection"}
     is_collection_wrapper = cls.name in collection_element_map
-    assert sum((is_generic_collection, is_collection_wrapper, sequence_elem_type is not None)) <= 1
+    is_generic_collection_wrapper = cls.name in generic_collection_wrappers
+    assert sum((
+        is_generic_collection,
+        is_collection_wrapper,
+        is_generic_collection_wrapper,
+        sequence_elem_type is not None,
+    )) <= 1
     if is_generic_collection:
         imports.add(("collections.abc", "Iterator"))
         skip_methods.update(("__iter__", "__getitem__"))
         if cls.name == "bpy_prop_array":
             skip_methods.add("__setitem__")
-    elif is_collection_wrapper:
+    elif is_collection_wrapper or is_generic_collection_wrapper:
         skip_methods.update(("__iter__", "__getitem__"))
     elif sequence_elem_type is not None:
         # __iter__ rtype defaults to "self" in DUNDER_METHODS, which is wrong
@@ -1673,6 +1685,16 @@ def write_class(
         fw("    def __getitem__(self, key: int, /) -> _T: ...\n")
         fw("    @overload\n")
         fw("    def __getitem__(self, key: str, /) -> _T: ...\n")
+        fw("    @overload\n")
+        fw("    def __getitem__(self, key: slice, /) -> list[_T]: ...\n")
+        fw("    def __iter__(self) -> Iterator[_T]: ...\n")
+        has_members = True
+
+    if is_generic_collection_wrapper:
+        imports.add(("typing", "overload"))
+        imports.add(("collections.abc", "Iterator"))
+        fw("    @overload\n")
+        fw("    def __getitem__(self, key: int, /) -> _T: ...\n")
         fw("    @overload\n")
         fw("    def __getitem__(self, key: slice, /) -> list[_T]: ...\n")
         fw("    def __iter__(self) -> Iterator[_T]: ...\n")
@@ -1983,6 +2005,8 @@ def build_collection_element_map(modules: dict[str, ModuleInfo]) -> None:
     defined_classes.discard("bpy_prop_collection")
     defined_classes.discard("bpy_prop_array")
 
+    # Element types of each wrapper, in the order they're first seen.
+    wrapper_elements: dict[str, list[str]] = {}
     for mod in modules.values():
         for cls in mod.classes:
             for attr in cls.attributes:
@@ -1993,7 +2017,18 @@ def build_collection_element_map(modules: dict[str, ModuleInfo]) -> None:
                     clean = replace_class_roles(attr.type_str, lambda ref: ref.split(".")[-1])
                     pair = parse_bracket_pair(clean)
                     if pair and pair[0] in defined_classes:
-                        collection_element_map.setdefault(pair[0], pair[1])
+                        elements = wrapper_elements.setdefault(pair[0], [])
+                        if pair[1] not in elements:
+                            elements.append(pair[1])
+
+    for wrapper, elements in wrapper_elements.items():
+        # A wrapper holding different classes depending on the attribute is generic over them,
+        # its attributes keep their subscript (`link_loops: BMElemSeq[BMLoop]`).
+        # Others (including `BMLayerCollection`, subscripted by the layer's value type) map to their first element.
+        if len(elements) > 1 and all(element in defined_classes for element in elements):
+            generic_collection_wrappers.add(wrapper)
+        else:
+            collection_element_map[wrapper] = elements[0]
 
 
 def collect_class_refs(type_str: str | None, out: set[str]) -> None:
