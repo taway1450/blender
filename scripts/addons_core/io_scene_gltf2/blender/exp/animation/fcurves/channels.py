@@ -107,7 +107,14 @@ def gather_animation_fcurves_channels(
 
                 # No glTF channel here, as we don't have any target
                 # Trying to retrieve sampler directly
-                sampler = __gather_sampler(obj_uuid, tuple(channel_group), None, custom_range, True, export_settings)
+                sampler = __gather_sampler(
+                    chan['id_type'],
+                    obj_uuid,
+                    tuple(channel_group),
+                    None,
+                    custom_range,
+                    True,
+                    export_settings)
                 if sampler is not None:
                     additional_samplers.append((channel_group_name, sampler, "OBJECT", None))
 
