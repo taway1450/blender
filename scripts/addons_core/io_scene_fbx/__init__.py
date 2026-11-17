@@ -28,6 +28,8 @@ if "bpy" in locals():
         importlib.reload(export_fbx)
 
 
+from typing import Literal
+
 import bpy
 from bpy.app.translations import pgettext_iface as iface_
 from bpy.props import (
@@ -227,7 +229,7 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
         import os
 
         if self.files:
-            ret = {'CANCELLED'}
+            ret: set[Literal['FINISHED', 'CANCELLED']] = {'CANCELLED'}
             for file in self.files:
                 path = os.path.join(self.directory, file.name)
                 if import_fbx.load(self, context, filepath=path, **keywords) == {'FINISHED'}:

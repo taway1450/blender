@@ -14,6 +14,8 @@ if "bpy" in locals():
     if "fbx_utils" in locals():
         importlib.reload(fbx_utils)
 
+from typing import Literal
+
 import bpy
 from bpy.app.translations import pgettext_rpt as rpt_
 from mathutils import Matrix, Euler, Vector, Quaternion
@@ -2226,10 +2228,11 @@ def blen_read_light(fbx_tmpl, fbx_obj, settings):
     fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                  elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
 
-    light_type = {
+    light_types: dict[int, Literal['POINT', 'SUN', 'SPOT']] = {
         0: 'POINT',
         1: 'SUN',
-        2: 'SPOT'}.get(elem_props_get_enum(fbx_props, b'LightType', 0), 'POINT')
+        2: 'SPOT'}
+    light_type = light_types.get(elem_props_get_enum(fbx_props, b'LightType', 0), 'POINT')
 
     lamp = bpy.data.lights.new(name=elem_name_utf8, type=light_type)
 
