@@ -1267,7 +1267,7 @@ static void rna_def_keyingset_info(BlenderRNA *brna)
   parm = RNA_def_pointer(func, "context", "Context", "", "The context");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "ks", "KeyingSet", "", "Keying set this iterator runs on");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
   /* generate */
   func = RNA_def_function(srna, "generate", nullptr);
@@ -1277,7 +1277,7 @@ static void rna_def_keyingset_info(BlenderRNA *brna)
   parm = RNA_def_pointer(func, "context", "Context", "", "The context");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "ks", "KeyingSet", "", "Keying set to add paths to");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "data", "AnyType", "", "Data to add paths from");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 }
