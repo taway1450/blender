@@ -12,7 +12,12 @@ This test:
 4. Switches the Properties editor to the Constraints tab and redraws the panels.
 """
 
+from typing import TYPE_CHECKING, cast
+
 import modules.ui_test_utils as ui
+
+if TYPE_CHECKING:
+    from _rna_enums import rna_enum_constraint_type_items, rna_enum_object_modifier_type_items
 
 
 _BONE_ONLY_CONSTRAINTS = {
@@ -86,10 +91,10 @@ def modifiers_constraints_draw():
     yield
 
     # Step 1: Add all modifiers to objects dynamically
-    modifier_types = [
+    modifier_types = cast("list[rna_enum_object_modifier_type_items]", [
         item.identifier
         for item in bpy.types.Modifier.bl_rna.properties['type'].enum_items
-    ]
+    ])
     unsupported_modifiers = []
 
     for mod_type in modifier_types:
@@ -130,7 +135,9 @@ def modifiers_constraints_draw():
         yield
 
     # Step 3: Add all constraints
-    constraint_types = [item.identifier for item in bpy.types.Constraint.bl_rna.properties['type'].enum_items]
+    constraint_types = cast("list[rna_enum_constraint_type_items]", [
+        item.identifier for item in bpy.types.Constraint.bl_rna.properties['type'].enum_items
+    ])
     unsupported_constraints = []
     for const_type in constraint_types:
         if const_type in _BONE_ONLY_CONSTRAINTS:

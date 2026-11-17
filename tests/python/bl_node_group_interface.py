@@ -6,6 +6,7 @@ import pathlib
 import sys
 import unittest
 import tempfile
+from typing import Literal
 
 import bpy
 
@@ -368,7 +369,7 @@ class NodeGroupInterfaceTests:
 
 
 class GeometryNodeGroupInterfaceTest(AbstractNodeGroupInterfaceTest, NodeGroupInterfaceTests):
-    tree_type = "GeometryNodeTree"
+    tree_type: Literal['GeometryNodeTree'] = "GeometryNodeTree"
     group_node_type = "GeometryNodeGroup"
 
     def setUp(self):

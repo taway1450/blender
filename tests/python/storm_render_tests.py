@@ -7,6 +7,7 @@ import argparse
 import os
 import sys
 from pathlib import Path
+from typing import Literal, cast
 try:
     # Render report is not always available and leads to errors in the console logs that can be ignored.
     from modules import render_report
@@ -205,7 +206,8 @@ def setup():
 
     for scene in bpy.data.scenes:
         scene.render.engine = 'HYDRA_STORM'
-        scene.hydra.export_method = os.environ['BLENDER_HYDRA_EXPORT_METHOD']
+        # Set from `--export_method` by the test runner below.
+        scene.hydra.export_method = cast("Literal['HYDRA', 'USD']", os.environ['BLENDER_HYDRA_EXPORT_METHOD'])
 
 
 # When run from inside Blender, render and exit.

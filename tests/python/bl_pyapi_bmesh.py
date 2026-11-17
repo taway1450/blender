@@ -10,6 +10,10 @@ __all__ = (
 
 import bmesh
 import unittest
+from typing import Literal, TypeAlias
+
+# A value of `BMesh.select_mode`.
+SelectMode: TypeAlias = set[Literal['VERT', 'EDGE', 'FACE']]
 
 
 # ------------------------------------------------------------------------------
@@ -859,13 +863,14 @@ class TestBMeshUVSelectSimple(unittest.TestCase):
         which selects other edges & faces using them when the mesh selection is flushed.
         The UV selection must match the mesh.
         """
-        for select_mode, elem_type, expected in (
-                ({'VERT', 'FACE'}, 'FACE', (16, 24, 9)),
-                ({'EDGE', 'FACE'}, 'FACE', (16, 24, 9)),
-                ({'VERT', 'EDGE', 'FACE'}, 'FACE', (16, 24, 9)),
-                ({'VERT', 'EDGE'}, 'EDGE', (4, 4, 1)),
-                ({'VERT', 'EDGE', 'FACE'}, 'EDGE', (4, 4, 1)),
-        ):
+        cases: tuple[tuple[SelectMode, str, tuple[int, int, int]], ...] = (
+            ({'VERT', 'FACE'}, 'FACE', (16, 24, 9)),
+            ({'EDGE', 'FACE'}, 'FACE', (16, 24, 9)),
+            ({'VERT', 'EDGE', 'FACE'}, 'FACE', (16, 24, 9)),
+            ({'VERT', 'EDGE'}, 'EDGE', (4, 4, 1)),
+            ({'VERT', 'EDGE', 'FACE'}, 'EDGE', (4, 4, 1)),
+        )
+        for select_mode, elem_type, expected in cases:
             with self.subTest(select_mode=select_mode, elem_type=elem_type):
                 bm = bmesh.new()
                 uv_layer = bm.loops.layers.uv.new()
@@ -936,18 +941,19 @@ class TestBMeshUVSelectSimple(unittest.TestCase):
         which de-selects other elements using them when the mesh selection is flushed.
         The UV selection must match the mesh.
         """
-        for select_mode, elem_type, expected in (
-                ({'VERT', 'FACE'}, 'FACE', (12, 12, 0)),
-                ({'EDGE', 'FACE'}, 'FACE', (16, 20, 4)),
-                ({'VERT', 'EDGE', 'FACE'}, 'FACE', (12, 12, 0)),
-                ({'VERT', 'EDGE'}, 'EDGE', (14, 17, 3)),
-                ({'VERT', 'EDGE', 'FACE'}, 'EDGE', (14, 17, 3)),
-                # No vertex mode, only the edge & its faces are de-selected.
-                ({'EDGE', 'FACE'}, 'EDGE', (16, 23, 7)),
-                # A wire edge from a corner, de-selecting it de-selects the corner.
-                ({'VERT', 'EDGE'}, 'WIRE', (15, 22, 8)),
-                ({'VERT', 'EDGE', 'FACE'}, 'WIRE', (15, 22, 8)),
-        ):
+        cases: tuple[tuple[SelectMode, str, tuple[int, int, int]], ...] = (
+            ({'VERT', 'FACE'}, 'FACE', (12, 12, 0)),
+            ({'EDGE', 'FACE'}, 'FACE', (16, 20, 4)),
+            ({'VERT', 'EDGE', 'FACE'}, 'FACE', (12, 12, 0)),
+            ({'VERT', 'EDGE'}, 'EDGE', (14, 17, 3)),
+            ({'VERT', 'EDGE', 'FACE'}, 'EDGE', (14, 17, 3)),
+            # No vertex mode, only the edge & its faces are de-selected.
+            ({'EDGE', 'FACE'}, 'EDGE', (16, 23, 7)),
+            # A wire edge from a corner, de-selecting it de-selects the corner.
+            ({'VERT', 'EDGE'}, 'WIRE', (15, 22, 8)),
+            ({'VERT', 'EDGE', 'FACE'}, 'WIRE', (15, 22, 8)),
+        )
+        for select_mode, elem_type, expected in cases:
             with self.subTest(select_mode=select_mode, elem_type=elem_type):
                 bm = bmesh.new()
                 uv_layer = bm.loops.layers.uv.new()

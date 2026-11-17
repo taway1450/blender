@@ -6,7 +6,12 @@
 This file does not run anything, its methods are accessed for tests by ``run_blender_setup.py``.
 """
 
+from typing import TYPE_CHECKING, cast
+
 import modules.ui_test_utils as ui
+
+if TYPE_CHECKING:
+    from _rna_enums import rna_enum_preference_section_items
 
 
 def _find_preferences_window():
@@ -61,7 +66,7 @@ def test_preferences_draw_all():
             if item.identifier == 'EXPERIMENTAL' and bpy.app.version_cycle != 'alpha':
                 continue
             with bpy.context.temp_override(window=prefs_window, area=prefs_area):
-                prefs.active_section = item.identifier
+                prefs.active_section = cast("rna_enum_preference_section_items", item.identifier)
             yield
             if item.identifier == "ADDONS":
                 yield from expand_addons()

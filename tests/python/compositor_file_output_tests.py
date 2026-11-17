@@ -238,7 +238,7 @@ class FileOutputTest(unittest.TestCase):
         bpy.ops.wm.open_mainfile(filepath=blendfile)
         # Set output directory for all existing file output nodes.
         set_directory(bpy.data.scenes[0].compositing_node_group, f'{curr_out_dir}/')
-        bpy.data.scenes[0].render.compositor_device = f'{self.execution_device}'
+        bpy.data.scenes[0].render.compositor_device = self.execution_device
         bpy.ops.render.render(animation=True, frame_start=1, frame_end=1)
 
 

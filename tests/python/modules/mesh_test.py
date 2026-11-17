@@ -25,11 +25,15 @@
 
 
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Literal
 import bpy
 import bmesh
 import functools
 import inspect
 import os
+
+if TYPE_CHECKING:
+    from _rna_enums import rna_enum_object_mode_items
 
 # Output from this module and from blender itself will occur during tests.
 # We need to flush python so that the output is properly interleaved, otherwise
@@ -111,7 +115,7 @@ class OperatorSpecEditMode:
             self,
             operator_name: str,
             operator_parameters: dict,
-            select_mode: str,
+            select_mode: Literal['VERT', 'EDGE', 'FACE'],
             selection,
             *,
             select_history: bool = False,
@@ -144,7 +148,7 @@ class OperatorSpec:
     Holds an operator and its parameters.
     """
 
-    def __init__(self, mode: str, operator_name: str, operator_parameters: dict):
+    def __init__(self, mode: 'rna_enum_object_mode_items', operator_name: str, operator_parameters: dict):
         """
         :param mode: str - the mode to be switched to prior to executing this operator
         :param operator_name: str - name of the operator, along with its containing module , e.g. "object.shade_smooth" or "object.shape_keys"

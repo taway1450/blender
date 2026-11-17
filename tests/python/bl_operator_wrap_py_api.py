@@ -13,8 +13,12 @@ __all__ = (
 
 import contextlib
 import unittest
+from typing import TYPE_CHECKING, cast
 
 import bpy
+
+if TYPE_CHECKING:
+    from _rna_enums import rna_enum_operator_type_flag_items
 
 
 @contextlib.contextmanager
@@ -480,7 +484,9 @@ class TestOperatorRegisterComplete(unittest.TestCase):
             bl_description = "A complete operator"
             bl_translation_context = "*"
             bl_undo_group = ""
-            bl_options = {item.identifier for item in bpy.types.Operator.bl_rna.properties['bl_options'].enum_items}
+            bl_options = cast("set[rna_enum_operator_type_flag_items]", {
+                item.identifier for item in bpy.types.Operator.bl_rna.properties['bl_options'].enum_items
+            })
             bl_cursor_pending = 'DEFAULT'
 
             value: bpy.props.IntProperty(name="Value", default=0)
