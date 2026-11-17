@@ -168,7 +168,7 @@ class Generator(base_generate.BaseGenerator):
 
             self.artifacts.generate_init_existing(obj)
 
-    def __find_legacy_collection(self) -> bpy.types.Collection:
+    def __find_legacy_collection(self) -> Optional[bpy.types.Collection]:
         """For backwards comp, matching by name to find a legacy collection.
         (For before there was a Widget Collection PointerProperty)
         """
@@ -195,15 +195,16 @@ class Generator(base_generate.BaseGenerator):
 
     def ensure_widget_collection(self):
         # Create/find widget collection
-        self.widget_collection = self.metarig.data.rigify_widgets_collection
-        if not self.widget_collection:
-            self.widget_collection = self.__find_legacy_collection()
-        if not self.widget_collection:
+        widget_collection = self.metarig.data.rigify_widgets_collection
+        if not widget_collection:
+            widget_collection = self.__find_legacy_collection()
+        if not widget_collection:
             widgets_group_name = WGT_GROUP_PREFIX + self.obj.name.replace("RIG-", "")
-            self.widget_collection = ensure_collection(
+            widget_collection = ensure_collection(
                 self.context, widgets_group_name, hidden=True)
 
-        self.metarig.data.rigify_widgets_collection = self.widget_collection
+        self.widget_collection = widget_collection
+        self.metarig.data.rigify_widgets_collection = widget_collection
 
         self.use_mirror_widgets = get_rigify_mirror_widgets(self.metarig.data)
 

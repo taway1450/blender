@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+from typing import NoReturn
+
 
 class MetarigError(Exception):
     """ Exception raised for errors.
@@ -17,7 +19,7 @@ class MetarigError(Exception):
 class RaiseErrorMixin(object):
     base_bone: str
 
-    def raise_error(self, message: str, *args, **kwargs):
+    def raise_error(self, message: str, *args, **kwargs) -> NoReturn:
         from .naming import strip_org
 
         message = message.format(*args, **kwargs)

@@ -200,7 +200,7 @@ class RigifyPreferences(AddonPreferences):
     bl_idname = __name__
 
     @staticmethod
-    def get_instance(context: bpy.types.Context = None) -> 'RigifyPreferences':
+    def get_instance(context: typing.Optional[bpy.types.Context] = None) -> 'RigifyPreferences':
         prefs = (context or bpy.context).preferences.addons[__package__].preferences
         assert isinstance(prefs, RigifyPreferences)
         return prefs
