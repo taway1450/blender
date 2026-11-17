@@ -283,7 +283,7 @@ def _ami_props_setattr(ami_name, ami_props, attr, value):
     if type(value) is list:
         ami_subprop = getattr(ami_props, attr)
         for subattr, subvalue in value:
-            _ami_props_setattr(ami_subprop, subattr, subvalue)
+            _ami_props_setattr(ami_name, ami_subprop, subattr, subvalue)
         return
 
     try:
