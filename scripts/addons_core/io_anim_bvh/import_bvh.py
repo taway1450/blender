@@ -449,7 +449,7 @@ def bvh_node_dict2armature(
 
     # XXX, annoying, remove bone.
     while arm_data.edit_bones:
-        arm_ob.edit_bones.remove(arm_data.edit_bones[-1])
+        arm_data.edit_bones.remove(arm_data.edit_bones[-1])
 
     ZERO_AREA_BONES = []
     for bvh_node in bvh_nodes_list:
