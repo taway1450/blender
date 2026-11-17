@@ -279,7 +279,7 @@ class NODE_OT_connect_to_output(Operator, NodeEditorBase):
         nodes = active_tree.nodes
         active = nodes.active
 
-        if not active and not any(is_visible_socket(out) for out in active.outputs):
+        if not active:
             return {'CANCELLED'}
 
         # Scan through all nodes in tree including nodes inside of groups to find viewer sockets.
