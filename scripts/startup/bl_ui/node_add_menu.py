@@ -512,11 +512,11 @@ swap_base_pathing_dict = {
 }
 
 
-def generate_menu(bl_idname: str, template: Menu, layout_base: Menu, pathing_dict: dict = None):
+def generate_menu(bl_idname: str, template: type[Menu], layout_base: type[Menu], pathing_dict: dict | None = None):
     return type(bl_idname, (template, layout_base), {"bl_idname": bl_idname, "pathing_dict": pathing_dict})
 
 
-def generate_menus(menus: dict, template: Menu, base_dict: dict):
+def generate_menus(menus: dict, template: type[Menu], base_dict: dict):
     import copy
     pathing_dict = copy.copy(base_dict)
     menus = tuple(
