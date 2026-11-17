@@ -181,7 +181,7 @@ class Hotkey:
     ctrl: bool = False
     shift: bool = False
     alt: bool = False
-    props: dict = ()
+    props: tuple = ()
 
 
 addon_keymaps = []
