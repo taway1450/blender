@@ -1086,7 +1086,7 @@ class VIEW3D_GGT_vr_captures(GizmoGroup):
         return aspect_x * base_aspect, aspect_y * base_aspect
 
     @staticmethod
-    def get_selection_color(context, is_active_capture) -> tuple[float, float, float]:
+    def get_selection_color(context, is_active_capture) -> tuple[float, ...]:
         selection_color = Color((0.25, 0.81, 1.0))
 
         # Shift the hue of the base theme selection color, decrease its saturation/value further for inactive captures.

@@ -11,7 +11,7 @@ from bpy.app.handlers import persistent
 
 # Landmarks.
 @persistent
-def vr_ensure_default_landmark(context: bpy.context):
+def vr_ensure_default_landmark(_filepath: str):
     # Ensure there's a default landmark (scene camera by default).
     landmarks = bpy.context.scene.vr_landmarks
     if not landmarks:

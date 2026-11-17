@@ -35,7 +35,7 @@ def vr_actions_use_gamepad_update(self, context):
 
 
 @persistent
-def vr_create_actions(context: bpy.context):
+def vr_create_actions(_dummy: None):
     context = bpy.context
     session_state = context.window_manager.xr_session_state
     if not session_state:
