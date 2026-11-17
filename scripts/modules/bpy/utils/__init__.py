@@ -876,6 +876,8 @@ def keyconfig_set(filepath, *, report=None):
     :type filepath: str
     :param report: An optional callable for reporting errors.
     :type report: Callable[[set[str], str], None] | None
+    :return: True when the key configuration was loaded and activated.
+    :rtype: bool
     """
     from os.path import basename, splitext
 
