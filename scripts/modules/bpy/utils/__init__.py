@@ -875,7 +875,7 @@ def keyconfig_set(filepath, *, report=None):
     :param filepath: The file path to the key configuration preset.
     :type filepath: str
     :param report: An optional callable for reporting errors.
-    :type report: Callable[[set[str], str], None] | None
+    :type report: Callable[[set[Literal[:ref:`rna_enum_wm_report_items`]], str], None] | None
     :return: True when the key configuration was loaded and activated.
     :rtype: bool
     """
