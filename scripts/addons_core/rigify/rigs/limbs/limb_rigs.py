@@ -188,7 +188,7 @@ class BaseLimbRig(BaseRig):
         org = self.bones.org.main[0]
         self.bones.mch.master = self.copy_bone(org, make_derived_name(org, 'mch', '_parent_widget'), scale=1 / 12)
         self.bones.ctrl.master = name = self.copy_bone(org, make_derived_name(org, 'ctrl', '_parent'), scale=1 / 4)
-        self.get_bone(name).roll = 0
+        self.obj.data.edit_bones[name].roll = 0
         self.prop_bone = self.bones.ctrl.master
 
     @stage.parent_bones
@@ -198,7 +198,7 @@ class BaseLimbRig(BaseRig):
 
     @stage.configure_bones
     def configure_master_control(self):
-        bone = self.get_bone(self.bones.ctrl.master)
+        bone = self.obj.pose.bones[self.bones.ctrl.master]
         bone.lock_location = (True, True, True)
         bone.lock_rotation = (True, True, True)
         bone.lock_scale = (not self.use_uniform_scale,) * 3
@@ -298,7 +298,7 @@ class BaseLimbRig(BaseRig):
         self.copy_bone_properties(org, ctrl)
 
         if i == 2:
-            self.get_bone(ctrl).lock_location = True, True, True
+            self.obj.pose.bones[ctrl].lock_location = True, True, True
 
     @stage.generate_widgets
     def make_fk_control_widgets(self):
@@ -400,8 +400,8 @@ class BaseLimbRig(BaseRig):
     def make_ik_pole_bone(self, orgs: list[str]):
         name = self.copy_bone(orgs[0], make_derived_name(orgs[0], 'ctrl', '_ik_target'))
 
-        pole = self.get_bone(name)
-        pole.head = self.get_bone(orgs[0]).tail + self.elbow_vector
+        pole = self.obj.data.edit_bones[name]
+        pole.head = self.obj.data.edit_bones[orgs[0]].tail + self.elbow_vector
         pole.tail = pole.head - self.elbow_vector / 8
         pole.roll = 0
 
@@ -470,11 +470,11 @@ class BaseLimbRig(BaseRig):
         self.set_ik_local_location(self.bones.ctrl.ik_pole)
 
     def set_ik_local_location(self, ctrl: str):
-        self.get_bone(ctrl).use_local_location = self.params.ik_local_location
+        self.obj.data.edit_bones[ctrl].use_local_location = self.params.ik_local_location
 
     @stage.configure_bones
     def configure_ik_controls(self):
-        base = self.get_bone(self.bones.ctrl.ik_base)
+        base = self.obj.pose.bones[self.bones.ctrl.ik_base]
         base.rotation_mode = 'ZXY'
         base.lock_rotation = True, False, True
 
@@ -527,7 +527,7 @@ class BaseLimbRig(BaseRig):
         name = self.copy_bone(orgs[1], 'VIS_' + make_derived_name(orgs[0], 'ctrl', '_ik_pole'))
         self.bones.ctrl.ik_vispole = name
 
-        bone = self.get_bone(name)
+        bone = self.obj.data.edit_bones[name]
         bone.tail = bone.head + Vector((0, 0, bone.length / 10))
         bone.hide_select = True
 
@@ -599,10 +599,10 @@ class BaseLimbRig(BaseRig):
 
     @stage.configure_bones
     def configure_ik_mch_chain(self):
-        bone = self.get_bone(self.get_ik_chain_base())
+        bone = self.obj.pose.bones[self.get_ik_chain_base()]
         bone.ik_stretch = 0.1
 
-        bone = self.get_bone(self.bones.mch.ik_end)
+        bone = self.obj.pose.bones[self.bones.mch.ik_end]
         bone.ik_stretch = 0.1
         bone.lock_ik_x = bone.lock_ik_y = bone.lock_ik_z = True
         setattr(bone, 'lock_ik_' + self.main_axis, False)
@@ -720,7 +720,7 @@ class BaseLimbRig(BaseRig):
     def parent_org_chain(self):
         orgs = self.bones.org.main
         if len(orgs) > 3:
-            self.get_bone(orgs[3]).use_connect = False
+            self.obj.data.edit_bones[orgs[3]].use_connect = False
 
     @stage.rig_bones
     def rig_org_chain(self):
@@ -763,7 +763,7 @@ class BaseLimbRig(BaseRig):
         ControlLayersOption.TWEAK.assign_rig(self, self.bones.ctrl.tweak)
 
     def configure_tweak_bone(self, i: int, tweak: str, entry: SegmentEntry):
-        tweak_pb = self.get_bone(tweak)
+        tweak_pb = self.obj.pose.bones[tweak]
         tweak_pb.lock_rotation = (True, False, True)
         tweak_pb.lock_scale = (False, True, False)
         tweak_pb.rotation_mode = 'ZXY'
@@ -822,11 +822,11 @@ class BaseLimbRig(BaseRig):
             prev_tweak, next_tweak, fac = self.get_tweak_blend(i, entry)
 
             # Apply the final roll resulting from mixing tweaks to rest pose
-            prev_mat = self.get_bone(prev_tweak).matrix
-            next_mat = self.get_bone(next_tweak).matrix
+            prev_mat = self.obj.data.edit_bones[prev_tweak].matrix
+            next_mat = self.obj.data.edit_bones[next_tweak].matrix
             rot_mat = prev_mat.lerp(next_mat, fac)
 
-            bone = self.get_bone(tweak)
+            bone = self.obj.data.edit_bones[tweak]
             bone.roll += (bone.matrix.inverted() @ rot_mat).to_quaternion().to_swing_twist('Y')[1]
 
     @stage.rig_bones
@@ -874,7 +874,7 @@ class BaseLimbRig(BaseRig):
         else:
             name = self.copy_bone(entry.org, name, bbone=True, scale=1 / self.segments)
             put_bone(self.obj, name, entry.pos)
-            self.get_bone(name).bbone_segments = self.bbone_segments
+            self.obj.data.edit_bones[name].bbone_segments = self.bbone_segments
 
         return name
 
@@ -909,14 +909,14 @@ class BaseLimbRig(BaseRig):
             self.make_constraint(deform, 'COPY_TRANSFORMS', entry.org)
 
     def rig_deform_easing(self, _i: int, deform: str, tweak: str, next_tweak: str):
-        pbone = self.get_bone(deform)
+        pbone = self.obj.pose.bones[deform]
 
-        if 'rubber_tweak' in self.get_bone(tweak):
+        if 'rubber_tweak' in self.obj.pose.bones[tweak]:
             self.make_driver(pbone.bone, 'bbone_easein', variables=[(tweak, 'rubber_tweak')])
         else:
             pbone.bone.bbone_easein = 0.0
 
-        if 'rubber_tweak' in self.get_bone(next_tweak):
+        if 'rubber_tweak' in self.obj.pose.bones[next_tweak]:
             self.make_driver(pbone.bone, 'bbone_easeout', variables=[(next_tweak, 'rubber_tweak')])
         else:
             pbone.bone.bbone_easeout = 0.0

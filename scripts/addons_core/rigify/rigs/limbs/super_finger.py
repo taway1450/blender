@@ -78,7 +78,7 @@ class Rig(SimpleChainRig):
 
         self.copy_bone_properties(self.bones.org[0], master, props=False, widget=False)
 
-        bone = self.get_bone(master)
+        bone = self.obj.pose.bones[master]
         bone.lock_scale = True, False, True
 
     @stage.generate_widgets
@@ -136,7 +136,7 @@ class Rig(SimpleChainRig):
         if org:
             self.copy_bone_properties(org, ctrl)
         else:
-            bone = self.get_bone(ctrl)
+            bone = self.obj.pose.bones[ctrl]
             bone.lock_rotation_w = True
             bone.lock_rotation = (True, True, True)
             bone.lock_scale = (True, True, True)
@@ -178,13 +178,13 @@ class Rig(SimpleChainRig):
     @stage.parent_bones
     def parent_ik_control(self):
         if self.make_ik:
-            bone = self.get_bone(self.bones.ctrl.ik)
+            bone = self.obj.data.edit_bones[self.bones.ctrl.ik]
             bone.use_local_location = self.params.ik_local_location
 
     @stage.configure_bones
     def configure_ik_control(self):
         if self.make_ik:
-            bone = self.get_bone(self.bones.ctrl.ik)
+            bone = self.obj.pose.bones[self.bones.ctrl.ik]
             bone.lock_rotation = True, True, True
             bone.lock_rotation_w = True
             bone.lock_scale = True, True, True
@@ -275,7 +275,7 @@ class Rig(SimpleChainRig):
             axis = self.params.primary_rotation_axis
             options = self.axis_options[axis]
 
-            bone = self.get_bone(mch)
+            bone = self.obj.pose.bones[mch]
             bone.rotation_mode = 'YZX'
 
             self.make_driver(
@@ -334,7 +334,7 @@ class Rig(SimpleChainRig):
         stiffness[options['axis']] = 0.0
 
         for org in orgs[1:]:
-            bone = self.get_bone(org)
+            bone = self.obj.pose.bones[org]
             bone.ik_stiffness_x, bone.ik_stiffness_y, bone.ik_stiffness_z = stiffness
 
         # Add the constraint
@@ -361,7 +361,7 @@ class Rig(SimpleChainRig):
 
     def rig_deform_bone(self, i: int, deform: str, org: str):
         master = self.bones.ctrl.master
-        bone = self.get_bone(deform)
+        bone = self.obj.pose.bones[deform]
 
         self.make_constraint(deform, 'COPY_TRANSFORMS', org)
 

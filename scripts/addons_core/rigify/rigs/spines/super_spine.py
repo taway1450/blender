@@ -56,7 +56,7 @@ class Rig(SubstitutionRig, BoneUtilityMixin):
                 self.set_bone_parent(spine_orgs[0], self.get_bone_parent(orgs[0]))
 
             if head_orgs:
-                self.get_bone(head_orgs[0]).use_connect = False
+                self.obj.data.edit_bones[head_orgs[0]].use_connect = False
 
             if tail_orgs:
                 flip_bone_chain(self.obj, reversed(tail_orgs))

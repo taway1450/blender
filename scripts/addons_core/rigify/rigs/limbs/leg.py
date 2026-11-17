@@ -46,7 +46,7 @@ class Rig(BaseLimbRig):
     def find_org_bones(self, bone):
         bones = super().find_org_bones(bone)
 
-        for b in self.get_bone(bones.main[2]).bone.children:
+        for b in self.obj.pose.bones[bones.main[2]].bone.children:
             if not b.use_connect and not b.children and not is_rig_base_bone(self.obj, b.name):
                 bones.heel = b.name
                 break
@@ -243,7 +243,7 @@ class Rig(BaseLimbRig):
 
     @stage.configure_bones
     def configure_heel_control_bone(self):
-        bone = self.get_bone(self.bones.ctrl.heel)
+        bone = self.obj.pose.bones[self.bones.ctrl.heel]
         bone.lock_location = True, True, True
         bone.rotation_mode = self.heel_euler_order
         bone.lock_scale = True, True, True
@@ -377,7 +377,7 @@ class Rig(BaseLimbRig):
 
         # This order is required for correct working of the constraints
         for bone in chain:
-            self.get_bone(bone).rotation_mode = self.heel_euler_order
+            self.obj.pose.bones[bone].rotation_mode = self.heel_euler_order
 
         self.make_constraint(roll1, 'COPY_ROTATION', heel, space='POSE')
 
@@ -388,7 +388,7 @@ class Rig(BaseLimbRig):
             self.make_constraint(roll2, 'COPY_ROTATION', heel, space='LOCAL', use_xyz=(False, False, True))
             self.make_constraint(roll2, 'LIMIT_ROTATION', min_z=-DEG_360, space='LOCAL')
 
-        direction = self.get_main_axis(self.get_bone(heel)).dot(self.get_bone(org_heel).vector)
+        direction = self.get_main_axis(self.obj.pose.bones[heel]).dot(self.obj.pose.bones[org_heel].vector)
 
         if direction < 0:
             rock2, rock1 = rock1, rock2

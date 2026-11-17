@@ -161,7 +161,7 @@ class BaseSpineRig(TweakChainRig):
 
     @stage.configure_bones
     def configure_bbone_chain(self):
-        self.get_bone(self.bones.deform[0]).bone.bbone_easein = 0.0
+        self.obj.pose.bones[self.bones.deform[0]].bone.bbone_easein = 0.0
 
     ####################################################
     # SETTINGS

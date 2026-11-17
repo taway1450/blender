@@ -172,7 +172,7 @@ class BaseSkinChainRig(BaseSkinRig):
 
     def get_control_node_layers(self, node: 'ControlBoneNode') -> list[bpy.types.BoneCollection]:
         """Returns the armature layers to use for the given control node owned by this rig."""
-        return list(self.get_bone(self.base_bone).bone.collections)
+        return list(self.obj.pose.bones[self.base_bone].bone.collections)
 
     def make_control_node_widget(self, node: 'ControlBoneNode'):
         """Called to generate the widget for nodes with ControlNodeIcon.CUSTOM."""

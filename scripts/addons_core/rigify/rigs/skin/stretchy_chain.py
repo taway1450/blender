@@ -269,7 +269,7 @@ class Rig(BasicChainRig):
             expr2 = 'y2'
 
         # Create the driver for Y Euler Rotation
-        bone = self.get_bone(mch)
+        bone = self.obj.pose.bones[mch]
         bone.rotation_mode = 'YXZ'
 
         self.make_driver(

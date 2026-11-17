@@ -123,7 +123,7 @@ class Rig(BaseHeadTailRig):
             self.configure_neck_bend_bone(self.bones.ctrl.neck_bend, self.bones.org[0])
 
     def configure_neck_bend_bone(self, ctrl: str, _org: str):
-        bone = self.get_bone(ctrl)
+        bone = self.obj.pose.bones[ctrl]
         bone.lock_rotation = (True, True, True)
         bone.lock_rotation_w = True
         bone.lock_scale = (True, True, True)
@@ -235,7 +235,7 @@ class Rig(BaseHeadTailRig):
         if i == ik_len - 1:
             self.make_constraint(mch, 'IK', head, chain_count=ik_len)
 
-        self.get_bone(mch).ik_stretch = 0.1
+        self.obj.pose.bones[mch].ik_stretch = 0.1
 
     ####################################################
     # MCH chain for the middle of the neck
@@ -339,7 +339,7 @@ class Rig(BaseHeadTailRig):
 
     @stage.configure_bones
     def configure_bbone_chain(self):
-        self.get_bone(self.bones.deform[-1]).bone.bbone_segments = 1
+        self.obj.pose.bones[self.bones.deform[-1]].bone.bbone_segments = 1
 
     @stage.rig_bones
     def rig_org_chain(self):

@@ -56,7 +56,7 @@ class Rig(BaseRig):
 
         # Sort list by name and distance
         siblings.sort()
-        siblings.sort(key=lambda b: (self.get_bone(b).bone.head - base_head).length)
+        siblings.sort(key=lambda b: (self.obj.pose.bones[b].bone.head - base_head).length)
 
         return [bone.name] + siblings
 
@@ -129,7 +129,7 @@ class Rig(BaseRig):
 
     def configure_control_bone(self, ctrl: str, org: str):
         self.copy_bone_properties(org, ctrl)
-        self.get_bone(ctrl).lock_scale = (True, True, True)
+        self.obj.pose.bones[ctrl].lock_scale = (True, True, True)
 
     @stage.generate_widgets
     def make_master_control_widgets(self):

@@ -44,7 +44,7 @@ class Rig(BaseSkinRig):
             self.input_ref = self.base_bone
 
         # Retrieve the orientation of the control
-        matrix = self.get_bone(self.base_bone).bone.matrix_local
+        matrix = self.obj.pose.bones[self.base_bone].bone.matrix_local
 
         self.transform_orientation = matrix.to_quaternion()
 

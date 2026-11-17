@@ -382,7 +382,7 @@ class Rig(BaseSkinChainRigWithRotationOption):
 
     def make_deform_bone(self, _i: int, org: str):
         name = self.copy_bone(org, make_derived_name(org, 'def'), bbone=True)
-        self.get_bone(name).bbone_segments = self.bbone_segments
+        self.obj.data.edit_bones[name].bbone_segments = self.bbone_segments
         return name
 
     @stage.parent_bones
@@ -396,11 +396,11 @@ class Rig(BaseSkinChainRigWithRotationOption):
             handles = self.get_all_mch_handles()
 
             for name, start_handle, end_handle in zip(deform, handles, handles[1:]):
-                bone = self.get_bone(name)
+                bone = self.obj.data.edit_bones[name]
                 bone.bbone_handle_type_start = 'TANGENT'
-                bone.bbone_custom_handle_start = self.get_bone(start_handle)
+                bone.bbone_custom_handle_start = self.obj.data.edit_bones[start_handle]
                 bone.bbone_handle_type_end = 'TANGENT'
-                bone.bbone_custom_handle_end = self.get_bone(end_handle)
+                bone.bbone_custom_handle_end = self.obj.data.edit_bones[end_handle]
 
                 if self.use_scale:
                     bone.bbone_handle_use_scale_start = self.params.skin_chain_use_scale[0:3]
@@ -440,7 +440,7 @@ class Rig(BaseSkinChainRigWithRotationOption):
         Create a driver adjusting B-Bone Ease based on the angle between controls,
         gradually making the corner sharper when the angle drops below the threshold.
         """
-        pbone = self.get_bone(bbone)
+        pbone = self.obj.pose.bones[bbone]
 
         a = (corner_node.point - next_node1.point).length
         b = (corner_node.point - next_node2.point).length

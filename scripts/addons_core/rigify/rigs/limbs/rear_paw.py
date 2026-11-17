@@ -110,7 +110,7 @@ class Rig(pawRig):
             self.configure_ik2_mch_bone(i, mch)
 
     def configure_ik2_mch_bone(self, i: int, mch: str):
-        bone = self.get_bone(mch)
+        bone = self.obj.pose.bones[mch]
         bone.ik_stretch = 0.1
         if i == 1:
             bone.lock_ik_x = bone.lock_ik_y = bone.lock_ik_z = True
@@ -148,7 +148,7 @@ class Rig(pawRig):
             self.configure_ik3_mch_bone(i, mch)
 
     def configure_ik3_mch_bone(self, i: int, mch: str):
-        bone = self.get_bone(mch)
+        bone = self.obj.pose.bones[mch]
         bone.ik_stretch = 0.1
         if i == 0:
             bone.lock_ik_x = bone.lock_ik_y = bone.lock_ik_z = True

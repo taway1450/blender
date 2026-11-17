@@ -35,7 +35,7 @@ class RelinkConstraintsMixin(BaseRigMixin):
 
     def relink_bone_constraints(self, bone_name: str):
         if self.params.relink_constraints:
-            for con in self.get_bone(bone_name).constraints:
+            for con in self.obj.pose.bones[bone_name].constraints:
                 self.relink_single_constraint(con)
 
     relink_unmarked_constraints = False

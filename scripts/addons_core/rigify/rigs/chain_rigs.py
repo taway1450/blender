@@ -110,7 +110,7 @@ class SimpleChainRig(BaseRig):
     def make_deform_bone(self, i: int, org: str):
         name = self.copy_bone(org, make_derived_name(org, 'def'), parent=True, bbone=True)
         if self.bbone_segments:
-            self.get_bone(name).bbone_segments = self.bbone_segments
+            self.obj.data.edit_bones[name].bbone_segments = self.bbone_segments
         return name
 
     @stage.parent_bones
@@ -173,7 +173,7 @@ class TweakChainRig(SimpleChainRig):
             self.configure_tweak_bone(*args)
 
     def configure_tweak_bone(self, i: int, tweak: str):
-        tweak_pb = self.get_bone(tweak)
+        tweak_pb = self.obj.pose.bones[tweak]
         tweak_pb.rotation_mode = 'ZXY'
 
         if i == len(self.bones.org):
@@ -316,7 +316,7 @@ class ConnectingChainRig(TweakChainRig):
         super().configure_tweak_bone(i, tweak)
 
         if self.use_connect_chain and self.use_connect_reverse and i == len(self.bones.org):
-            tweak_pb = self.get_bone(tweak)
+            tweak_pb = self.obj.pose.bones[tweak]
             tweak_pb.lock_rotation_w = False
             tweak_pb.lock_rotation = (True, False, True)
             tweak_pb.lock_scale = (False, True, False)

@@ -6,7 +6,7 @@ import bpy
 import math
 
 from mathutils import Vector, Matrix
-from typing import Optional, Callable, Iterable
+from typing import Optional, Callable, Iterable, overload
 
 from .errors import MetarigError
 from .naming import get_name, make_derived_name, is_control_bone
@@ -96,7 +96,15 @@ class BoneDict(BaseBoneDict):
 #
 # NOTE: PREFER USING BoneUtilityMixin IN NEW STYLE RIGS!
 
-def get_bone(obj: ArmatureObject, bone_name: Optional[str]):
+@overload
+def get_bone(obj: ArmatureObject, bone_name: str) -> bpy.types.EditBone | bpy.types.PoseBone: ...
+
+
+@overload
+def get_bone(obj: ArmatureObject, bone_name: None) -> None: ...
+
+
+def get_bone(obj: ArmatureObject, bone_name: Optional[str]) -> Optional[bpy.types.EditBone | bpy.types.PoseBone]:
     """Get EditBone or PoseBone by name, depending on the current mode."""
     if not bone_name:
         return None
@@ -466,6 +474,12 @@ class BoneUtilityMixin(object):
         if bone.name != old_name:
             self.register_new_bone(bone.name, old_name)
         return bone.name
+
+    @overload
+    def get_bone(self, bone_name: str) -> bpy.types.EditBone | bpy.types.PoseBone: ...
+
+    @overload
+    def get_bone(self, bone_name: None) -> None: ...
 
     def get_bone(self, bone_name: Optional[str])\
             -> Optional[bpy.types.EditBone | bpy.types.PoseBone]:

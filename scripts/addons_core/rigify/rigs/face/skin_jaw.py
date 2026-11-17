@@ -319,7 +319,7 @@ class Rig(BaseSkinRig):
     def configure_master_control(self):
         self.copy_bone_properties(self.bones.org, self.bones.ctrl.master)
 
-        self.get_bone(self.bones.ctrl.master).lock_scale = (True, True, True)
+        self.obj.pose.bones[self.bones.ctrl.master].lock_scale = (True, True, True)
 
     @stage.generate_widgets
     def make_master_control_widget(self):

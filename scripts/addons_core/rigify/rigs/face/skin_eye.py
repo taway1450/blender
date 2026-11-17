@@ -569,7 +569,7 @@ class EyeClusterControl(RigComponent):
 
     def get_master_control_layers(self):
         """Combine layers of all eyes for the cluster control."""
-        return union_layer_lists(list(self.get_bone(rig.base_bone).collections) for rig in self.rig_list)
+        return union_layer_lists(list(self.obj.data.edit_bones[rig.base_bone].collections) for rig in self.rig_list)
 
     def get_all_rig_control_bones(self):
         """Make a list of all control bones of all clustered eyes."""
@@ -599,7 +599,7 @@ class EyeClusterControl(RigComponent):
 
     def make_master_control(self):
         name = self.new_bone(make_derived_name(self.get_common_rig_name(), 'ctrl', '_common'))
-        bone = self.get_bone(name)
+        bone = self.obj.data.edit_bones[name]
         bone.matrix = self.matrix
         bone.length = self.size
         set_bone_layers(bone, self.get_master_control_layers())
@@ -626,14 +626,14 @@ class EyeClusterControl(RigComponent):
 
     def parent_bones(self):
         if self.rig_count > 1:
-            self.get_bone(self.master_bone).use_local_location = False
+            self.obj.data.edit_bones[self.master_bone].use_local_location = False
 
             for child in self.child_bones:
                 self.set_bone_parent(child, self.master_bone)
 
     def configure_bones(self):
         for child in self.child_bones:
-            bone = self.get_bone(child)
+            bone = self.obj.pose.bones[child]
             bone.lock_rotation = (True, True, True)
             bone.lock_rotation_w = True
 

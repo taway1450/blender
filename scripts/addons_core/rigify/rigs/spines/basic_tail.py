@@ -63,7 +63,7 @@ class Rig(BaseHeadTailRig):
 
     @stage.configure_bones
     def configure_master_control(self):
-        bone = self.get_bone(self.bones.ctrl.master)
+        bone = self.obj.pose.bones[self.bones.ctrl.master]
         bone.lock_location = True, True, True
 
     @stage.generate_widgets
@@ -136,10 +136,10 @@ class Rig(BaseHeadTailRig):
     @stage.configure_bones
     def configure_deform_chain(self):
         if self.use_connect_chain and self.use_connect_reverse:
-            self.get_bone(self.bones.deform[-1]).bone.bbone_easein = 0.0
-            self.get_bone(self.rigify_parent.bones.deform[0]).bone.bbone_easein = 1.0
+            self.obj.pose.bones[self.bones.deform[-1]].bone.bbone_easein = 0.0
+            self.obj.pose.bones[self.rigify_parent.bones.deform[0]].bone.bbone_easein = 1.0
         else:
-            self.get_bone(self.bones.deform[-1]).bone.bbone_easeout = 0.0
+            self.obj.pose.bones[self.bones.deform[-1]].bone.bbone_easeout = 0.0
 
     ####################################################
     # SETTINGS

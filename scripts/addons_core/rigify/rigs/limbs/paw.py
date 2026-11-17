@@ -65,7 +65,7 @@ class Rig(BaseLimbRig):
         else:
             flip_bone(self.obj, name)
 
-            bone = self.get_bone(name)
+            bone = self.obj.data.edit_bones[name]
             bone.tail[2] = bone.head[2]
             bone.roll = 0
 
@@ -138,7 +138,7 @@ class Rig(BaseLimbRig):
 
     @stage.configure_bones
     def configure_heel_control_bone(self):
-        bone = self.get_bone(self.bones.ctrl.heel)
+        bone = self.obj.pose.bones[self.bones.ctrl.heel]
         bone.lock_location = True, True, True
 
     @stage.generate_widgets
@@ -165,7 +165,7 @@ class Rig(BaseLimbRig):
     @stage.configure_bones
     def configure_heel2_control_bone(self):
         if self.use_heel2:
-            bone = self.get_bone(self.bones.ctrl.heel2)
+            bone = self.obj.pose.bones[self.bones.ctrl.heel2]
             bone.lock_location = True, True, True
 
     @stage.generate_widgets
