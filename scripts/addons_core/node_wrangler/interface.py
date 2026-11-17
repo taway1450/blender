@@ -4,7 +4,6 @@
 
 import bpy
 from bpy.types import Panel, Menu
-from bpy.props import StringProperty
 from bpy.app.translations import contexts as i18n_contexts
 from bl_ui.node_add_menu import AddNodeMenu, SwapNodeMenu
 
@@ -88,12 +87,6 @@ class NodeWranglerPanel(Panel, NWBaseMenu):
     bl_label = "Node Wrangler"
     bl_region_type = "UI"
     bl_category = "Node Wrangler"
-
-    prepend: StringProperty(
-        name='prepend',
-    )
-    append: StringProperty()
-    remove: StringProperty()
 
     def draw(self, context):
         self.layout.label(text="(Quick Access: Shift+W)")
