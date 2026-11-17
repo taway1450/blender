@@ -18,6 +18,7 @@ import sys
 
 from typing import (
     Any,
+    Literal,
 )
 
 from .bl_extension_utils import PkgManifest_Normalized
@@ -507,7 +508,7 @@ class subcmd_repo:
             directory: str,
             url: str,
             access_token: str,
-            source: str,
+            source: Literal['USER', 'SYSTEM'],
             cache: bool,
             clear_all: bool,
             no_prefs: bool,

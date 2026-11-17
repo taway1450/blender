@@ -17,6 +17,7 @@ import os
 from functools import partial
 
 from typing import (
+    Literal,
     NamedTuple,
 )
 
@@ -167,7 +168,7 @@ blender_extension_show = set()
 
 
 # Map the enum value to the value in the manifest.
-blender_filter_by_type_map = {
+blender_filter_by_type_map: dict[Literal['ALL', 'ADDON', 'ASSET_LIBRARY', 'THEME'], str] = {
     "ALL": "",
     "ADDON": "add-on",
     "ASSET_LIBRARY": "asset-library",
