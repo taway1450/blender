@@ -709,6 +709,11 @@ collection_element_map: dict[str, str] = {}
 # E.g. `BMElemSeq`, one C type for `BMVert.link_edges` (`BMElemSeq[BMEdge]`) and `BMFace.loops` (`BMElemSeq[BMLoop]`).
 generic_collection_wrappers: set[str] = set()
 
+# Populated by `build_collection_element_map()`.
+# The collection wrappers of `bpy.data` (`BlendDataObjects`, ...),
+# whose items can also be looked up by a `(name, library_filepath)` pair (`pyrna_prop_collection_subscript`).
+blend_data_collection_wrappers: set[str] = set()
+
 
 def parse_enum_items(enum_dir: Path) -> None:
     """Parse shared enum RST files into ``enum_alias_map``."""
@@ -1568,7 +1573,11 @@ def write_class(
     # A collection wrapper (e.g. `Windows` holds `Window`s) is a `bpy_prop_collection` of its
     # elements, so it inherits the typed item access, iteration and `get()`.
     elem_type = collection_element_map.get(cls.name)
+    # The element type of a `bpy.data` collection, which also takes a `(name, library)` key.
+    blend_data_elem_type = None
     if elem_type and "bpy_prop_collection" in resolved:
+        if cls.name in blend_data_collection_wrappers:
+            blend_data_elem_type = elem_type
         loc = class_locations.module_of(elem_type, current_module)
         if loc and loc != current_module:
             imports.add((loc, elem_type))
@@ -1698,6 +1707,19 @@ def write_class(
         fw("    @overload\n")
         fw("    def __getitem__(self, key: slice, /) -> list[_T]: ...\n")
         fw("    def __iter__(self) -> Iterator[_T]: ...\n")
+        has_members = True
+
+    if blend_data_elem_type:
+        # Redeclares the inherited `bpy_prop_collection` overloads, which a new overload would hide.
+        imports.add(("typing", "overload"))
+        fw("    @overload\n")
+        fw("    def __getitem__(self, key: int, /) -> {:s}: ...\n".format(blend_data_elem_type))
+        fw("    @overload\n")
+        fw("    def __getitem__(self, key: str, /) -> {:s}: ...\n".format(blend_data_elem_type))
+        fw("    @overload\n")
+        fw("    def __getitem__(self, key: tuple[str, str | None], /) -> {:s}: ...\n".format(blend_data_elem_type))
+        fw("    @overload\n")
+        fw("    def __getitem__(self, key: slice, /) -> list[{:s}]: ...\n".format(blend_data_elem_type))
         has_members = True
 
     # Collection element overloads: if this class is a collection wrapper
@@ -2020,6 +2042,8 @@ def build_collection_element_map(modules: dict[str, ModuleInfo]) -> None:
                         elements = wrapper_elements.setdefault(pair[0], [])
                         if pair[1] not in elements:
                             elements.append(pair[1])
+                        if mod.name == "bpy.types" and cls.name == "BlendData":
+                            blend_data_collection_wrappers.add(pair[0])
 
     for wrapper, elements in wrapper_elements.items():
         # A wrapper holding different classes depending on the attribute is generic over them,
