@@ -255,7 +255,11 @@ class POSE_OT_convert_rotation(bpy.types.Operator):
         if self.affected_actions == 'ALL':
             actions = bpy.data.actions
         else:
-            actions = [bpy.data.actions.get(self.selected_action)]
+            action = bpy.data.actions.get(self.selected_action)
+            if action is None:
+                self.report({'ERROR'}, "No Action selected to convert")
+                return {'CANCELLED'}
+            actions = [action]
 
         for action in actions:
             if action == assigned_action:
@@ -267,7 +271,7 @@ class POSE_OT_convert_rotation(bpy.types.Operator):
                 # NOTE: this may not pick the right slot if they are not
                 # consistently named. Also, if there are multiple suitable
                 # slots, only the first one is converted.
-                if assigned_slot.identifier in action.slots:
+                if assigned_slot and assigned_slot.identifier in action.slots:
                     action_slot = action.slots[assigned_slot.identifier]
                 else:
                     action_slot = anim_utils.action_get_first_suitable_slot(action, 'OBJECT')
