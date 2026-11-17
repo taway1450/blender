@@ -193,14 +193,14 @@ def _find_assets(
     asset_library_root: Path,
     blendfile_relpath: str,
     bl_versions: api_models.AssetBlenderVersionsV1,
-    datablocks: bpy.types.BlendData,
+    datablocks: Iterable[bpy.types.ID],
     thumbnail_dir: Path,
     should_write_thumbnails: bool,
 ) -> list[api_models.AssetV1]:
 
     assets = []
     for datablock in datablocks:
-        asset_data: bpy.types.AssetData = datablock.asset_data
+        asset_data: bpy.types.AssetMetaData | None = datablock.asset_data
         if not asset_data:
             continue
 
@@ -230,7 +230,7 @@ def _find_assets(
     return assets
 
 
-def _get_asset_meta(asset_data: bpy.types.AssetData) -> api_models.AssetMetadataV1 | None:
+def _get_asset_meta(asset_data: bpy.types.AssetMetaData) -> api_models.AssetMetadataV1 | None:
     # Only set the fields that have a value. That way we can detect whether
     # none of them are set, and prevent the empty metadata from being
     # included.
