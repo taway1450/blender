@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+from typing import Literal
+
 from bpy.types import Operator
 from bpy.props import StringProperty
 
@@ -37,7 +39,7 @@ class NODE_OT_labels_modify(Operator, NWBase):
     def poll(cls, context):
         return nw_check(cls, context) and nw_check_selected(cls, context)
 
-    def execute(self, context) -> set[str]:
+    def execute(self, context) -> set[Literal['FINISHED']]:
         tree = context.space_data.edit_tree
         nodes = tree.nodes
         for node in [n for n in nodes if n.select]:

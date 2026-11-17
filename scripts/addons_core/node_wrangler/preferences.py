@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+from typing import TYPE_CHECKING
+
 import bpy
 from bpy.props import EnumProperty, StringProperty
 from bpy.app.translations import (
@@ -14,6 +16,9 @@ from . import interface
 
 from .utils.constants import nice_hotkey_name
 from dataclasses import dataclass
+
+if TYPE_CHECKING:
+    from _rna_enums import rna_enum_event_type_items, rna_enum_event_value_items
 
 
 # Principled prefs
@@ -175,8 +180,8 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
 class Hotkey:
     bl_idname: str
     label: str
-    key: str = 'NONE'
-    input_mode: str = 'PRESS'
+    key: 'rna_enum_event_type_items' = 'NONE'
+    input_mode: 'rna_enum_event_value_items' = 'PRESS'
 
     ctrl: bool = False
     shift: bool = False

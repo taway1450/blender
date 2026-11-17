@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+from typing import TYPE_CHECKING
+
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty
 from bpy_extras.io_utils import ExportHelper
@@ -13,6 +15,9 @@ from ..utils.nodes import (
     nw_check_viewer_node,
     get_viewer_image,
 )
+
+if TYPE_CHECKING:
+    from _rna_enums import rna_enum_image_type_all_items
 
 
 #### ------------------------------ OPERATORS ------------------------------ ####
@@ -56,7 +61,7 @@ class NODE_OT_save_viewer_image(Operator, ExportHelper):
         if not fp:
             return {'CANCELLED'}
 
-        formats = {
+        formats: dict[str, rna_enum_image_type_all_items] = {
             '.bmp': 'BMP',
             '.rgb': 'IRIS',
             '.png': 'PNG',
