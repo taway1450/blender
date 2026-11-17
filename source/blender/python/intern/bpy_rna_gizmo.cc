@@ -504,12 +504,14 @@ fail:
 PyDoc_STRVAR(
     /* Wrap. */
     bpy_gizmo_target_set_value_doc,
-    ".. method:: target_set_value(target)\n"
+    ".. method:: target_set_value(target, value)\n"
     "\n"
     "   Set the value of this target property.\n"
     "\n"
     "   :param target: Target property name.\n"
-    "   :type target: str\n");
+    "   :type target: str\n"
+    "   :param value: The new value, an array for an array target.\n"
+    "   :type value: float | Sequence[float]\n");
 static PyObject *bpy_gizmo_target_set_value(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   struct {
