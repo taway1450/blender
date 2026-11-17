@@ -591,7 +591,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
   RNA_def_function_ui_description(func, "Render scene into an image");
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
   parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "Evaluated dependency graph");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "render_frame_finish", nullptr);
   RNA_def_function_ui_description(
@@ -610,7 +610,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
   RNA_def_function_ui_description(func, "Bake passes");
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
   parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "Evaluated dependency graph");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "object", "Object", "", "Object to bake");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_enum(func, "pass_type", rna_enum_bake_pass_type_items, 0, "Pass", "Pass to bake");
@@ -637,7 +637,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
   parm = RNA_def_pointer(func, "context", "Context", "", "The context");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "Evaluated dependency graph");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "view_draw", nullptr);
   RNA_def_function_ui_description(func, "Draw viewport render");
@@ -645,7 +645,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
   parm = RNA_def_pointer(func, "context", "Context", "", "The context");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "Evaluated dependency graph");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "view_pause", nullptr);
   RNA_def_function_ui_description(func, "Pause viewport render");
