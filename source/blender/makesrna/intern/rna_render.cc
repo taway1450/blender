@@ -666,18 +666,21 @@ static void rna_def_render_engine(BlenderRNA *brna)
   RNA_def_function_ui_description(func, "Compile shader script node");
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
   parm = RNA_def_pointer(func, "node", "Node", "", "");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
 
   func = RNA_def_function(srna, "update_render_passes", nullptr);
   RNA_def_function_ui_description(func, "Update the render passes that will be generated");
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
   parm = RNA_def_pointer(func, "scene", "Scene", "", "");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "renderlayer", "ViewLayer", "", "");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna, "update_custom_camera", nullptr);
   RNA_def_function_ui_description(func, "Compile custom camera");
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
   parm = RNA_def_pointer(func, "cam", "Camera", "", "");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   /* tag for redraw */
   func = RNA_def_function(srna, "tag_redraw", "engine_tag_redraw");
