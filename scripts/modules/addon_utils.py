@@ -486,7 +486,7 @@ def enable(module_name, *, default_set=False, persistent=False, refresh_handled=
                     ex.msg = "Add-on not loaded: \"{:s}\", cause: {:s}".format(module_name, str(ex))
 
                 # Issue with an add-on from an extension repository, report a useful message.
-                elif is_extension and module_name.startswith(ex.name + "."):
+                elif is_extension and ex.name is not None and module_name.startswith(ex.name + "."):
                     repo_id = module_name[len(_ext_base_pkg_idname_with_dot):].rpartition(".")[0]
                     repo = next(
                         (repo for repo in _preferences.extensions.repos if repo.module == repo_id),
