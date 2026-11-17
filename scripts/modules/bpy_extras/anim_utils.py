@@ -721,7 +721,7 @@ class KeyframesCo:
     )
 
     # `keyframes[(rna_path, array_index)] = list(time0,value0, time1,value1,...)`.
-    keyframes_from_fcurve: Mapping[FCurveKey, ListKeyframes]
+    keyframes_from_fcurve: dict[FCurveKey, ListKeyframes]
 
     def __init__(self):
         self.keyframes_from_fcurve = {}
