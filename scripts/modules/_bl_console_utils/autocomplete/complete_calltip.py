@@ -118,7 +118,7 @@ def get_argspec(func, *, strip_self=True, doc=None, source=None):
     else:
         # try with the inspect.getarg* functions
         try:
-            argspec = inspect.formatargspec(*inspect.getfullargspec(func))
+            argspec = str(inspect.signature(func))
         except:
             try:
                 argspec = inspect.formatargvalues(
