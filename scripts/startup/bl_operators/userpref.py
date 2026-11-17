@@ -899,7 +899,8 @@ class PREFERENCES_OT_addon_remove(Operator):
 
         addon_utils.modules_refresh()
 
-        context.area.tag_redraw()
+        if context.area:
+            context.area.tag_redraw()
         return {'FINISHED'}
 
     # lame confirmation check
