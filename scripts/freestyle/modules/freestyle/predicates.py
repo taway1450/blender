@@ -402,7 +402,7 @@ class pyDensityFunctorUP1D(UnaryPredicate1D):
     def __call__(self, inter):
         res = self._functor(inter)
         k = (res - self._funcmin) / (self._funcmax - self._funcmin)
-        return (func(inter) < (self._threshold * k))
+        return (self._func(inter) < (self._threshold * k))
 
 
 class pyZSmallerUP1D(UnaryPredicate1D):
