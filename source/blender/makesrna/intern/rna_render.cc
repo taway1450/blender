@@ -584,8 +584,10 @@ static void rna_def_render_engine(BlenderRNA *brna)
   func = RNA_def_function(srna, "update", nullptr);
   RNA_def_function_ui_description(func, "Export scene data for render");
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
-  RNA_def_pointer(func, "data", "BlendData", "", "");
-  RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "");
+  parm = RNA_def_pointer(func, "data", "BlendData", "", "");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "render", nullptr);
   RNA_def_function_ui_description(func, "Render scene into an image");
