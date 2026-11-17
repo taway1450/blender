@@ -2554,6 +2554,10 @@ def pycontext_members2sphinx(ident: str, fw: WriteFn, written_props: set[str]) -
                         type_strs.append(class_str)
                 else:
                     type_strs.append(member_type)
+            # A pointer member is None where the context callback gives no data for it
+            # (no active object, no node editor, ...), while a sequence member is an empty list.
+            if all(not is_seq and hasattr(bpy.types, member_type) for member_type, is_seq in member_types):
+                type_strs.append("None")
 
             fw("{:s}   :type: {:s}\n\n".format(ident, " | ".join(type_strs)))
             write_example_ref(ident + "   ", fw, "bpy.context." + member)
