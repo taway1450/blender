@@ -1421,7 +1421,7 @@ def pymodule2sphinx(
             i = module_grouping_index(name) - 1
             if i >= 0:
                 item = module_grouping[i]
-                if type(item) == tuple:
+                if type(item) is tuple:
                     return item
         return "", ""
 
