@@ -19,8 +19,8 @@ class BUILTIN_KSI_hello(bpy.types.KeyingSetInfo):
 
         ks.paths.add(id_block, "location")
 
-        for i in range(5):
-            ks.paths.add(id_block, "layers", i, group_method='NAMED', group_name="5x Hello Layers")
+        for i in range(3):
+            ks.paths.add(id_block, "scale", index=i, group_method='NAMED', group_name="Hello Scale")
 
         ks.paths.add(id_block, "show_in_front", group_method='NONE')
 
