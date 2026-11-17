@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+from typing import Literal
+
 import bpy
 from bpy.types import (
     Operator,
@@ -505,6 +507,7 @@ class PREFERENCES_OT_addon_enable(Operator):
 
         mod = addon_utils.enable(module_name, default_set=True, handle_error=err_cb)
 
+        result: set[Literal['FINISHED', 'CANCELLED']]
         if mod:
             bl_info = addon_utils.module_bl_info(mod)
 
