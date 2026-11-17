@@ -92,6 +92,10 @@ class CyclesRender(bpy.types.RenderEngine):
         engine.sync(self, depsgraph, context.blend_data)
 
     def view_draw(self, context, depsgraph):
+        # There is no context when the viewport is drawn off-screen
+        # (Viewport Render, `GPUOffScreen.draw_view3d`).
+        if context is None:
+            return
         engine.view_draw(self, depsgraph, context.region, context.space_data, context.region_data)
 
     def view_pause(self, context):
