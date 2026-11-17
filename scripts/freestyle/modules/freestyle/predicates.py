@@ -440,7 +440,7 @@ class pyIsOccludedByUP1D(UnaryPredicate1D):
 
         vertex = next(itlast)
         if type(vertex) is TVertex:
-            eit = tvertex.edges_begin()
+            eit = vertex.edges_begin()
             if any(ve.id == self._id for (ve, incoming) in eit):
                 return True
         return False
