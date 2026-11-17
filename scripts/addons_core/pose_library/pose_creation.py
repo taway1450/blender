@@ -223,7 +223,8 @@ class PoseActionCreator:
             bone_path, enum_property_name = data_path.rsplit("[", 1)
             unescaped_property_name = bpy.utils.unescape_identifier(enum_property_name)
             # unescaped_property_name still has the quotes and a bracket at the end hence the [1:-2].
-            value = cls._path_resolve(datablock, bone_path).get(unescaped_property_name[1:-2])
+            bone = cast(bpy.types.bpy_struct, cls._path_resolve(datablock, bone_path))
+            value = bone.get(unescaped_property_name[1:-2])
             assert isinstance(value, (int, float))
             return cast(FCurveValue, value)
 
@@ -247,7 +248,9 @@ class PoseActionCreator:
         return cast(FCurveValue, value_or_array[array_index])  # type: ignore
 
     @staticmethod
-    def _path_resolve(datablock: bpy.types.bpy_struct, data_path: str) -> Union[FCurveValue, Iterable[FCurveValue]]:
+    def _path_resolve(
+            datablock: bpy.types.bpy_struct, data_path: str,
+    ) -> Union[FCurveValue, Iterable[FCurveValue], bpy.types.bpy_struct]:
         """Wrapper for datablock.path_resolve(data_path).
 
         Raise UnresolvablePathError when the path cannot be resolved.
