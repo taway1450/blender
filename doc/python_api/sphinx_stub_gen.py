@@ -1253,6 +1253,24 @@ SEQUENCE_ELEM_TYPES: dict[tuple[str, str], str] = {
     ("mathutils", "Matrix"): "Vector",
 }
 
+# Methods a C caller invokes on an override with positional arguments, by module prefix:
+# their parameters are positional-only, so an override may name them freely.
+# Freestyle's director calls `__call__`, `traverse` and `shade` with `PyObject_CallMethod(obj, name, "O", arg)`
+# (`source/blender/freestyle/intern/python/Director.cpp`).
+POSITIONAL_ONLY_METHODS: dict[str, frozenset[str]] = {
+    "freestyle": frozenset(("__call__", "traverse", "shade")),
+}
+
+
+def is_positional_only_method(module_name: str, method_name: str) -> bool:
+    """True when the parameters of ``method_name`` in ``module_name`` are positional-only."""
+    for prefix, names in POSITIONAL_ONLY_METHODS.items():
+        if module_name == prefix or module_name.startswith(prefix + "."):
+            if method_name in names:
+                return True
+    return False
+
+
 # Hand-written stub fragments to append to specific classes for declarations that
 # can't be expressed via RST. Lines are written verbatim into the class body
 # (indented one level) after the auto-generated members. Type names referenced in
@@ -1779,10 +1797,16 @@ def write_method(
     else:
         if not params_startswith(inner, "self"):
             inner = "self, " + inner if inner else "self"
-        # Protocol methods take positional-only parameters, as CPython's slots do.
+        # Protocol methods take positional-only parameters, as CPython's slots do,
+        # and so do the overridable methods C calls positionally.
         if (
-                name.startswith("__") and name.endswith("__") and
-                name not in {"__init__", "__new__", "__call__"} and
+                (
+                    (
+                        name.startswith("__") and name.endswith("__") and
+                        name not in {"__init__", "__new__", "__call__"}
+                    ) or
+                    is_positional_only_method(current_module, name)
+                ) and
                 "," in inner and not any(c in inner for c in "*/")
         ):
             inner += ", /"
