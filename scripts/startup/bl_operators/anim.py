@@ -783,10 +783,11 @@ class ANIM_OT_version_bone_hide_property(Operator):
         for arm_ob in selected_armatures:
             ob_adt = arm_ob.animation_data
             arm_adt = arm_ob.data.animation_data
-            if warn and (not ob_adt or not ob_adt.action or not ob_adt.action_slot):
-                self.report({'WARNING'}, rpt_("Not all armature objects have an action and slot assigned"))
-                # Only warn once.
-                warn = False
+            if not ob_adt or not ob_adt.action or not ob_adt.action_slot:
+                if warn:
+                    self.report({'WARNING'}, rpt_("Not all armature objects have an action and slot assigned"))
+                    # Only warn once.
+                    warn = False
                 continue
 
             # Only armatures with an action and slot are added to `selected_armatures`.
