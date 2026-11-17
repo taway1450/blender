@@ -7,7 +7,7 @@ Pose Library - operators.
 """
 
 from pathlib import Path
-from typing import Set
+from typing import Literal
 
 _need_reload = "functions" in locals()
 from . import asset_browser, functions, pose_creation, pose_usage
@@ -62,7 +62,7 @@ class POSELIB_OT_restore_previous_action(Operator):
             and context.object.animation_data.action.asset_data is not None
         )
 
-    def execute(self, context: Context) -> Set[str]:
+    def execute(self, context: Context) -> set[Literal['RUNNING_MODAL']]:
         # This is the Action that was just created with "Create Pose Asset".
         # It has to be re-applied after switching to the previous action,
         # to ensure the character keeps the same pose.
@@ -100,7 +100,7 @@ class ASSET_OT_assign_action(Operator):
     def poll(cls, context: Context) -> bool:
         return bool(isinstance(getattr(context, "id", None), Action) and context.object)
 
-    def execute(self, context: Context) -> Set[str]:
+    def execute(self, context: Context) -> set[Literal['FINISHED']]:
         context.object.animation_data_create().action = context.id
         return {"FINISHED"}
 
@@ -113,7 +113,7 @@ class POSELIB_OT_copy_as_asset(PoseAssetCreator, Operator):
 
     CLIPBOARD_ASSET_MARKER = "ASSET-BLEND="
 
-    def execute(self, context: Context) -> Set[str]:
+    def execute(self, context: Context) -> set[Literal['FINISHED', 'CANCELLED']]:
         asset = pose_creation.create_pose_asset_from_context(context, new_asset_name=context.object.name)
         if asset is None:
             self.report({"WARNING"}, "No animation data found to create asset from")
@@ -187,7 +187,7 @@ class POSELIB_OT_paste_asset(Operator):
 
         return True
 
-    def execute(self, context: Context) -> Set[str]:
+    def execute(self, context: Context) -> set[Literal['FINISHED', 'CANCELLED']]:
         clipboard = context.window_manager.clipboard
         marker_len = len(POSELIB_OT_copy_as_asset.CLIPBOARD_ASSET_MARKER)
         filepath = Path(clipboard[marker_len:])
@@ -225,17 +225,17 @@ class PoseAssetUser:
             return False
         return context.asset.id_type == 'ACTION'
 
-    def execute(self, context: Context) -> Set[str]:
+    def execute(self, context: Context) -> set[Literal['FINISHED', 'CANCELLED']]:
         asset: AssetRepresentation = context.asset
         if asset.local_id:
             return self.use_pose(context, asset.local_id)
         return self._load_and_use_pose(context)
 
-    def use_pose(self, context: Context, asset: bpy.types.ID) -> Set[str]:
+    def use_pose(self, context: Context, asset: bpy.types.ID) -> set[Literal['FINISHED', 'CANCELLED']]:
         # Implement in subclass.
         pass
 
-    def _load_and_use_pose(self, context: Context) -> Set[str]:
+    def _load_and_use_pose(self, context: Context) -> set[Literal['FINISHED', 'CANCELLED']]:
         asset = context.asset
         asset_lib_path = asset.full_library_path
 
@@ -271,7 +271,7 @@ class POSELIB_OT_pose_asset_select_bones(PoseAssetUser, Operator):
     select: BoolProperty(name="Select", default=True)  # type: ignore
     flipped: BoolProperty(name="Flipped", default=False)  # type: ignore
 
-    def use_pose(self, context: Context, pose_asset: Action) -> Set[str]:
+    def use_pose(self, context: Context, pose_asset: Action) -> set[Literal['FINISHED', 'CANCELLED']]:
         for object in context.selected_objects:
             pose_usage.select_bones(object, pose_asset, select=self.select, flipped=self.flipped)
         if self.select:
