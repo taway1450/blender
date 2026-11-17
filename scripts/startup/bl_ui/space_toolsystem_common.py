@@ -53,8 +53,26 @@ def _item_is_fn(item):
     return ((type(item) is not ToolDef) and callable(item))
 
 
+class _ToolDefFromFn:
+    """
+    Use as decorator so we can define functions.
+    """
+    __slots__ = ()
+
+    def __call__(self, fn):
+        return ToolDef.from_dict(fn())
+
+    @staticmethod
+    def with_args(**kw):
+        def from_fn(fn):
+            return ToolDef.from_dict(fn(**kw))
+        return from_fn
+
+
 from collections import namedtuple
-ToolDef = namedtuple(
+
+
+class ToolDef(namedtuple(
     "ToolDef",
     (
         # Unique tool name (within space & mode context).
@@ -117,60 +135,46 @@ ToolDef = namedtuple(
         # Various options, see: `bpy.types.WorkSpaceTool.setup` options argument.
         "options",
     )
-)
+)):
+    __slots__ = ()
+
+    @staticmethod
+    def from_dict(kw_args):
+        """
+        Use so each tool can avoid defining all members of the named tuple.
+        Also convert the keymap from a tuple into a function
+        (since keymap is a callback).
+        """
+        kw = {
+            "description": None,
+            "icon": None,
+            "cursor": None,
+            "options": None,
+            "widget": None,
+            "widget_properties": None,
+            "keymap": None,
+            "brush_type": None,
+            "data_block": None,
+            "operator": None,
+            "draw_settings": None,
+            "draw_cursor": None,
+        }
+        kw.update(kw_args)
+
+        keymap = kw["keymap"]
+        if keymap is None:
+            pass
+        elif type(keymap) is tuple:
+            keymap = [_keymap_fn_from_seq(keymap)]
+        else:
+            keymap = [keymap]
+        kw["keymap"] = keymap
+        return ToolDef(**kw)
+
+    from_fn = _ToolDefFromFn()
+
+
 del namedtuple
-
-
-def from_dict(kw_args):
-    """
-    Use so each tool can avoid defining all members of the named tuple.
-    Also convert the keymap from a tuple into a function
-    (since keymap is a callback).
-    """
-    kw = {
-        "description": None,
-        "icon": None,
-        "cursor": None,
-        "options": None,
-        "widget": None,
-        "widget_properties": None,
-        "keymap": None,
-        "brush_type": None,
-        "data_block": None,
-        "operator": None,
-        "draw_settings": None,
-        "draw_cursor": None,
-    }
-    kw.update(kw_args)
-
-    keymap = kw["keymap"]
-    if keymap is None:
-        pass
-    elif type(keymap) is tuple:
-        keymap = [_keymap_fn_from_seq(keymap)]
-    else:
-        keymap = [keymap]
-    kw["keymap"] = keymap
-    return ToolDef(**kw)
-
-
-def from_fn(fn):
-    """
-    Use as decorator so we can define functions.
-    """
-    return ToolDef.from_dict(fn())
-
-
-def with_args(**kw):
-    def from_fn(fn):
-        return ToolDef.from_dict(fn(**kw))
-    return from_fn
-
-
-from_fn.with_args = with_args
-ToolDef.from_dict = from_dict
-ToolDef.from_fn = from_fn
-del from_dict, from_fn, with_args
 
 
 class ToolActivePanelHelper:
