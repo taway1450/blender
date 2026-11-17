@@ -249,9 +249,9 @@ class UI_UL_list(bpy.types.UIList):
         Common sorting utility. Returns a neworder list mapping org_index -> new_index.
 
         :param sort_data: Unordered list of tuples ``[(org_index, ...), ...]`` to sort in place.
-        :type sort_data: list[tuple[int, Any, ...]]
+        :type sort_data: list[tuple[Any, ...]]
         :param key: Sort key callable, same as for the ``sorted`` builtin.
-        :type key: Callable[[tuple[int, Any, ...]], Any]
+        :type key: Callable[[tuple[Any, ...]], Any]
         :param reverse: Reverse the sort order.
         :type reverse: bool
         :return: A list mapping original index to new index.
