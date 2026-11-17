@@ -3921,7 +3921,7 @@ class VIEW3D_MT_sculpt(Menu):
 
         layout.separator()
 
-        sculpt_filters_types = [
+        sculpt_filters_types = (
             ('SMOOTH', iface_("Smooth", i18n_contexts.operator_default)),
             ('SURFACE_SMOOTH', iface_("Surface Smooth")),
             ('INFLATE', iface_("Inflate")),
@@ -3931,7 +3931,7 @@ class VIEW3D_MT_sculpt(Menu):
             ('ENHANCE_DETAILS', iface_("Enhance Details")),
             ('ERASE_DISPLACEMENT', iface_("Erase Multires Displacement")),
             ('RANDOM', iface_("Randomize")),
-        ]
+        )
 
         for filter_type, ui_name in sculpt_filters_types:
             props = layout.operator("sculpt.mesh_filter", text=ui_name, translate=False)

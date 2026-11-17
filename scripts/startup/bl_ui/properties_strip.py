@@ -50,9 +50,18 @@ class STRIP_PT_color_tag_picker(StripColorTagPicker, Panel):
 
         row = layout.row(align=True)
         row.operator("sequencer.strip_color_tag_set", icon='X').color = 'NONE'
-        for i in range(1, 10):
-            icon = 'STRIP_COLOR_{:02d}'.format(i)
-            row.operator("sequencer.strip_color_tag_set", icon=icon).color = 'COLOR_{:02d}'.format(i)
+        for icon, color in (
+                ('STRIP_COLOR_01', 'COLOR_01'),
+                ('STRIP_COLOR_02', 'COLOR_02'),
+                ('STRIP_COLOR_03', 'COLOR_03'),
+                ('STRIP_COLOR_04', 'COLOR_04'),
+                ('STRIP_COLOR_05', 'COLOR_05'),
+                ('STRIP_COLOR_06', 'COLOR_06'),
+                ('STRIP_COLOR_07', 'COLOR_07'),
+                ('STRIP_COLOR_08', 'COLOR_08'),
+                ('STRIP_COLOR_09', 'COLOR_09'),
+        ):
+            row.operator("sequencer.strip_color_tag_set", icon=icon).color = color
 
 
 class STRIP_PT_strip(StripButtonsPanel, Panel):

@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+from typing import Literal
+
 import bpy
 from bpy.types import (
     Header,
@@ -2461,7 +2463,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
     bl_label = "Add-ons"
     bl_options = {'HIDE_HEADER'}
 
-    _support_icon_mapping = {
+    _support_icon_mapping: dict[str, Literal['BLENDER', 'COMMUNITY']] = {
         'OFFICIAL': 'BLENDER',
         'COMMUNITY': 'COMMUNITY',
     }
