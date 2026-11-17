@@ -20,7 +20,7 @@ def gather_data_sampled_keyframes(
         bone_name: typing.Optional[str],
         channel,
         action_name,
-        slot_identifier: str,
+        slot_identifier: str | None,
         node_channel_is_animated: bool,
         additional_key,  # Used to differentiate between material / material node_tree
         export_settings):

@@ -23,7 +23,7 @@ def gather_bone_sampled_animation_sampler(
         bone: str,
         channel: str,
         action_name: str,
-        slot_identifier: str,
+        slot_identifier: str | None,
         node_channel_is_animated: bool,
         node_channel_interpolation: str,
         export_settings
@@ -75,7 +75,7 @@ def __gather_keyframes(
         bone: str,
         channel: str,
         action_name: str,
-        slot_identifier: str,
+        slot_identifier: str | None,
         node_channel_is_animated: bool,
         export_settings
 ):

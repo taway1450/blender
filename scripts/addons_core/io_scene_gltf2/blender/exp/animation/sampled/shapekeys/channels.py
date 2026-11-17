@@ -13,7 +13,7 @@ def gather_sk_sampled_channels(
         id_type,
         object_uuid: str,
         blender_action_name: str,
-        slot_identifier: str,
+        slot_identifier: str | None,
         export_settings):
 
     # Only 1 channel when exporting shape keys
@@ -42,7 +42,7 @@ def gather_sampled_sk_channel(
         id_type: str,
         obj_uuid: str,
         action_name: str,
-        slot_identifier: str,
+        slot_identifier: str | None,
         export_settings
 ):
 
@@ -73,7 +73,7 @@ def __gather_target(obj_uuid: str, export_settings):
         obj_uuid, export_settings)
 
 
-def __gather_sampler(id_type: str, obj_uuid: str, action_name: str, slot_identifier: str, export_settings):
+def __gather_sampler(id_type: str, obj_uuid: str, action_name: str, slot_identifier: str | None, export_settings):
     return gather_sk_sampled_animation_sampler(
         id_type,
         obj_uuid,

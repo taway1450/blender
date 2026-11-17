@@ -9,8 +9,8 @@ from .channels import gather_data_sampled_channels
 
 def gather_action_mesh_sampled(obj_uuid: str,
                                blender_action,
-                               slot_identifier: str,
-                               cache_key: str,
+                               slot_identifier: str | None,
+                               cache_key: str | None,
                                export_settings):
     # Used for custom properties on mesh data
 
@@ -32,8 +32,8 @@ def gather_action_data_sampled(
         blender_type_data: str,
         blender_id: str,
         blender_action,
-        slot_identifier: str,
-        cache_key: str,
+        slot_identifier: str | None,
+        cache_key: str | None,
         export_settings):
     """ For lights, cameras """
 
@@ -67,8 +67,8 @@ def gather_action_data_sampled(
 
 def gather_action_material_sampled(mat_uuid: str,
                                    blender_action,
-                                   slot_identifier: str,
-                                   cache_key: str,
+                                   slot_identifier: str | None,
+                                   cache_key: str | None,
                                    export_settings):
 
     # If no animation in file, no need to bake
@@ -105,7 +105,7 @@ def gather_action_material_sampled(mat_uuid: str,
     return channels
 
 
-def __gather_channels(data_type: str, uuid: str, blender_action_name: str, slot_identifier: str,
+def __gather_channels(data_type: str | None, uuid: str, blender_action_name: str, slot_identifier: str | None,
                       export_settings):
 
     # For meshes, this is only for custom properties

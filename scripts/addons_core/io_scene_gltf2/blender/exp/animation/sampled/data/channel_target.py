@@ -15,7 +15,7 @@ def gather_data_sampled_channel_target(
         blender_id,
         bone_name: typing.Optional[str],
         channel: str,
-        additional_key: str,  # Used to differentiate between material / material node_tree
+        additional_key: str | None,  # Used to differentiate between material / material node_tree
         export_settings
 ) -> gltf2_io.AnimationChannelTarget:
 

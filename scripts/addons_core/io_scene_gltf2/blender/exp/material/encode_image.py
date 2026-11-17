@@ -222,7 +222,7 @@ class ExportImage:
             all(fill.tile == self.fills[list(self.fills.keys())[0]].tile for fill in self.fills.values())
         )
 
-    def encode(self, mime_type: Optional[str], export_settings) -> Tuple[bytes, bool]:
+    def encode(self, mime_type: Optional[str], export_settings) -> Tuple[bytes, None]:
         self.file_format = {
             "image/jpeg": "JPEG",
             "image/png": "PNG",

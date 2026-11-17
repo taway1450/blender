@@ -166,7 +166,7 @@ def __gather_cache_primitives(
         vertex_groups: bpy.types.VertexGroups,
         modifiers: Optional[bpy.types.ObjectModifiers],
         export_settings
-) -> List[dict]:
+) -> Tuple[List[dict], list]:
     """
     Gather parts that are identical for instances, i.e. excluding materials
     """

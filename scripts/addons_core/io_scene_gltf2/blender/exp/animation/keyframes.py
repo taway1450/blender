@@ -115,7 +115,8 @@ class Keyframe:
         self.__value = value
 
     @property
-    def in_tangent(self) -> typing.Union[mathutils.Vector, mathutils.Euler, mathutils.Quaternion, typing.List[float]]:
+    def in_tangent(self) \
+            -> typing.Union[mathutils.Vector, mathutils.Euler, mathutils.Quaternion, typing.List[float], None]:
         if self.__in_tangent is None:
             return None
         if self.target == "value":
@@ -127,7 +128,8 @@ class Keyframe:
         self.__in_tangent = self.__set_indexed(value)
 
     @property
-    def out_tangent(self) -> typing.Union[mathutils.Vector, mathutils.Euler, mathutils.Quaternion, typing.List[float]]:
+    def out_tangent(self) \
+            -> typing.Union[mathutils.Vector, mathutils.Euler, mathutils.Quaternion, typing.List[float], None]:
         if self.__out_tangent is None:
             return None
         if self.target == "value":

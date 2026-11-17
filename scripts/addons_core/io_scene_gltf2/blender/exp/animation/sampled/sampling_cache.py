@@ -22,7 +22,7 @@ def get_cache_data(path: str,
                    action_name: str,
                    current_frame: int,
                    step: int,
-                   slot_identifier: str,
+                   slot_identifier: str | None,
                    export_settings,
                    only_gather_provided=False
                    ):

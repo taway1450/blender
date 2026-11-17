@@ -554,7 +554,7 @@ def prepare_tracks_range(obj_uuid, track_data, export_settings, with_driver=True
 
 
 def gather_data_track_animations(
-        blender_main_type: str,
+        blender_main_type: str | None,
         blender_type_data: str,
         blender_id: str,
         tracks: typing.Dict[str, typing.List[int]],

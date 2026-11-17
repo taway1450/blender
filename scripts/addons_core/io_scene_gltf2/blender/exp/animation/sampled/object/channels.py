@@ -14,8 +14,9 @@ from .sampler import gather_object_sampled_animation_sampler
 from .channel_target import gather_object_sampled_channel_target
 
 
-def gather_object_sampled_channels(object_uuid: str, blender_action_name: str, slot_identifier: str,
-                                   export_settings) -> typing.List[gltf2_io.AnimationChannel]:
+def gather_object_sampled_channels(object_uuid: str, blender_action_name: str, slot_identifier: str | None,
+                                   export_settings) \
+        -> typing.Tuple[typing.Optional[typing.List[gltf2_io.AnimationChannel]], dict]:
     channels = []
     additional_channels = {}
 
@@ -90,7 +91,7 @@ def gather_sampled_object_channel(
         obj_uuid: str,
         channel: str,
         action_name: str,
-        slot_identifier: str,
+        slot_identifier: str | None,
         node_channel_is_animated: bool,
         node_channel_interpolation: str,
         export_settings
@@ -146,7 +147,7 @@ def __gather_sampler(
         obj_uuid: str,
         channel: str,
         action_name: str,
-        slot_identifier: int,
+        slot_identifier: str | None,
         node_channel_is_animated: bool,
         node_channel_interpolation: str,
         export_settings):

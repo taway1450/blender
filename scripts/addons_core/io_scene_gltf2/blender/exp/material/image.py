@@ -263,7 +263,8 @@ def set_real_uri(image, export_settings):
     image.uri = uri
 
 
-def __get_image_data(sockets, use_tile, is_data, export_settings) -> ExportImage:
+def __get_image_data(sockets, use_tile, is_data, export_settings) \
+        -> typing.Tuple[ExportImage, typing.Optional[bpy.types.Image]]:
     # For shared resources, such as images, we just store the portion of data that is needed in the glTF property
     # in a helper class. During generation of the glTF in the exporter these will then be combined to actual binary
     # resources.

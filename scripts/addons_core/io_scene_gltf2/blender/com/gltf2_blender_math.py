@@ -9,7 +9,8 @@ from mathutils import Matrix, Vector, Quaternion, Euler
 from .data_path import get_target_property_name
 
 
-def list_to_mathutils(values: typing.List[float], data_path: str) -> typing.Union[Vector, Quaternion, Euler]:
+def list_to_mathutils(values: typing.List[float], data_path: str) \
+        -> typing.Union[Vector, Quaternion, Euler, typing.List[float]]:
     """Transform a list to blender py object."""
     target = get_target_property_name(data_path)
 

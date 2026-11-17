@@ -100,7 +100,7 @@ def gather_non_keyed_values(
         bone: typing.Optional[str],
         extra_mode: bool,
         export_settings
-) -> typing.Tuple[typing.Optional[float]]:
+) -> typing.Sequence[typing.Optional[float]]:
 
     if extra_mode is True:
         # No need to check if there are non non keyed values, as we export fcurve independently
@@ -192,7 +192,7 @@ def gather_non_keyed_values(
         return tuple(non_keyed_values)
 
 
-def complete_key(key: Keyframe, non_keyed_values: typing.Tuple[typing.Optional[float]]):
+def complete_key(key: Keyframe, non_keyed_values: typing.Sequence[typing.Optional[float]]):
     """
     Complete keyframe with non keyed values
     """
@@ -202,7 +202,7 @@ def complete_key(key: Keyframe, non_keyed_values: typing.Tuple[typing.Optional[f
         key.set_value_index(i, non_keyed_values[i])
 
 
-def __complete_key_tangents(key: Keyframe, non_keyed_values: typing.Tuple[typing.Optional[float]]):
+def __complete_key_tangents(key: Keyframe, non_keyed_values: typing.Sequence[typing.Optional[float]]):
     """
     Complete keyframe with non keyed values for tangents
     """

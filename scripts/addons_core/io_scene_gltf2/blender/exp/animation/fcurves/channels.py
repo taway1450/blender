@@ -20,7 +20,7 @@ def gather_animation_material_fcurves_channels(
         blender_action: bpy.types.Action,
         slot_identifier: str,
         export_settings
-) -> typing.List[gltf2_io.AnimationChannel]:
+) -> typing.Tuple[typing.List[gltf2_io.AnimationChannel], typing.List, typing.List]:
 
     channels_to_perform, to_be_sampled, additional_channels_to_perform, extras_channels_to_perform = get_channel_groups_material(
         mat_uuid, blender_action, blender_action.slots[slot_identifier], export_settings)

@@ -44,7 +44,7 @@ def gather_fcurve_channel_target_extras(
         elem_uuid: str,
         bone: str,
         custom_property: str,
-        export_settings) -> gltf2_io.AnimationChannelTarget:
+        export_settings) -> typing.Optional[gltf2_io.AnimationChannelTarget]:
 
     impacted_data = get_impacted_data(id_type)
 
@@ -103,7 +103,7 @@ def __gather_path(id_type: str,
                   elem_uuid: str,
                   channels: typing.Tuple[bpy.types.FCurve],
                   export_settings
-                  ) -> str:
+                  ) -> typing.Optional[str]:
 
     if id_type == "NODETREE":
         for path in export_settings['KHR_animation_pointer'][None]['materials'][elem_uuid]['paths'].keys():

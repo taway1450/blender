@@ -12,8 +12,8 @@ from .channels import gather_object_sampled_channels
 
 def gather_action_object_sampled(object_uuid: str,
                                  blender_action: typing.Optional[bpy.types.Action],
-                                 slot_identifier: str,
-                                 cache_key: str,
+                                 slot_identifier: str | None,
+                                 cache_key: str | None,
                                  export_settings):
 
     extra_samplers = []
@@ -52,6 +52,7 @@ def gather_action_object_sampled(object_uuid: str,
     return channels, extra_samplers
 
 
-def __gather_channels(object_uuid: str, blender_action_name: str, slot_identifier: str,
-                      export_settings) -> typing.List[gltf2_io.AnimationChannel]:
+def __gather_channels(object_uuid: str, blender_action_name: str, slot_identifier: str | None,
+                      export_settings) \
+        -> typing.Tuple[typing.Optional[typing.List[gltf2_io.AnimationChannel]], dict]:
     return gather_object_sampled_channels(object_uuid, blender_action_name, slot_identifier, export_settings)

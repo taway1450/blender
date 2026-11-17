@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-def get_target_property_name(data_path: str) -> str:
+def get_target_property_name(data_path: str) -> str | None:
     """Retrieve target property."""
 
     if data_path.endswith("]"):
@@ -25,7 +25,7 @@ def get_target_object_path(data_path: str) -> str:
     return path_split[0]
 
 
-def get_rotation_modes(target_property: str):
+def get_rotation_modes(target_property: str | None):
     """Retrieve rotation modes based on target_property"""
     if target_property in ["rotation_euler", "delta_rotation_euler"]:
         return True, ["XYZ", "XZY", "YXZ", "YZX", "ZXY", "ZYX"]
@@ -49,7 +49,7 @@ def is_scale(target_property):
     return "scale" in target_property
 
 
-def get_delta_modes(target_property: str) -> str:
+def get_delta_modes(target_property: str) -> bool:
     """Retrieve location based on target_property"""
     return target_property.startswith("delta_")
 

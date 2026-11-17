@@ -12,8 +12,8 @@ from .channels import gather_armature_sampled_channels
 
 def gather_action_armature_sampled(armature_uuid: str,
                                    blender_action: typing.Optional[bpy.types.Action],
-                                   slot_identifier: str,
-                                   cache_key: str,
+                                   slot_identifier: str | None,
+                                   cache_key: str | None,
                                    export_settings):
 
     blender_object = export_settings['vtree'].nodes[armature_uuid].blender_object
@@ -53,5 +53,5 @@ def gather_action_armature_sampled(armature_uuid: str,
 
 
 def __gather_channels(armature_uuid, blender_action_name, slot_identifier,
-                      export_settings) -> typing.List[gltf2_io.AnimationChannel]:
+                      export_settings) -> typing.Tuple[typing.List[gltf2_io.AnimationChannel], dict]:
     return gather_armature_sampled_channels(armature_uuid, blender_action_name, slot_identifier, export_settings)

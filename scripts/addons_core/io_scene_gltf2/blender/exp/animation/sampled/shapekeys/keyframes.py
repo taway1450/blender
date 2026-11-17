@@ -138,7 +138,7 @@ def fcurve_is_constant(keyframes):
 # TODO de-duplicate, but import issue???
 
 
-def complete_key(key: Keyframe, non_keyed_values: typing.Tuple[typing.Optional[float]]):
+def complete_key(key: Keyframe, non_keyed_values: typing.Sequence[typing.Optional[float]]):
     """
     Complete keyframe with non keyed values
     """

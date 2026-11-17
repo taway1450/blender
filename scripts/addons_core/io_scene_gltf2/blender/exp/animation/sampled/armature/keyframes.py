@@ -15,10 +15,10 @@ def gather_bone_sampled_keyframes(
         bone: str,
         channel: str,
         action_name: str,
-        slot_identifier: str,
+        slot_identifier: str | None,
         node_channel_is_animated: bool,
         export_settings
-) -> typing.List[Keyframe]:
+) -> typing.Optional[typing.List[Keyframe]]:
 
     start_frame = export_settings['ranges'][armature_uuid][action_name]['start']
     end_frame = export_settings['ranges'][armature_uuid][action_name]['end']

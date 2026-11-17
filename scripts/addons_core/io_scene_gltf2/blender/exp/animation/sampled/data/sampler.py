@@ -22,10 +22,10 @@ def gather_data_sampled_animation_sampler(
         bone_name: typing.Optional[str],
         channel: str,
         action_name: str,
-        slot_identifier: str,
+        slot_identifier: str | None,
         node_channel_is_animated: bool,
         node_channel_interpolation: str,
-        additional_key: str,  # Used to differentiate between material / material node_tree
+        additional_key: str | None,  # Used to differentiate between material / material node_tree
         export_settings
 ):
 

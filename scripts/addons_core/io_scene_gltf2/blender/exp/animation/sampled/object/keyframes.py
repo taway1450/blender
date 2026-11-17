@@ -13,7 +13,7 @@ def gather_object_sampled_keyframes(
         obj_uuid: str,
         channel: str,
         action_name: str,
-        slot_identifier: str,
+        slot_identifier: str | None,
         node_channel_is_animated: bool,
         export_settings
 ):

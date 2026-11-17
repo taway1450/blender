@@ -29,7 +29,7 @@ def gather_animation_fcurves_sampler(
         custom_range: typing.Optional[set],
         extra_mode: bool,
         export_settings
-) -> gltf2_io.AnimationSampler:
+) -> typing.Optional[gltf2_io.AnimationSampler]:
 
     # matrix_parent_inverse needed for fcurves?
 
