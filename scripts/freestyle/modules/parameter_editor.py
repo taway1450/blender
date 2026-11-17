@@ -236,7 +236,7 @@ class ThicknessBlenderMixIn(ThicknessModifierMixIn):
         elif self.position == 'RELATIVE':
             outer, inner = v * self.ratio, v - (v * self.ratio)
         else:
-            raise ValueError("unknown thickness position: " + position)
+            raise ValueError("unknown thickness position: " + self.position)
 
         self.set_thickness(svert, outer, inner)
 
