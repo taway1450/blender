@@ -887,8 +887,12 @@ class DOPESHEET_MT_channel_context_menu(Menu):
     def draw(self, context):
         layout = self.layout
 
+        space = context.space_data
+        if space is None:
+            return
+
         # This menu is used from the graph editor too.
-        is_graph_editor = context.area.type == 'GRAPH_EDITOR'
+        is_graph_editor = space.type == 'GRAPH_EDITOR'
 
         layout.operator_context = 'INVOKE_REGION_CHANNELS'
 
@@ -933,7 +937,7 @@ class DOPESHEET_MT_channel_context_menu(Menu):
 
         layout.operator("anim.channels_delete")
 
-        if is_graph_editor and context.space_data.mode == 'DRIVERS':
+        if is_graph_editor and space.mode == 'DRIVERS':
             layout.operator("graph.driver_delete_invalid")
 
 

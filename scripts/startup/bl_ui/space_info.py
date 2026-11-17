@@ -71,7 +71,9 @@ class INFO_MT_area(Menu):
     def draw(self, context):
         layout = self.layout
 
-        if context.space_data.type == 'VIEW_3D':
+        # This menu is used from the View menu of most editors.
+        space = context.space_data
+        if space is not None and space.type == 'VIEW_3D':
             layout.operator("screen.region_quadview")
             layout.separator()
 
