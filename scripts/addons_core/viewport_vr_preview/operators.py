@@ -315,15 +315,18 @@ class VIEW3D_OT_vr_location_scouting_viewfinder_capture(Operator):
 
     @classmethod
     def poll(cls, context):
-        session_is_running = bpy.types.XrSessionState.is_running(context)
+        # The session state is only available while a session is running.
+        xr_session_state = context.window_manager.xr_session_state
+        if xr_session_state is None or not bpy.types.XrSessionState.is_running(context):
+            return False
 
         xr_settings = context.window_manager.xr_session_settings
-        xr_viewfinder = context.window_manager.xr_session_state.viewfinder
+        xr_viewfinder = xr_session_state.viewfinder
 
         viewfinder_enabled = xr_settings.viewfinder_enabled
-        viewfinder_in_live_mode = xr_viewfinder.active_mode == "LIVE"
+        viewfinder_in_live_mode = xr_viewfinder is not None and xr_viewfinder.active_mode == "LIVE"
 
-        return session_is_running and viewfinder_enabled and viewfinder_in_live_mode
+        return viewfinder_enabled and viewfinder_in_live_mode
 
     def execute(self, context):
         scene = context.scene
