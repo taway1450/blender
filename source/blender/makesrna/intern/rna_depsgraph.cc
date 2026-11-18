@@ -666,6 +666,7 @@ static void rna_def_depsgraph_update(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "ID", "Updated data-block");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
   RNA_def_property_pointer_funcs(prop, "rna_DepsgraphUpdate_id_get", nullptr, nullptr, nullptr);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
 
   /* Use term 'is_updated' instead of 'is_dirty' here because this is a signal
    * that users of the depsgraph may want to update their data (render engines for eg). */
