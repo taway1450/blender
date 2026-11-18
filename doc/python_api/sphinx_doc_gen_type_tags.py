@@ -417,6 +417,11 @@ def object_views(p: Probe) -> Iterator[ViewFamily]:
     # Objects of each type, with every variant of their data, as the data may be refined itself (`Light`).
     data = bpy.data
 
+    def armature_assigned() -> Any:
+        ob = new_object(p, data.armatures.new(NAME))
+        ob.data = p.keep(data.armatures.new(NAME))
+        return ob
+
     def empty_image() -> Any:
         # An empty can display an image, its data.
         ob = new_object(p, None)
@@ -433,7 +438,8 @@ def object_views(p: Probe) -> Iterator[ViewFamily]:
         'POINTCLOUD': [lambda: new_object(p, data.pointclouds.new(NAME))],
         'VOLUME': [lambda: new_object(p, data.volumes.new(NAME))],
         'GREASEPENCIL': [lambda: new_object(p, data.grease_pencils.new(NAME))],
-        'ARMATURE': [lambda: new_object(p, data.armatures.new(NAME))],
+        # The pose is None until the depsgraph builds it, while assigning an armature builds it at once.
+        'ARMATURE': [lambda: new_object(p, data.armatures.new(NAME)), armature_assigned],
         'LATTICE': [lambda: new_object(p, data.lattices.new(NAME))],
         'CAMERA': [lambda: new_object(p, data.cameras.new(NAME))],
         'SPEAKER': [lambda: new_object(p, data.speakers.new(NAME))],
@@ -455,7 +461,7 @@ def object_views(p: Probe) -> Iterator[ViewFamily]:
             instances[value] = [make() for make in makers[value]]
         except Exception as ex:
             p.missing.append("Object.type {!r}: {:s}".format(value, str(ex).strip()))
-    yield "Object", "type", ("data",), instances
+    yield "Object", "type", ("data", "pose"), instances
 
 
 def fluid_views(p: Probe) -> Iterator[ViewFamily]:
