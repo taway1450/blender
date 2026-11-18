@@ -53,6 +53,9 @@ class DATA_PT_curves_surface(DataButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         ob = context.object
+        if ob is None:
+            # The Properties editor is pinned to the curves data.
+            return
 
         layout.use_property_split = True
 

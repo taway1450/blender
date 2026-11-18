@@ -339,7 +339,9 @@ class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
         col = layout.column()
 
         if probe.type == 'PLANE':
-            col.prop(ob, "empty_display_size", text="Arrow Size")
+            # No object when the Properties editor is pinned to the light probe data.
+            if ob:
+                col.prop(ob, "empty_display_size", text="Arrow Size")
             col.prop(probe, "show_influence")
 
         if probe.type in {'VOLUME', 'SPHERE'}:
@@ -382,7 +384,9 @@ class DATA_PT_lightprobe_display_eevee(DataButtonsPanel, Panel):
             sub.prop(probe, "show_parallax")
 
         if probe.type == 'PLANE':
-            col.prop(ob, "empty_display_size", text="Arrow Size")
+            # No object when the Properties editor is pinned to the light probe data.
+            if ob:
+                col.prop(ob, "empty_display_size", text="Arrow Size")
             col.prop(probe, "use_data_display", text="Capture")
             col.prop(probe, "show_influence")
 

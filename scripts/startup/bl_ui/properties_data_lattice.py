@@ -64,7 +64,12 @@ class DATA_PT_lattice(DataButtonsPanel, Panel):
 
         col.separator()
 
-        col.prop_search(lat, "vertex_group", context.object, "vertex_groups")
+        ob = context.object
+        if ob:
+            col.prop_search(lat, "vertex_group", ob, "vertex_groups")
+        else:
+            # The Properties editor is pinned to the lattice data.
+            col.prop(lat, "vertex_group")
 
 
 class DATA_PT_lattice_animation(DataButtonsPanel, PropertiesAnimationMixin, PropertyPanel, Panel):
