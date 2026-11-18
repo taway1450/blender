@@ -298,6 +298,9 @@ class PROJECT_PT_variables(Panel):
 
     def draw(self, context):
         project = bpy.data.project
+        if project is None:
+            # The navigation bar selects the main section without a project, but not while it is hidden.
+            return
 
         layout = self.layout
 
