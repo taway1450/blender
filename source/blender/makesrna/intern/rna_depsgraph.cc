@@ -572,6 +572,7 @@ static void rna_def_depsgraph_instance(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
   RNA_def_property_pointer_funcs(
       prop, "rna_DepsgraphObjectInstance_object_get", nullptr, nullptr, nullptr);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
 
   prop = RNA_def_property(srna, "show_self", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
