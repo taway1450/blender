@@ -263,7 +263,8 @@ class BONE_PT_collections(BoneButtonsPanel, Panel):
 
         bone = context.bone or context.edit_bone
         object = context.pose_object or context.edit_object or context.object
-        if not object:
+        # Pinned to an armature, the Properties editor has no object, and the edit object can be a mesh.
+        if not object or object.type != 'ARMATURE':
             layout.active = False
             sub = layout.column(align=True)
             sub.label(text="Cannot figure out which object this bone belongs to.")
