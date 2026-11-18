@@ -30,6 +30,9 @@ NAME = "type_tag_probe"
 # A base struct, its tag attribute and instances of its subclasses.
 Family = tuple[str, str, list[Any]]
 
+# A base struct without a tag and instances of each of its subclasses.
+UntaggedFamily = tuple[str, list[Any]]
+
 
 class TagView(NamedTuple):
     """
@@ -63,6 +66,9 @@ class TypeTags(NamedTuple):
     # Base struct identifier -> {tag attribute only its subclasses define: every value}
     # (`LineStyleColorModifier.type`, which each color modifier defines itself).
     base_tags: dict[str, dict[str, BaseTag]]
+    # Base struct identifier without a tag -> the subclasses its instances are always one of
+    # (a `GreasePencilTreeNode` is a `GreasePencilLayer` or a `GreasePencilLayerGroup`).
+    unions: dict[str, list[str]]
     # The tag values the probe could not make an instance of: `"Strip.type 'MOVIE': error"`.
     missing: list[str]
 
@@ -388,6 +394,18 @@ FAMILIES: tuple[Callable[[Probe], Iterator[Family]], ...] = (
 )
 
 
+def grease_pencil_families(p: Probe) -> Iterator[UntaggedFamily]:
+    grease_pencil = p.keep(bpy.data.grease_pencils.new(NAME))
+    grease_pencil.layers.new(NAME)
+    grease_pencil.layer_groups.new(NAME)
+    yield "GreasePencilTreeNode", list(grease_pencil.root_nodes)
+
+
+UNTAGGED_FAMILIES: tuple[Callable[[Probe], Iterator[UntaggedFamily]], ...] = (
+    grease_pencil_families,
+)
+
+
 # -----------------------------------------------------------------------------
 # Tag views: a base struct, its tag attribute, the attributes the tag decides,
 # and instances of the base for each tag value.
@@ -490,6 +508,21 @@ def record_base_tags(base_tags: dict[str, dict[str, BaseTag]], family: Family) -
         base_tags.setdefault(base, {})[attr] = BaseTag(enum_ids(base, attr), prop.is_readonly)
 
 
+def record_union(unions: dict[str, list[str]], missing: list[str], family: UntaggedFamily) -> None:
+    """The instances of a base without a tag are of one of its subclasses, when the probe made all of them."""
+    base, instances = family
+    struct_ids = {type(instance).bl_rna.identifier for instance in instances}
+    expected = {
+        struct_id for struct_id in subclasses(getattr(bpy.types, base))
+        if getattr(bpy.types, struct_id).bl_rna.base.identifier == base
+    }
+    if base in struct_ids or struct_ids != expected:
+        missing.append("{:s}: instances of {:s}, subclasses {:s}".format(
+            base, ", ".join(sorted(struct_ids)), ", ".join(sorted(expected))))
+        return
+    unions[base] = sorted(struct_ids)
+
+
 def record_refined(refined: dict[str, str], family: Family) -> None:
     """When the base's tag is an enum with a single value, its instances are all of one subclass."""
     base, attr, instances = family
@@ -528,7 +561,7 @@ def record_views(views: list[TagView], missing: list[str], family: ViewFamily) -
 
 def probe() -> TypeTags:
     """Make the instances of every family and read their subclasses and tags."""
-    tags = TypeTags(values={}, views=[], refined={}, base_tags={}, missing=[])
+    tags = TypeTags(values={}, views=[], refined={}, base_tags={}, unions={}, missing=[])
     with tempfile.TemporaryDirectory() as directory:
         p = Probe(directory)
         try:
@@ -537,6 +570,9 @@ def probe() -> TypeTags:
                     record(tags.values, family)
                     record_refined(tags.refined, family)
                     record_base_tags(tags.base_tags, family)
+            for untagged_families in UNTAGGED_FAMILIES:
+                for untagged_family in untagged_families(p):
+                    record_union(tags.unions, p.missing, untagged_family)
             for view_families in VIEW_FAMILIES:
                 for view_family in view_families(p):
                     record_views(tags.views, p.missing, view_family)

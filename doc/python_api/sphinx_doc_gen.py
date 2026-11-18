@@ -2933,12 +2933,24 @@ def pyrna2sphinx(basepath: Path) -> None:
     def tag_type_override(struct_id: str, prop: stub.InfoPropertyRNA) -> str | None:
         """
         The type of a property the type tag probe tells more about than RNA: the tag of a subclass that defines
-        it itself (`LineStyleColorModifier_AlongStroke.type` is ``'ALONG_STROKE'``).
+        it itself (`LineStyleColorModifier_AlongStroke.type` is ``'ALONG_STROKE'``), or a pointer or collection
+        of a base without a tag, whose instances are one of its subclasses (`GreasePencilTreeNode`).
         """
         if type_tags is None:
             return None
         if (values := type_tags.values.get(struct_id, {}).get(prop.identifier)) is not None:
             return "Literal[{:s}]".format(", ".join(repr(value) for value in values))
+        if prop.fixed_type is not None and (union_ids := type_tags.unions.get(prop.fixed_type.identifier)):
+            type_descr, _type_info = prop.get_type_description(
+                class_fmt=":class:`{:s}`",
+                mathutils_fmt=":class:`mathutils.{:s}`",
+                literal_fmt="``{!r}``",
+                collection_id=_BPY_PROP_COLLECTION_ID,
+            )
+            return type_descr.replace(
+                ":class:`{:s}`".format(prop.fixed_type.identifier),
+                " | ".join(":class:`{:s}`".format(union_id) for union_id in union_ids),
+            )
         return None
 
     def write_struct(struct: stub.InfoStructRNA) -> None:
