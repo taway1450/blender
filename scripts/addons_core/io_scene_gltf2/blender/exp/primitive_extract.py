@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import numpy as np
+from typing import Any
 from copy import deepcopy
 from mathutils import Vector
 from ...blender.com.data_path import get_sk_exported
@@ -928,7 +929,7 @@ class PrimitiveCreator:
 
         self.blender_idxs = self.dots['vertex_index']
 
-        self.attributes = {}
+        self.attributes: dict[str, Any] = {}
 
         next_texcoor_idx = self.tex_coord_max
         uvmap_attributes_index = {}
@@ -1007,7 +1008,7 @@ class PrimitiveCreator:
 
             # Now just move all the data for prim_dots into attribute arrays
 
-            self.attributes = {}
+            self.attributes: dict[str, Any] = {}
 
             self.blender_idxs = self.prim_dots['vertex_index']
 
@@ -1085,7 +1086,7 @@ class PrimitiveCreator:
                 dots_edges = self.dots_edges
                 self.blender_idxs = self.dots_edges['vertex_index']
 
-                self.attributes_edges_points = {}
+                self.attributes_edges_points: dict[str, Any] = {}
 
                 for attr in self.blender_attributes:
                     if attr['blender_domain'] != 'POINT':
@@ -1141,7 +1142,7 @@ class PrimitiveCreator:
             if self.blender_idxs_points.shape[0] > 0:
                 self.blender_idxs = self.blender_idxs_points
 
-                self.attributes_edges_points = {}
+                self.attributes_edges_points: dict[str, Any] = {}
 
                 for attr in self.blender_attributes:
                     if attr['blender_domain'] != 'POINT':
