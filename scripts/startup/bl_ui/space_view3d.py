@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+from typing import Literal
+
 import bpy
 from bpy.types import (
     Header,
@@ -4606,8 +4608,8 @@ class VIEW3D_MT_pose_context_menu(Menu):
 
 
 class BoneOptions:
-    # Defined by subclasses: 'TOGGLE', 'ENABLE' or 'DISABLE'.
-    type: str
+    # Defined by subclasses.
+    type: Literal['TOGGLE', 'ENABLE', 'DISABLE']
 
     def draw(self, context):
         layout = self.layout
