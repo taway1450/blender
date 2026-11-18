@@ -1301,6 +1301,24 @@ def is_positional_only_method(module_name: str, method_name: str) -> bool:
 CLASS_EXTRA_MEMBERS: dict[tuple[str, str], str] = {}
 
 
+# Private members of documented modules that Blender's own scripts use. The API docs leave
+# out every name with a leading underscore, so they have no RST to generate from; these
+# fragments are appended verbatim to the module's stub.
+MODULE_EXTRA_MEMBERS: dict[str, str] = {
+    # `bpy_app_handlers.cc`: handlers for `addon_utils` and the Extensions add-on.
+    "bpy.app.handlers": (
+        "_extension_repos_update_pre: list[Callable[..., None]]\n"
+        "_extension_repos_update_post: list[Callable[..., None]]\n"
+        "_extension_repos_sync: list[Callable[..., None]]\n"
+        "_extension_repos_files_clear: list[Callable[..., None]]\n"
+    ),
+    # `scripts/modules/bpy/utils/__init__.py`, used by `addon_utils`.
+    "bpy.utils": (
+        "def _sys_path_ensure_append(path: str) -> None: ...\n"
+    ),
+}
+
+
 def sort_classes_by_hierarchy(classes: list[ClassInfo]) -> list[ClassInfo]:
     """
     Reorder classes so each appears after its locally-defined bases.
@@ -1358,6 +1376,12 @@ def render_stub(
 
     for data in module.data:
         write_data(fw, data, imports, current_module, class_locations)
+
+    extra_members = MODULE_EXTRA_MEMBERS.get(current_module)
+    if extra_members is not None:
+        track_stdlib_imports(extra_members, imports)
+        track_imports(extra_members, imports, current_module, class_locations)
+        fw(extra_members)
 
     # Write submodule re-exports for package `__init__`.
     submodules = get_submodules(current_module, all_modules)
