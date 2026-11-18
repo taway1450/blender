@@ -1056,6 +1056,8 @@ class NODE_MT_node_tree_interface_context_menu(Menu):
         active_item = tree.interface.active
 
         layout.operator("node.interface_item_duplicate", icon='DUPLICATE')
+        if active_item is None:
+            return
         layout.separator()
         if active_item.item_type == 'SOCKET':
             layout.operator("node.interface_item_make_panel_toggle")
