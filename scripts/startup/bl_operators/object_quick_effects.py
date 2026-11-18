@@ -170,6 +170,9 @@ class QuickFur(ObjectModeOperator, Operator):
                 density = count / area
 
             generate_modifier = curves_object.modifiers.new(name=data_("Generate"), type='NODES')
+            if generate_modifier is None:
+                self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(curves_object.name))
+                return {'CANCELLED'}
             generate_modifier.node_group = node_groups.generate
             generate_modifier.properties.inputs.Input_12.value = True
             generate_modifier.properties.inputs.Input_20.value = self.length
@@ -177,10 +180,16 @@ class QuickFur(ObjectModeOperator, Operator):
             generate_modifier.properties.inputs.Input_15.value = density * 0.01
 
             radius_modifier = curves_object.modifiers.new(name=data_("Set Hair Curve Profile"), type='NODES')
+            if radius_modifier is None:
+                self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(curves_object.name))
+                return {'CANCELLED'}
             radius_modifier.node_group = node_groups.radius
             radius_modifier.properties.inputs.Input_3.value = self.radius
 
             interpolate_modifier = curves_object.modifiers.new(name=data_("Interpolate Hair Curves"), type='NODES')
+            if interpolate_modifier is None:
+                self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(curves_object.name))
+                return {'CANCELLED'}
             interpolate_modifier.node_group = node_groups.interpolate
             interpolate_modifier.properties.inputs.Input_12.value = True
             interpolate_modifier.properties.inputs.Input_15.value = density
@@ -189,10 +198,16 @@ class QuickFur(ObjectModeOperator, Operator):
 
             if self.use_noise:
                 noise_modifier = curves_object.modifiers.new(name=data_("Hair Curves Noise"), type='NODES')
+                if noise_modifier is None:
+                    self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(curves_object.name))
+                    return {'CANCELLED'}
                 noise_modifier.node_group = node_groups.noise
 
             if self.use_frizz:
                 frizz_modifier = curves_object.modifiers.new(name=data_("Frizz Hair Curves"), type='NODES')
+                if frizz_modifier is None:
+                    self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(curves_object.name))
+                    return {'CANCELLED'}
                 frizz_modifier.node_group = node_groups.frizz
 
             if self.apply_hair_guides:
@@ -322,6 +337,9 @@ class QuickExplode(ObjectModeOperator, Operator):
             settings.render_type = 'NONE'
 
             explode = obj.modifiers.new(name=data_("Explode"), type='EXPLODE')
+            if explode is None:
+                self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(obj.name))
+                return {'CANCELLED'}
             explode.use_edge_cut = True
 
             if self.fade:
@@ -472,6 +490,9 @@ class QuickSmoke(ObjectModeOperator, Operator):
 
         for obj in mesh_objects:
             fluid = obj.modifiers.new(name=data_("Fluid"), type='FLUID')
+            if fluid is None:
+                self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(obj.name))
+                return {'CANCELLED'}
             fluid.fluid_type = 'FLOW'
 
             # set type
@@ -500,6 +521,9 @@ class QuickSmoke(ObjectModeOperator, Operator):
 
         # setup smoke domain
         fluid = obj.modifiers.new(name=data_("Fluid"), type='FLUID')
+        if fluid is None:
+            self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(obj.name))
+            return {'CANCELLED'}
         fluid.fluid_type = 'DOMAIN'
         # The default value leads to unstable simulations (see #126924).
         fluid.domain_settings.cfl_condition = 4.0
@@ -587,6 +611,9 @@ class QuickLiquid(Operator):
 
         for obj in mesh_objects:
             fluid = obj.modifiers.new(name=data_("Fluid"), type='FLUID')
+            if fluid is None:
+                self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(obj.name))
+                return {'CANCELLED'}
             fluid.fluid_type = 'FLOW'
 
             # set type
@@ -615,6 +642,9 @@ class QuickLiquid(Operator):
 
         # setup liquid domain
         fluid = obj.modifiers.new(name=data_("Fluid"), type='FLUID')
+        if fluid is None:
+            self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(obj.name))
+            return {'CANCELLED'}
         fluid.fluid_type = 'DOMAIN'
         # set all domain borders to obstacle
         fluid.domain_settings.use_collision_border_front = True
