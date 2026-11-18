@@ -134,7 +134,8 @@ static void rna_tracking_active_object_index_set(PointerRNA *ptr, int value)
 {
   MovieClip *clip = id_cast<MovieClip *>(ptr->owner_id);
 
-  clip->tracking.objectnr = value;
+  /* Keep the index on an existing object, so #MovieTrackingObjects.active is never null. */
+  clip->tracking.objectnr = clamp_i(value, 0, max_ii(0, clip->tracking.tot_object - 1));
   BKE_tracking_dopesheet_tag_update(&clip->tracking);
 }
 
