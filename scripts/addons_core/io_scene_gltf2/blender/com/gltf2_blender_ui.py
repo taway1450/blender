@@ -698,8 +698,12 @@ class SCENE_UL_gltf2_filter_action(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
 
         action = item.action
+        if action is None:
+            # The action was deleted since the list was filled: the refresh operator removes it.
+            layout.label(text="Deleted Action", icon='ERROR')
+            return
         layout.context_pointer_set("id", action)
-        layout.split().prop(item.action, "name", text="", emboss=False)
+        layout.split().prop(action, "name", text="", emboss=False)
         layout.split().prop(item, "keep", text="", emboss=True)
 
     def filter_items(self, _context, data, property):
@@ -712,7 +716,7 @@ class SCENE_UL_gltf2_filter_action(bpy.types.UIList):
             # Manually filter, as we want to sort on action.name
             # (So we can not use filter_items_by_name with "name" attribute)
             for idx, item in enumerate(attributes):
-                if self.filter_name.lower() in item.action.name.lower():
+                if item.action is not None and self.filter_name.lower() in item.action.name.lower():
                     flags.append(self.bitflag_filter_item if not self.use_filter_invert else 0)
                 else:
                     flags.append(0 if not self.use_filter_invert else self.bitflag_filter_item)
@@ -722,7 +726,7 @@ class SCENE_UL_gltf2_filter_action(bpy.types.UIList):
         # Reorder by name.
         if self.use_filter_sort_alpha:
             # Reorder indices by alphabetical order of the name attribute.
-            indices.sort(key=lambda i: attributes[i].action.name)
+            indices.sort(key=lambda i: attributes[i].action.name if attributes[i].action else "")
 
         return flags, indices
 
