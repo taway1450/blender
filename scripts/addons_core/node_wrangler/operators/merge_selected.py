@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+from typing import TYPE_CHECKING, cast
+
 from bpy.types import Operator
 from bpy.props import EnumProperty, StringProperty
 from bpy_extras.node_utils import connect_sockets
@@ -24,6 +26,12 @@ from ..utils.nodes import (
     get_first_enabled_output,
     get_node_description,
 )
+
+if TYPE_CHECKING:
+    from _rna_enums import (
+        rna_enum_node_vec_math_items,
+        rna_enum_ramp_blend_items,
+    )
 
 
 #### ------------------------------ OPERATORS ------------------------------ ####
@@ -332,7 +340,8 @@ class NODE_OT_merge_selected(Operator, NWBase):
                 if nodes_list == selected_mix:
                     add = nodes.new('ShaderNodeMix')
                     add.data_type = 'RGBA'
-                    add.blend_type = mode
+                    # Nodes are only selected for a mix when `mode` is one of its blend types (`valid_mode`).
+                    add.blend_type = cast("rna_enum_ramp_blend_items", mode)
                     if mode != 'MIX':
                         add.inputs[0].default_value = 1.0
                     add.show_preview = False
@@ -369,7 +378,8 @@ class NODE_OT_merge_selected(Operator, NWBase):
                     break
                 elif nodes_list == selected_vector:
                     add = nodes.new('ShaderNodeVectorMath')
-                    add.operation = mode
+                    # Nodes are only selected for vector math when `mode` is one of its operations (`valid_mode`).
+                    add.operation = cast("rna_enum_node_vec_math_items", mode)
                 elif nodes_list == selected_z:
                     add = nodes.new('CompositorNodeZcombine')
                     add.show_preview = False
