@@ -81,6 +81,11 @@ class AddPresetBase:
     # only because invoke_props_popup requires. Also do not add to search menu.
     bl_options = {'REGISTER', 'INTERNAL'}
 
+    # Defined by subclasses.
+    preset_menu: str
+    preset_subdir: str
+    preset_values: list[str]
+
     name: StringProperty(
         name="Name",
         description="Name of the preset, used to make the path name",
