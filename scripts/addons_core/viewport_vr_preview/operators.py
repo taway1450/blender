@@ -18,6 +18,7 @@ from bpy.types import (
 )
 import math
 from math import radians
+from typing import Literal, cast
 from mathutils import Color, Euler, Matrix, Quaternion, Vector
 
 
@@ -552,7 +553,7 @@ class VIEW3D_OT_vr_location_scouting_viewfinder_cycle_mode(Operator):
         xr_viewfinder = context.window_manager.xr_session_state.viewfinder
 
         # Limit cycling to Live and Playback, Confirm being an internal mode used for capture deletion.
-        enum_values = ['LIVE', 'PLAYBACK']
+        enum_values = ('LIVE', 'PLAYBACK')
         if xr_viewfinder.active_mode not in enum_values:
             return {'CANCELLED'}
 
@@ -599,7 +600,8 @@ class VIEW3D_OT_vr_location_scouting_viewfinder_cycle_action(Operator):
                 enum_length = len(enum_keys) if xr_viewfinder.capture_dof_enabled else (enum_keys.index('DOF') + 1)
                 new_action_idx = (current_action_idx + increment) % enum_length
 
-                xr_viewfinder.active_action_live = enum_keys[new_action_idx]
+                xr_viewfinder.active_action_live = cast(
+                    "Literal['LENS', 'DOF', 'FOCUS', 'APERTURE']", enum_keys[new_action_idx])
 
             case 'PLAYBACK':
                 action_rna_prop = xr_viewfinder.rna_type.properties["active_action_playback"]
@@ -607,7 +609,8 @@ class VIEW3D_OT_vr_location_scouting_viewfinder_cycle_action(Operator):
                 current_action_idx = enum_keys.index(xr_viewfinder.active_action_playback)
                 new_action_idx = (current_action_idx + increment) % len(enum_keys)
 
-                xr_viewfinder.active_action_playback = enum_keys[new_action_idx]
+                xr_viewfinder.active_action_playback = cast(
+                    "Literal['BROWSE', 'PREVIEW', 'DELETE']", enum_keys[new_action_idx])
 
             case 'CONFIRM':
                 action_rna_prop = xr_viewfinder.rna_type.properties["active_action_confirm"]
@@ -615,7 +618,7 @@ class VIEW3D_OT_vr_location_scouting_viewfinder_cycle_action(Operator):
                 current_action_idx = enum_keys.index(xr_viewfinder.active_action_confirm)
                 new_action_idx = (current_action_idx + increment) % len(enum_keys)
 
-                xr_viewfinder.active_action_confirm = enum_keys[new_action_idx]
+                xr_viewfinder.active_action_confirm = cast("Literal['CANCEL', 'CONFIRM']", enum_keys[new_action_idx])
 
         return {'FINISHED'}
 
@@ -646,7 +649,8 @@ class VIEW3D_OT_vr_location_scouting_viewfinder_swap_hands(Operator):
         enum_values = viewfinder_hand_rna_prop.enum_items.keys()
         current_hand_idx = enum_values.index(xr_settings.viewfinder_hand)
 
-        xr_settings.viewfinder_hand = enum_values[(current_hand_idx + 1) % len(enum_values)]
+        xr_settings.viewfinder_hand = cast(
+            "Literal['LEFT', 'RIGHT']", enum_values[(current_hand_idx + 1) % len(enum_values)])
 
         xr_viewfinder.reset_view_smoothing()
 
