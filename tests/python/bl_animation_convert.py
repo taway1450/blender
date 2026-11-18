@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import argparse
 import math
 import sys
 import unittest
@@ -15,6 +16,9 @@ import mathutils
 """
 blender -b --factory-startup --python tests/python/bl_animation_convert.py -- --testdir tests/files/animation/
 """
+
+
+args: argparse.Namespace
 
 
 def _fcurves_with_rna_path(action: bpy.types.Action, slot: bpy.types.ActionSlot,
@@ -351,7 +355,6 @@ class ConvertRotationModeBones(ConvertRotationModeBase):
 
 def main():
     global args
-    import argparse
 
     argv = [sys.argv[0]]
     if '--' in sys.argv:

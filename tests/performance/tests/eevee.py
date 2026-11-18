@@ -23,6 +23,17 @@ MIN_RECORDING_TIME_SECONDS = 20
 MAX_RECORDING_TIME_SECONDS = 60  # still finishes last iteration
 LOG_KEY = "ANIMATION_PERFORMANCE: "
 
+# The state of the playback, set by `frame_change_handler` as it goes.
+record_stage: RecordStage
+frame_set_mode: bool
+start_time: float
+start_record_time: float
+start_warmup_time: float
+warmup_frame: int
+stop_record_time: float
+playback_iteration: int
+num_frames: int
+
 
 def _run(args):
     import bpy

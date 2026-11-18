@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import argparse
 import os
 import bpy
 import pathlib
@@ -15,6 +16,9 @@ import sys
 
 TEST_FILE = "world_space_copy_paste.blend"
 COPYBUFFER_NAME = "world_space_buffer.blend"
+
+
+args: argparse.Namespace
 
 
 def _set_select_all_bones(armature_ob: bpy.types.Object, select: bool) -> None:
@@ -620,7 +624,6 @@ class SingleFrameCopyPasteTest(AbstractCopyPasteTest):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

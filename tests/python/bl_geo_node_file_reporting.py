@@ -3,10 +3,14 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # blender -b -P tests/python/bl_geo_node_file_reporting.py -- --verbose --testdir tests/files
+import argparse
 import unittest
 from pathlib import Path
 
 import bpy
+
+
+args: argparse.Namespace
 
 
 class FileReportingTest(unittest.TestCase):
@@ -58,7 +62,6 @@ class FileReportingTest(unittest.TestCase):
 
 def main():
     global args
-    import argparse
     import sys
 
     if '--' in sys.argv:

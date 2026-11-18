@@ -6,12 +6,16 @@
 blender -b --factory-startup --python tests/python/bl_animation_fcurves.py -- --testdir tests/files/animation
 """
 
+import argparse
 import pathlib
 import sys
 import unittest
 from math import degrees, radians
 
 import bpy
+
+
+args: argparse.Namespace
 
 
 class AbstractAnimationTest:
@@ -531,7 +535,6 @@ class KeyframeDeleteTest(AbstractAnimationTest, unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

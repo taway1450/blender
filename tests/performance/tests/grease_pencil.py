@@ -20,6 +20,16 @@ RECORD_PLAYBACK_ITER = 3
 MIN_NUM_FRAMES_TOTAL = 250
 LOG_KEY = "VIEWPORT_PERFORMANCE: "
 
+# The state of the playback, set by `frame_change_handler` as it goes.
+record_stage: RecordStage
+frame_set_mode: bool
+start_record_time: float
+start_warmup_time: float
+warmup_frame: int
+stop_record_time: float
+playback_iteration: int
+num_frames: int
+
 
 def _run(args):
     import bpy

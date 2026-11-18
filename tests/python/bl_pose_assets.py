@@ -10,6 +10,7 @@ __all__ = (
     "main",
 )
 
+import argparse
 import unittest
 import bpy
 import pathlib
@@ -34,6 +35,9 @@ _BBONE_VALUES = {
     f'pose.bones["{_BONE_NAME_1}"].bbone_easein': (0, ),
     f'pose.bones["{_BONE_NAME_1}"].bbone_easeout': (0, ),
 }
+
+
+args: argparse.Namespace
 
 
 def _create_armature():
@@ -215,7 +219,6 @@ class CreateAssetTest(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

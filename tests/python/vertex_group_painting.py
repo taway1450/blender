@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import argparse
 import unittest
 import sys
 import pathlib
@@ -11,6 +12,9 @@ import bpy
 """
 blender -b --factory-startup --python tests/python/vertex_group_paint.py -- --testdir tests/files/animation/
 """
+
+
+args: argparse.Namespace
 
 
 class NormalizeAllTest(unittest.TestCase):
@@ -58,7 +62,6 @@ class NormalizeAllTest(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

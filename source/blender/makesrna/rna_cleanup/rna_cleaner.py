@@ -14,6 +14,12 @@ Generate output format from blender run this:
  ./blender.bin --background --python ./scripts/modules/_rna_info.py 2> source/blender/makesrna/rna_cleanup/out.txt
 """
 
+# Set by `main()`.
+sort_choices: list[str]
+default_sort_choice: str
+kw_prefixes: list[str]
+kw: list[str]
+
 
 def font_bold(mystring):
     """

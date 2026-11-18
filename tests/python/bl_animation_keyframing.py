@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import argparse
 import unittest
 import bpy
 import pathlib
@@ -11,6 +12,9 @@ from math import radians
 """
 blender -b --factory-startup --python tests/python/bl_animation_keyframing.py -- --testdir /path/to/tests/files/animation
 """
+
+
+args: argparse.Namespace
 
 
 def _fcurve_paths_match(fcurves: list[bpy.types.FCurve], expected_paths: list[str]) -> None:
@@ -866,7 +870,6 @@ class KeyframeDeleteTest(AbstractKeyframingTest, unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

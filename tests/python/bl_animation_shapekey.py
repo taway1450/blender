@@ -9,10 +9,14 @@ __all__ = (
     "main",
 )
 
+import argparse
 import unittest
 import bpy
 import pathlib
 import sys
+
+
+args: argparse.Namespace
 
 
 class ObjectShapekeyTest(unittest.TestCase):
@@ -164,7 +168,6 @@ class ShapekeySelectionTest(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

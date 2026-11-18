@@ -6,6 +6,7 @@
 blender -b --factory-startup --python tests/python/bl_animation_armature.py -- --testdir tests/files/animation/
 """
 
+import argparse
 import unittest
 import pathlib
 import sys
@@ -16,6 +17,9 @@ from mathutils import Vector
 from bpy.types import EditBone, Object, Armature
 
 Vectorish: TypeAlias = Vector | tuple[float, float, float]
+
+
+args: argparse.Namespace
 
 
 class BoneCollectionTest(unittest.TestCase):
@@ -506,7 +510,6 @@ class ArmatureJoinWithActionConstraintsTest(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

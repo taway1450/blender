@@ -2,11 +2,15 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import argparse
 import math
 import unittest
 import bpy
 import sys
 import pathlib
+
+
+args: argparse.Namespace
 
 
 class MotionPathTestObject(unittest.TestCase):
@@ -169,7 +173,6 @@ class MotionPathTestArmature(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

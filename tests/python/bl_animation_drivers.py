@@ -9,11 +9,15 @@ __all__ = (
     "main",
 )
 
+import argparse
 import unittest
 import bpy
 import pathlib
 import sys
 from rna_prop_ui import rna_idprop_quote_path
+
+
+args: argparse.Namespace
 
 
 class AbstractEmptyDriverTest:
@@ -305,7 +309,6 @@ class SubDataDriverRemovalTest(AbstractEmptyDriverTest, unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import argparse
 import unittest
 import sys
 import pathlib
@@ -11,6 +12,9 @@ import bpy
 """
 blender -b --factory-startup --python tests/python/bl_animation_action.py -- --testdir tests/files/animation/
 """
+
+
+args: argparse.Namespace
 
 
 class ActionSlotCreationTest(unittest.TestCase):
@@ -912,7 +916,6 @@ class ReplaceAction(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     argv = [sys.argv[0]]
     if '--' in sys.argv:

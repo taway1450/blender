@@ -6,6 +6,7 @@
 ./blender.bin --background --factory-startup --python tests/python/bl_constraints.py -- --testdir /path/to/tests/files/constraints
 """
 
+import argparse
 import pathlib
 import sys
 import unittest
@@ -13,6 +14,9 @@ import unittest
 import bpy
 from bpy.types import Constraint, bpy_prop_collection
 from mathutils import Matrix
+
+
+args: argparse.Namespace
 
 
 class AbstractConstraintTests(unittest.TestCase):
@@ -642,7 +646,6 @@ class ConstraintAPITests(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

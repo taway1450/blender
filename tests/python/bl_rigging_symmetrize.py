@@ -6,11 +6,15 @@
 blender -b --factory-startup --python tests/python/bl_rigging_symmetrize.py -- --testdir /path/to/tests/files/animation
 """
 
+import argparse
 import pathlib
 import sys
 import unittest
 
 import bpy
+
+
+args: argparse.Namespace
 
 
 def check_loc_rot_scale(self, bone, exp_bone):
@@ -416,7 +420,6 @@ class ArmatureSymmetrizeCollectionAssignments(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]
