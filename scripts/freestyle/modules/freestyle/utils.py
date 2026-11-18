@@ -323,7 +323,33 @@ def simplify(points, tolerance):
 
 
 class BoundingBox:
-    """Object representing a bounding box consisting out of 2 2D vectors"""
+    """
+    Object representing a bounding box consisting out of 2 2D vectors
+
+    .. attribute:: minimum
+
+       The corner with the lowest coordinates.
+
+       :type: :class:`mathutils.Vector`
+
+    .. attribute:: maximum
+
+       The corner with the highest coordinates.
+
+       :type: :class:`mathutils.Vector`
+
+    .. attribute:: size
+
+       The number of dimensions of the corners.
+
+       :type: int
+
+    .. attribute:: corners
+
+       The minimum and the maximum corner.
+
+       :type: tuple[:class:`mathutils.Vector`, :class:`mathutils.Vector`]
+    """
 
     __slots__ = (
         "minimum",
