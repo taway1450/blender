@@ -228,7 +228,9 @@ class SEQUENCER_PT_preview_overlay(Panel):
         split = layout.column().split()
         col = split.column()
         col.prop(overlay_settings, "show_image_outline")
-        col.prop(ed, "show_overlay_frame", text="Frame Overlay")
+        # A scene that was never given a strip has no sequence editor.
+        if ed:
+            col.prop(ed, "show_overlay_frame", text="Frame Overlay")
         col.prop(overlay_settings, "show_metadata", text="Metadata")
         col.prop(overlay_settings, "show_annotation", text="Annotations")
 
