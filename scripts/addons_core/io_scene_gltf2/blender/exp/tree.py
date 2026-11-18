@@ -63,6 +63,15 @@ class VExportNode:
     CHILDREN_REAL = 90
     CHILDREN_IS_IN_COLLECTION = 91
 
+    # Set by VExportTree, not in __init__.
+    uuid: str
+    parent_uuid: str | None
+    original_object: bpy.types.Object | None  # Only for nodes without a Blender object
+    armature_needed: str  # Only while the tree is built, for skinned meshes
+    keep_tag: bool
+    matrix_world_tail: Matrix  # Only for bones
+    original_matrix_world: Matrix
+
     def __init__(self):
         self.children = []
         self.children_type = {}  # Used for children of instance collection
