@@ -629,7 +629,7 @@ class pyRandomColorShader(StrokeShader):
 
     def __init__(self, s=1):
         StrokeShader.__init__(self)
-        random.seed = s
+        random.seed(s)
 
     def shade(self, stroke):
         """
