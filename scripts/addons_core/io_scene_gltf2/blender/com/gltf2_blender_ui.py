@@ -436,6 +436,9 @@ class SCENE_OT_gltf2_variant_slot_add(bpy.types.Operator):
     def poll(cls, context):
         if not bpy.context.object:
             return False
+        # The variant data is stored on meshes only.
+        if bpy.context.object.type != 'MESH':
+            return False
         return len(bpy.context.object.material_slots) > 0
 
     def execute(self, context):
@@ -469,6 +472,9 @@ class SCENE_OT_gltf2_material_to_variant(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         if not bpy.context.object:
+            return False
+        # The variant data is stored on meshes only.
+        if bpy.context.object.type != 'MESH':
             return False
         return len(bpy.context.object.material_slots) > 0 and context.object.data.gltf2_variant_pointer != ""
 
@@ -511,6 +517,9 @@ class SCENE_OT_gltf2_remove_material_variant(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         if not bpy.context.object:
+            return False
+        # The variant data is stored on meshes only.
+        if bpy.context.object.type != 'MESH':
             return False
         return len(bpy.context.object.material_slots) > 0 and len(bpy.context.object.data.gltf2_variant_mesh_data) > 0
 
