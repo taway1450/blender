@@ -1276,6 +1276,15 @@ SEQUENCE_ELEM_TYPES: dict[tuple[str, str], str] = {
     ("mathutils", "Matrix"): "Vector",
 }
 
+# C extension classes that implement the buffer protocol (`PyBufferProcs`): `memoryview(vec)`.
+BUFFER_CLASSES: set[tuple[str, str]] = {
+    ("mathutils", "Color"),
+    ("mathutils", "Euler"),
+    ("mathutils", "Quaternion"),
+    ("mathutils", "Vector"),
+    ("mathutils", "Matrix"),
+}
+
 # Methods a C caller invokes on an override with positional arguments, by module prefix:
 # their parameters are positional-only, so an override may name them freely.
 # Freestyle's director calls `__call__`, `traverse` and `shade` with `PyObject_CallMethod(obj, name, "O", arg)`
@@ -1679,8 +1688,8 @@ def write_class(
     elif sequence_elem_type is not None:
         # __iter__ rtype defaults to "self" in DUNDER_METHODS, which is wrong
         # for sequence-protocol classes - the iterator yields the element type,
-        # not the container type.
-        skip_methods.update(("__iter__", "__getitem__"))
+        # not the container type. `__setitem__` takes a slice too (`vec[:] = 1, 2, 3`).
+        skip_methods.update(("__iter__", "__getitem__", "__setitem__"))
 
     # Heuristic: a class with an `items()` method exposes a dict-like keyed
     # interface, so its `__getitem__` likely accepts `str` keys in addition
@@ -1790,7 +1799,19 @@ def write_class(
         fw("    def __getitem__(self, key: int, /) -> {:s}: ...\n".format(sequence_elem_type))
         fw("    @overload\n")
         fw("    def __getitem__(self, key: slice, /) -> tuple[{:s}, ...]: ...\n".format(sequence_elem_type))
+        # An item takes an element (a row of a matrix takes any sequence of floats), a slice any iterable of
+        # them: `mathutils_array_parse` reads the value with `PySequence_Fast`.
+        setter_type = "Sequence[float]" if sequence_elem_type == "Vector" else sequence_elem_type
+        if setter_type == "Sequence[float]":
+            imports.add(("collections.abc", "Sequence"))
+        imports.add(("collections.abc", "Iterable"))
+        fw("    @overload\n")
+        fw("    def __setitem__(self, key: int, value: {:s}, /) -> None: ...\n".format(setter_type))
+        fw("    @overload\n")
+        fw("    def __setitem__(self, key: slice, value: Iterable[{:s}], /) -> None: ...\n".format(setter_type))
         fw("    def __iter__(self) -> Iterator[{:s}]: ...\n".format(sequence_elem_type))
+        if (current_module, cls.name) in BUFFER_CLASSES:
+            fw("    def __buffer__(self, flags: int, /) -> memoryview: ...\n")
         has_members = True
 
     # A `property` attribute (`Context.property`) shadows the builtin decorator in the class body.
