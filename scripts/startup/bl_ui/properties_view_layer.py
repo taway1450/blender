@@ -42,6 +42,7 @@ class ViewLayerButtonsPanel:
     bl_region_type = 'WINDOW'
     bl_context = "view_layer"
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
+    COMPAT_ENGINES: set[str]
 
     @classmethod
     def poll(cls, context):

@@ -21,6 +21,7 @@ class PhysicButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "physics"
+    COMPAT_ENGINES: set[str]
 
     @classmethod
     def poll(cls, context):

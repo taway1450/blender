@@ -46,6 +46,7 @@ class MaterialButtonsPanel:
     bl_region_type = 'WINDOW'
     bl_context = "material"
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
+    COMPAT_ENGINES: set[str]
 
     @classmethod
     def poll(cls, context):

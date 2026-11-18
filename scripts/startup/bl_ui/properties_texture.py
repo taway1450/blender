@@ -165,6 +165,8 @@ class TEXTURE_PT_node(TextureButtonsPanel, Panel):
 
 
 class TextureTypePanel(TextureButtonsPanel):
+    tex_type: str
+    COMPAT_ENGINES: set[str]
 
     @classmethod
     def poll(cls, context):
@@ -846,6 +848,8 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
 
 
 class TextureColorsPoll:
+    COMPAT_ENGINES: set[str]
+
     @classmethod
     def poll(cls, context):
         tex = context.texture

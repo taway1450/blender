@@ -141,6 +141,7 @@ class MeshButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
+    COMPAT_ENGINES: set[str]
 
     @classmethod
     def poll(cls, context):
