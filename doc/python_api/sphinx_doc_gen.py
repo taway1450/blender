@@ -1910,9 +1910,11 @@ CLASS_OVERRIDES: dict[tuple[str, str], ClassOverrides] = {
             "__delitem__": DunderInfo("(key)", {"key": DunderParam("str", "ID property name.")}, ""),
         },
         # `pyrna_subtype_set_rna` sets `bl_rna` on each RNA class (also read from instances),
-        # so it is never in `bpy_struct.__dict__`.
+        # so it is never in `bpy_struct.__dict__`. `rna_type` is the property `RNA_def_struct` gives
+        # every struct, which `_rna_info` leaves out of each struct's properties.
         attributes={
             "bl_rna": ("The RNA type of this struct, a class attribute.", ":class:`Struct`"),
+            "rna_type": ("The RNA type of this struct (read-only).", ":class:`Struct`"),
         },
     ),
     # bpy_prop_collection returns bpy_struct elements, not float.
