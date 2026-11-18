@@ -368,4 +368,5 @@ class BlenderNode():
         first_bone = gltf.vnodes[pyskin.joints[0]]
         arma = gltf.vnodes[first_bone.bone_arma]
         mod = obj.modifiers.new(name="Armature", type="ARMATURE")
-        mod.object = arma.blender_object
+        if mod is not None:
+            mod.object = arma.blender_object
