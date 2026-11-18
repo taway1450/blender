@@ -12,6 +12,7 @@ so that the stubs can state that a :class:`bpy.types.SubsurfModifier` has the ty
 """
 
 __all__ = (
+    "BaseTag",
     "TypeTags",
     "probe",
 )
@@ -44,6 +45,12 @@ class TagView(NamedTuple):
     members: list[tuple[str, str | None, bool]]
 
 
+class BaseTag(NamedTuple):
+    """A tag that each subclass of a base defines itself (`LineStyleColorModifier.type`), so the base has it too."""
+    values: list[str]
+    is_readonly: bool
+
+
 class TypeTags(NamedTuple):
     # Struct identifier -> {tag attribute: the values of its instances}, for the subclasses of a base.
     # A struct between the base and its subclasses holds a value its instances all share
@@ -53,6 +60,9 @@ class TypeTags(NamedTuple):
     views: list[TagView]
     # Base struct identifier -> the one subclass its tag allows, so every instance is that subclass.
     refined: dict[str, str]
+    # Base struct identifier -> {tag attribute only its subclasses define: every value}
+    # (`LineStyleColorModifier.type`, which each color modifier defines itself).
+    base_tags: dict[str, dict[str, BaseTag]]
     # The tag values the probe could not make an instance of: `"Strip.type 'MOVIE': error"`.
     missing: list[str]
 
@@ -100,8 +110,21 @@ class Probe:
         return base, attr, instances
 
 
+def tag_property(struct_id: str, attr: str) -> Any:
+    """
+    The property ``attr`` of ``struct_id``, or of its subclasses when each defines it
+    (every ``LineStyleColorModifier`` subclass defines its own ``type``).
+    """
+    if (prop := getattr(bpy.types, struct_id).bl_rna.properties.get(attr)) is not None:
+        return prop
+    for name in subclasses(getattr(bpy.types, struct_id)):
+        if (prop := getattr(bpy.types, name).bl_rna.properties.get(attr)) is not None:
+            return prop
+    raise KeyError("{:s}.{:s}".format(struct_id, attr))
+
+
 def enum_ids(struct_id: str, attr: str) -> list[str]:
-    return [item.identifier for item in getattr(bpy.types, struct_id).bl_rna.properties[attr].enum_items]
+    return [item.identifier for item in tag_property(struct_id, attr).enum_items]
 
 
 def first(*makers: Callable[[], Any]) -> Any:
@@ -173,6 +196,17 @@ def boid_families(p: Probe) -> Iterator[Family]:
             bpy.ops.boid.rule_add(type=value)
         return rules[-1]
     yield p.family("BoidRule", "type", make)
+
+
+def linestyle_families(p: Probe) -> Iterator[Family]:
+    linestyle = p.keep(bpy.data.linestyles.new(NAME))
+    for base, collection in (
+            ("LineStyleColorModifier", linestyle.color_modifiers),
+            ("LineStyleAlphaModifier", linestyle.alpha_modifiers),
+            ("LineStyleThicknessModifier", linestyle.thickness_modifiers),
+            ("LineStyleGeometryModifier", linestyle.geometry_modifiers),
+    ):
+        yield p.family(base, "type", lambda value, collection=collection: collection.new(NAME, value))
 
 
 def project_families(p: Probe) -> Iterator[Family]:
@@ -343,6 +377,7 @@ def property_families(_p: Probe) -> Iterator[Family]:
 FAMILIES: tuple[Callable[[Probe], Iterator[Family]], ...] = (
     object_families,
     boid_families,
+    linestyle_families,
     project_families,
     data_families,
     strip_families,
@@ -447,10 +482,18 @@ def record(values: dict[str, dict[str, list[str]]], family: Family) -> None:
                 struct_values.append(value)
 
 
+def record_base_tags(base_tags: dict[str, dict[str, BaseTag]], family: Family) -> None:
+    """A tag that only the subclasses of the base define: the base has it too, with every value."""
+    base, attr, _instances = family
+    if attr not in getattr(bpy.types, base).bl_rna.properties:
+        prop = tag_property(base, attr)
+        base_tags.setdefault(base, {})[attr] = BaseTag(enum_ids(base, attr), prop.is_readonly)
+
+
 def record_refined(refined: dict[str, str], family: Family) -> None:
     """When the base's tag is an enum with a single value, its instances are all of one subclass."""
     base, attr, instances = family
-    prop = getattr(bpy.types, base).bl_rna.properties[attr]
+    prop = tag_property(base, attr)
     if prop.type != 'ENUM' or len(prop.enum_items) != 1 or not instances:
         return
     struct_ids = {type(instance).bl_rna.identifier for instance in instances}
@@ -485,7 +528,7 @@ def record_views(views: list[TagView], missing: list[str], family: ViewFamily) -
 
 def probe() -> TypeTags:
     """Make the instances of every family and read their subclasses and tags."""
-    tags = TypeTags(values={}, views=[], refined={}, missing=[])
+    tags = TypeTags(values={}, views=[], refined={}, base_tags={}, missing=[])
     with tempfile.TemporaryDirectory() as directory:
         p = Probe(directory)
         try:
@@ -493,6 +536,7 @@ def probe() -> TypeTags:
                 for family in families(p):
                     record(tags.values, family)
                     record_refined(tags.refined, family)
+                    record_base_tags(tags.base_tags, family)
             for view_families in VIEW_FAMILIES:
                 for view_family in view_families(p):
                     record_views(tags.views, p.missing, view_family)

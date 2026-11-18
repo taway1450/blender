@@ -2930,6 +2930,17 @@ def pyrna2sphinx(basepath: Path) -> None:
 
         fw(ident + ":{:s}{:s}: {:s}\n".format(id_type, identifier, type_descr))
 
+    def tag_type_override(struct_id: str, prop: stub.InfoPropertyRNA) -> str | None:
+        """
+        The type of a property the type tag probe tells more about than RNA: the tag of a subclass that defines
+        it itself (`LineStyleColorModifier_AlongStroke.type` is ``'ALONG_STROKE'``).
+        """
+        if type_tags is None:
+            return None
+        if (values := type_tags.values.get(struct_id, {}).get(prop.identifier)) is not None:
+            return "Literal[{:s}]".format(", ".join(repr(value) for value in values))
+        return None
+
     def write_struct(struct: stub.InfoStructRNA) -> None:
         # if not struct.identifier.startswith("Sc") and not struct.identifier.startswith("I"):
         #     return
@@ -3058,7 +3069,8 @@ def pyrna2sphinx(basepath: Path) -> None:
             fw("\n")
 
             pyrna_prop_body2sphinx(
-                "      ", fw, prop, type_override=RNA_THICK_WRAP_ARRAYS.get((struct_id, identifier)),
+                "      ", fw, prop,
+                type_override=RNA_THICK_WRAP_ARRAYS.get((struct_id, identifier)) or tag_type_override(struct_id, prop),
             )
 
         # Screen context members (only for Context struct).
@@ -3084,6 +3096,14 @@ def pyrna2sphinx(basepath: Path) -> None:
                 fw("      The {:s} of every :class:`{:s}`{:s}\n\n".format(
                     identifier, struct_id, " (readonly)" if base_prop.is_readonly else ""))
                 fw("      :type: Literal[{:s}]\n\n".format(", ".join(repr(value) for value in values)))
+            # A tag that each subclass defines itself (`LineStyleColorModifier.type`).
+            for identifier, base_tag in sorted(type_tags.base_tags.get(struct_id, {}).items()):
+                if identifier in direct_ids:
+                    continue
+                fw("   .. {:s}:: {:s}\n\n".format("data" if base_tag.is_readonly else "attribute", identifier))
+                fw("      The {:s} of every :class:`{:s}`, which each subclass defines{:s}\n\n".format(
+                    identifier, struct_id, " (readonly)" if base_tag.is_readonly else ""))
+                fw("      :type: Literal[{:s}]\n\n".format(", ".join(repr(value) for value in base_tag.values)))
 
         # Python attributes.
         py_properties = struct.get_py_properties()
