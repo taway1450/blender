@@ -15,7 +15,6 @@ import bpy
 from bpy.types import (
     ActionConstraint,
     ChildOfConstraint,
-    Constraint,
     CopyLocationConstraint,
     CopyTransformsConstraint,
     GeometryAttributeConstraint,
@@ -460,7 +459,7 @@ class CopyTransformsTest(AbstractConstraintTests):
 class ActionConstraintTest(AbstractConstraintTests):
     layer_collection = "Action"
 
-    def constraint(self) -> Constraint:
+    def constraint(self) -> ActionConstraint:
         owner = bpy.context.scene.objects["Action.owner"]
         constraint = owner.constraints["Action"]
         assert isinstance(constraint, ActionConstraint)

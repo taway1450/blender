@@ -6,6 +6,7 @@
 import re
 import xml.dom.minidom
 from math import cos, sin, tan, atan2, pi, ceil
+from typing import Any
 
 import bpy
 from mathutils import Vector, Matrix
@@ -518,7 +519,7 @@ class SVGPathParser:
         self._point = (0.0, 0.0)
         self._handle = None  # Last handle
         self._splines = []   # List of splines in path
-        self._spline = None  # Current spline
+        self._spline: dict[str, Any] | None = None  # Current spline
         self._use_fill = use_fill
 
         self._commands = {'M': self._pathMoveTo,
@@ -617,6 +618,7 @@ class SVGPathParser:
         Update right handle of previous point when adding new point to spline
         """
 
+        assert self._spline is not None, "a handle follows a point"
         point = self._spline['points'][-1]
 
         if handle_type is not None:

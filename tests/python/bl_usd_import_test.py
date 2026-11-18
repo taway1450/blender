@@ -1656,6 +1656,7 @@ class USDImportTest(AbstractUSDTest):
         bpy.utils.register_class(GetPrimMapUsdImportHook)
         bpy.ops.wm.usd_import(filepath=str(self.testdir / "usd_name_property_template.usda"), merge_parent_xform=False)
         prim_map = GetPrimMapUsdImportHook.prim_map
+        self.assertIsNotNone(prim_map)
         bpy.utils.unregister_class(GetPrimMapUsdImportHook)
 
         expected_prim_map = {
@@ -1674,6 +1675,7 @@ class USDImportTest(AbstractUSDTest):
         bpy.utils.register_class(GetPrimMapUsdImportHook)
         bpy.ops.wm.usd_import(filepath=str(self.testdir / "usd_name_property_template.usda"), merge_parent_xform=True)
         prim_map = GetPrimMapUsdImportHook.prim_map
+        self.assertIsNotNone(prim_map)
         bpy.utils.unregister_class(GetPrimMapUsdImportHook)
 
         expected_prim_map = {
@@ -1781,11 +1783,13 @@ class USDImportTest(AbstractUSDTest):
 
         # Confirm that file was copied from the USDZ archive to the textures
         # directory.
-        import_path = ImportMtlxTextureUSDHook.result[0]
+        result = ImportMtlxTextureUSDHook.result
+        self.assertIsNotNone(result)
+        import_path = result[0]
         self.assertTrue(pathlib.Path(import_path).exists(),
                         "Imported texture does not exist")
         # Path should not be temporary
-        is_temporary = ImportMtlxTextureUSDHook.result[1]
+        is_temporary = result[1]
         self.assertFalse(is_temporary,
                          "Imported texture should not be temporary")
 
@@ -1795,11 +1799,13 @@ class USDImportTest(AbstractUSDTest):
                               import_textures_dir="")
 
         # Confirm that the copied file exists.
-        import_path = ImportMtlxTextureUSDHook.result[0]
+        result = ImportMtlxTextureUSDHook.result
+        self.assertIsNotNone(result)
+        import_path = result[0]
         self.assertTrue(pathlib.Path(import_path).exists(),
                         "Imported texture does not exist")
         # Path should be temporary
-        is_temporary = ImportMtlxTextureUSDHook.result[1]
+        is_temporary = result[1]
         self.assertTrue(is_temporary,
                         "Imported texture should be temporary")
 

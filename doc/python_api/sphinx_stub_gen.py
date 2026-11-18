@@ -1317,7 +1317,8 @@ CLASS_EXTRA_MEMBERS: dict[tuple[str, str], str] = {}
 # The ID each struct's `id_data` returns, where every RNA pointer to it is made with that `owner_id`: a node is only
 # reached through its node tree, a modifier through its object. `bpy_struct.id_data` can only say `ID`; subclasses
 # inherit the narrower type. A struct also reached through another ID's pointer is left out: `PoseBone.bone` keeps the
-# object as owner, so a `Bone`'s is the armature or the object.
+# object as owner, so a `Bone`'s is the armature or the object, and `ClothSettings.rest_shape_key` the mesh, so a
+# `ShapeKey`'s is the `Key` or the mesh.
 ID_DATA_OWNERS: dict[str, str] = {
     # The node tree, embedded (`Material.node_tree`) or not.
     "Node": "NodeTree",
@@ -1330,7 +1331,6 @@ ID_DATA_OWNERS: dict[str, str] = {
     # The object, for an object's stacks and a pose bone's constraints alike.
     "Modifier": "Object",
     "Constraint": "Object",
-    "ParticleSystem": "Object",
     "VertexGroup": "Object",
     # The mesh.
     "MeshVertex": "Mesh",
@@ -1338,8 +1338,11 @@ ID_DATA_OWNERS: dict[str, str] = {
     "MeshPolygon": "Mesh",
     "MeshLoop": "Mesh",
     "MeshLoopTriangle": "Mesh",
-    # The shape key data-block.
-    "ShapeKey": "Key",
+    # A geometry's attributes.
+    "AttributeGroupMesh": "Mesh",
+    "AttributeGroupPointCloud": "PointCloud",
+    "AttributeGroupCurves": "Curves",
+    "AttributeGroupGreasePencil": "GreasePencil",
     # The scene.
     "ViewLayer": "Scene",
     "LayerCollection": "Scene",
