@@ -1823,6 +1823,8 @@ def write_class(
     # A `property` attribute (`Context.property`) shadows the builtin decorator in the class body.
     property_decorator = "builtins.property" if any(attr.name == "property" for attr in cls.attributes) else "property"
     for attr in cls.attributes:
+        if attr.readonly and (cls.name, attr.name) in WRITABLE_IDPROPERTY_ATTRIBUTES:
+            attr = replace(attr, readonly=False)
         is_narrowed = base_attr_types is not None and base_attr_types.get(attr.name, attr.type_str) != attr.type_str
         if write_attribute(
                 fw, attr, imports, current_module, class_locations,
@@ -1920,6 +1922,13 @@ def write_method(
     fw("    def {:s}({:s}) -> {:s}: ...\n".format(name, inner, ret_type))
 
 
+# Read-only attributes that are read from the class too (`Operator.bl_rna`), so they stay plain class attributes.
+CLASS_ATTRIBUTES = {"bl_rna"}
+# Read-only in RNA but stored as ID properties, which Python sets anyway (`item.name = "x"` on a
+# `PropertyGroup`, see `rna_def_PropertyGroup`), so they stay assignable.
+WRITABLE_IDPROPERTY_ATTRIBUTES = {("PropertyGroup", "name")}
+
+
 def write_attribute(
     fw: Callable[[str], None],
     attr: AttrInfo,
@@ -1957,6 +1966,15 @@ def write_attribute(
         fw("    def {:s}(self) -> {:s}: ...\n".format(name, type_ann))
         fw("    @{:s}.setter\n".format(name))
         fw("    def {:s}(self, value: {:s}) -> None: ...\n".format(name, setter_type))
+        return True
+    if attr.readonly and not attr.declaration and name not in CLASS_ATTRIBUTES:
+        # A read-only attribute (``.. data::``) is a property without a setter, so assigning it is an error,
+        # as it is in Blender (`ob.rna_type = ...` raises `AttributeError`). A narrower one overrides the base's
+        # property, which a property may do.
+        if property_decorator != "property":
+            imports.add(("__bare__", "builtins"))
+        fw("    @{:s}\n".format(property_decorator))
+        fw("    def {:s}(self) -> {:s}: ...\n".format(name, type_ann))
         return True
     if attr.declaration:
         # A property declared as a class annotation: tools that don't know `bpy.props`
