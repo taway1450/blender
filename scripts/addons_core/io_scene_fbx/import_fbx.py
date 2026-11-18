@@ -3010,7 +3010,8 @@ class FbxImportHelperNode:
                     me_obj.matrix_parent_inverse = amat.inverted_safe() @ mmat @ me_obj.matrix_basis.inverted_safe()
 
                     mod = mesh.bl_obj.modifiers.new(arm.name, 'ARMATURE')
-                    mod.object = arm
+                    if mod is not None:
+                        mod.object = arm
 
             # Add bone weights to the deformers
             for child in self.children:
@@ -3681,6 +3682,8 @@ def load(operator, context, filepath="",
                         render_levels = elem_prop_first(elem_find_first(fbx_sdata, b'RenderDivisionLevels'))
                         if isinstance(preview_levels, int) and isinstance(render_levels, int):
                             mod = parent.bl_obj.modifiers.new('subsurf', 'SUBSURF')
+                            if mod is None:
+                                continue
                             mod.levels = preview_levels
                             mod.render_levels = render_levels
                             boundary_rule = elem_prop_first(elem_find_first(fbx_sdata, b'BoundaryRule'), default=1)
