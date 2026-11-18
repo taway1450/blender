@@ -1098,7 +1098,7 @@ def merge_duplicate_verts(
         dot_fields += [
             ('sk%dx' % i, np.float32), ('sk%dy' % i, np.float32), ('sk%dz' % i, np.float32),
         ]
-    dots = np.empty(len(vert_locs), dtype=np.dtype(dot_fields))
+    dots = np.empty(len(vert_locs), dtype=dot_fields)
 
     dots['x'] = vert_locs[:, 0]
     dots['y'] = vert_locs[:, 1]

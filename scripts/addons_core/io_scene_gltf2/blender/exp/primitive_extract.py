@@ -362,7 +362,7 @@ class PrimitiveCreator:
         #
         # Each unique dot will become one unique glTF vert.
 
-        self.dots = np.empty(len(self.blender_mesh.loops), dtype=np.dtype(dot_fields))
+        self.dots = np.empty(len(self.blender_mesh.loops), dtype=dot_fields)
 
         # Find loose edges
         if self.export_settings['gltf_loose_edges']:
@@ -370,7 +370,7 @@ class PrimitiveCreator:
             self.blender_idxs_edges = [vi for e in loose_edges for vi in e.vertices]
             self.blender_idxs_edges = np.array(self.blender_idxs_edges, dtype=np.uint32)
 
-            self.dots_edges = np.empty(len(self.blender_idxs_edges), dtype=np.dtype(dot_fields_edges))
+            self.dots_edges = np.empty(len(self.blender_idxs_edges), dtype=dot_fields_edges)
             self.dots_edges['vertex_index'] = self.blender_idxs_edges
 
         # Find loose points
@@ -382,7 +382,7 @@ class PrimitiveCreator:
             ]
             self.blender_idxs_points = np.array(self.blender_idxs_points, dtype=np.uint32)
 
-            self.dots_points = np.empty(len(self.blender_idxs_points), dtype=np.dtype(dot_fields_points))
+            self.dots_points = np.empty(len(self.blender_idxs_points), dtype=dot_fields_points)
             self.dots_points['vertex_index'] = self.blender_idxs_points
 
     def populate_dots_data(self):
@@ -624,7 +624,7 @@ class PrimitiveCreator:
                     additional_fields.append((attr + str(1), gltf2_blender_conversion.get_numpy_type('FLOAT2')))
 
             if len(additional_fields) > 0:
-                new_dt = np.dtype(self.dots.dtype.descr + additional_fields)
+                new_dt = self.dots.dtype.descr + additional_fields
                 dots = np.zeros(self.dots.shape, dtype=new_dt)
                 for f in self.dots.dtype.names:
                     dots[f] = self.dots[f]
@@ -1312,7 +1312,7 @@ class PrimitiveCreator:
         # Keep the existing custom attribute
         # Data will be exported twice, one for COLOR_O, one for the custom attribute
 
-        new_dt = np.dtype(self.dots.dtype.descr + additional_fields)
+        new_dt = self.dots.dtype.descr + additional_fields
         dots = np.zeros(self.dots.shape, dtype=new_dt)
         for f in self.dots.dtype.names:
             dots[f] = self.dots[f]
@@ -1320,7 +1320,7 @@ class PrimitiveCreator:
         self.dots = dots
 
         if self.export_settings['gltf_loose_edges']:
-            new_dt = np.dtype(self.dots_edges.dtype.descr + additional_fields_edges)
+            new_dt = self.dots_edges.dtype.descr + additional_fields_edges
             dots_edges = np.zeros(self.dots_edges.shape, dtype=new_dt)
             for f in self.dots_edges.dtype.names:
                 dots_edges[f] = self.dots_edges[f]
@@ -1328,7 +1328,7 @@ class PrimitiveCreator:
             self.dots_edges = dots_edges
 
         if self.export_settings['gltf_loose_points']:
-            new_dt = np.dtype(self.dots_points.dtype.descr + additional_fields_points)
+            new_dt = self.dots_points.dtype.descr + additional_fields_points
             dots_points = np.zeros(self.dots_points.shape, dtype=new_dt)
             for f in self.dots_points.dtype.names:
                 dots_points[f] = self.dots_points[f]
