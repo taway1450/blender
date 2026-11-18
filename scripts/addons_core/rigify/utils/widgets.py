@@ -156,7 +156,8 @@ def create_widget(rig: ArmatureObject, bone_name: str,
     # Add the subdivision surface modifier
     if subsurf > 0:
         mod = obj.modifiers.new("subsurf", 'SUBSURF')
-        mod.levels = subsurf
+        if mod is not None:
+            mod.levels = subsurf
 
     # Record the generated widget
     if generator:
