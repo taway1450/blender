@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 
+import argparse
 import unittest
 import bpy
 import sys
@@ -204,7 +205,7 @@ class TestMeshValidate(unittest.TestCase):
         self.assertFalse(mesh.validate(verbose=True))
 
 
-args = None
+args: argparse.Namespace
 
 
 class TestMeshValidateExistingFile(unittest.TestCase):
@@ -219,7 +220,6 @@ class TestMeshValidateExistingFile(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     argv = [sys.argv[0]]
     if '--' in sys.argv:

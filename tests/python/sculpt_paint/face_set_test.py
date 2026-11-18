@@ -9,6 +9,7 @@ __all__ = (
     "main",
 )
 
+import argparse
 import numpy as np
 import os
 import pathlib
@@ -17,7 +18,7 @@ import unittest
 
 import bpy
 
-args = None
+args: argparse.Namespace
 
 
 def get_attribute_data(
@@ -154,7 +155,6 @@ class ChangeVisibilityLooseGeometryTest(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     argv = [sys.argv[0]]
     if '--' in sys.argv:

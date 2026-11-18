@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2025 Blender Authors & Khronos Group contributors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
+import argparse
 import pathlib
 import sys
 import unittest
@@ -12,7 +13,7 @@ sys.path.append(str(pathlib.Path(__file__).parent.absolute()))
 
 from io_gltf_utils import gltf_generate_descr
 
-args = None
+args: argparse.Namespace
 
 
 def do_gltf_export(filepath, output_filepath, params_import, params_export):
@@ -72,7 +73,6 @@ class GLTFExportTest(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

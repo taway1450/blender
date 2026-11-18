@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import argparse
 import unittest
 import bpy
 import pathlib
@@ -9,7 +10,7 @@ import sys
 import tempfile
 from itertools import chain
 
-args = None
+args: argparse.Namespace
 testfile = "link_drag_search.blend"
 
 
@@ -159,7 +160,6 @@ class AbstractNodeCopyOperatorTest(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

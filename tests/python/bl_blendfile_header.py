@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import argparse
 import _blendfile_header  # Not part of the Public API, allow use for testing.
 import blend_render_info
 import bpy
@@ -11,7 +12,7 @@ import unittest
 import gzip
 import tempfile
 
-args = None
+args: argparse.Namespace
 
 
 class BlendFileHeaderTest(unittest.TestCase):
@@ -150,7 +151,6 @@ class BlendFileHeaderTest(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

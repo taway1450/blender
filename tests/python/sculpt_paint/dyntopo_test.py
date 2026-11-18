@@ -9,12 +9,13 @@ __all__ = (
     "main",
 )
 
+import argparse
 import pathlib
 import sys
 import unittest
 
 import bpy
-args = None
+args: argparse.Namespace
 
 
 class DetailFloodFillTest(unittest.TestCase):
@@ -61,7 +62,6 @@ class DetailFloodFillTest(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     argv = [sys.argv[0]]
     if '--' in sys.argv:

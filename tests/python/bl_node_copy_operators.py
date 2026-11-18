@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import argparse
 import pathlib
 import sys
 import tempfile
@@ -31,7 +32,7 @@ import bpy
 #   - bpy.data.node_groups["ExpectedGroupSeparateCopy"]:    Result of node.group_separate operator with type='COPY'.
 #   - bpy.data.node_groups["ExpectedGroupSeparateMove"]:    Result of node.group_separate operator with type='MOVE'.
 
-args = None
+args: argparse.Namespace
 testfile = "node_copy_operators.blend"
 
 # List of test cases expected in the test file.
@@ -627,7 +628,6 @@ def generate_test_data():
 
 def main():
     global args
-    import argparse
     import os
 
     if '--' in sys.argv:

@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import argparse
 import os
 import pathlib
 import sys
@@ -14,7 +15,7 @@ from modules.colored_print import print_message
 from modules.imbuf_test import AbstractImBufTest
 
 
-args = None
+args: argparse.Namespace
 
 TEMPLATE_RGBA08 = "template-rgba08.png"
 TEMPLATE_RGBA32 = "template-rgba32.exr"
@@ -294,7 +295,6 @@ class ImBufSaveTest(ImBufTest):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

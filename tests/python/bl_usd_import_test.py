@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import argparse
 import math
 import os
 import pathlib
@@ -17,7 +18,7 @@ sys.path.append(str(pathlib.Path(__file__).parent.absolute()))
 from modules.colored_print import (print_message, use_message_colors)
 
 
-args = None
+args: argparse.Namespace
 
 
 class AbstractUSDTest(unittest.TestCase):
@@ -2114,7 +2115,6 @@ class ImportMtlxTextureUSDHook(bpy.types.USDHook):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

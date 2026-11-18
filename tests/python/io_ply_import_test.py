@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2025 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
+import argparse
 import pathlib
 import sys
 import unittest
@@ -9,7 +10,7 @@ import bpy
 
 sys.path.append(str(pathlib.Path(__file__).parent.absolute()))
 
-args = None
+args: argparse.Namespace
 
 
 class PLYImportTest(unittest.TestCase):
@@ -41,7 +42,6 @@ class PLYImportTest(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

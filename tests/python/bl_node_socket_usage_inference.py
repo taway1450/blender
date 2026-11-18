@@ -2,13 +2,14 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import argparse
 import pathlib
 import sys
 import tempfile
 import bpy
 import unittest
 
-args = None
+args: argparse.Namespace
 
 
 class StructureTypeInferenceTest(unittest.TestCase):
@@ -66,7 +67,6 @@ class StructureTypeInferenceTest(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

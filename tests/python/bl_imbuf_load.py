@@ -6,6 +6,7 @@ __all__ = (
     "main",
 )
 
+import argparse
 import os
 import pathlib
 import sys
@@ -18,7 +19,7 @@ from modules.colored_print import print_message
 from modules.imbuf_test import AbstractImBufTest
 
 
-args = None
+args: argparse.Namespace
 
 
 class ImBufTest(AbstractImBufTest):
@@ -199,7 +200,6 @@ class ImBufLoadBrokenTest(ImBufBrokenTest):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

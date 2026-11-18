@@ -9,6 +9,7 @@ __all__ = (
     "main",
 )
 
+import argparse
 import pathlib
 import sys
 import unittest
@@ -16,7 +17,7 @@ import unittest
 import bpy
 from mathutils import Vector
 
-args = None
+args: argparse.Namespace
 
 
 class ApplyBase(unittest.TestCase):
@@ -250,7 +251,6 @@ class ExternalData(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     argv = [sys.argv[0]]
     if '--' in sys.argv:

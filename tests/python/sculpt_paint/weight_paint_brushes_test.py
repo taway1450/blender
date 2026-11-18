@@ -9,6 +9,7 @@ __all__ = (
     "main",
 )
 
+import argparse
 import math
 import numpy as np
 import os
@@ -21,7 +22,7 @@ import bpy
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from modules.test_helpers import set_view3d_context_override, generate_stroke
 
-args = None
+args: argparse.Namespace
 
 
 def get_weights(ob, vgroup):
@@ -113,7 +114,6 @@ class MeshBrushTests(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     argv = [sys.argv[0]]
     if '--' in sys.argv:

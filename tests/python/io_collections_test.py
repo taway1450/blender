@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import argparse
 import os
 import pathlib
 import sys
@@ -13,7 +14,7 @@ import bpy
 sys.path.append(str(pathlib.Path(__file__).parent.absolute()))
 from modules.colored_print import (print_message, use_message_colors)
 
-args = None
+args: argparse.Namespace
 
 
 class CollectionIOTestBase(unittest.TestCase):
@@ -477,7 +478,6 @@ class TestCollectionImport(CollectionIOTestBase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

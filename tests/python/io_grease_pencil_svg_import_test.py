@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import argparse
 import math
 import pathlib
 import sys
@@ -10,7 +11,7 @@ import unittest
 
 import bpy
 
-args = None
+args: argparse.Namespace
 
 
 class GPencilSVGSceneUnitScaleTest(unittest.TestCase):
@@ -60,7 +61,6 @@ class GPencilSVGSceneUnitScaleTest(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

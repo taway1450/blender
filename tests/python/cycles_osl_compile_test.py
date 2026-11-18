@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+import argparse
 import sys
 import tempfile
 import unittest
@@ -11,7 +12,7 @@ from pathlib import Path
 import bpy
 import _cycles
 
-args = None
+args: argparse.Namespace
 
 
 class AbstractOSLCompileTest(unittest.TestCase):
@@ -51,7 +52,6 @@ shader basic_shader(
 
 def main():
     global args
-    import argparse
 
     if "--" in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index("--") + 1:]

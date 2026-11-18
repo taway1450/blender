@@ -6,6 +6,7 @@
 ./blender.bin --background --factory-startup --python tests/python/bl_alembic_io_test.py -- --testdir /path/to/tests/files/alembic
 """
 
+import argparse
 import math
 import pathlib
 import sys
@@ -16,7 +17,7 @@ import bpy
 
 sys.path.append(str(pathlib.Path(__file__).parent.absolute()))
 
-args = None
+args: argparse.Namespace
 
 
 class AbstractAlembicTest(unittest.TestCase):
@@ -942,7 +943,6 @@ class AlembicImportComparisonTests(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]

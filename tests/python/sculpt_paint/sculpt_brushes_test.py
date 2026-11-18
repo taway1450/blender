@@ -9,6 +9,7 @@ __all__ = (
     "main",
 )
 
+import argparse
 import math
 import os
 import pathlib
@@ -20,7 +21,7 @@ import bpy
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from modules.test_helpers import AttributeType, BackendType, COLOR_BACKEND_TYPES, MASK_BACKEND_TYPES, get_attribute_data, set_view3d_context_override, generate_stroke, generate_monkey
 
-args = None
+args: argparse.Namespace
 
 
 class MeshBrushTests(unittest.TestCase):
@@ -576,7 +577,6 @@ class MeshBrushTests(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     argv = [sys.argv[0]]
     if '--' in sys.argv:

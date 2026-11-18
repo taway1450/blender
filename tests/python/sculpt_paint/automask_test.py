@@ -9,6 +9,7 @@ __all__ = (
     "main",
 )
 
+import argparse
 import os
 import unittest
 import sys
@@ -20,7 +21,7 @@ import bpy
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from modules.test_helpers import AttributeType, BackendType, get_attribute_data, set_view3d_context_override, generate_stroke
 
-args = None
+args: argparse.Namespace
 
 
 def get_verts_without_face_set(mesh, attr_data, face_set):
@@ -153,7 +154,6 @@ class BrushAutomaskTest(unittest.TestCase):
 
 def main():
     global args
-    import argparse
 
     argv = [sys.argv[0]]
     if '--' in sys.argv:

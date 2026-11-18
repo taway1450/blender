@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import argparse
 import pathlib
 import sys
 import unittest
@@ -11,7 +12,7 @@ from dataclasses import dataclass
 
 import bpy
 
-args = None
+args: argparse.Namespace
 
 
 base_idname = {
@@ -389,7 +390,6 @@ class NodeGroupVersioningSocketInterfaceIdentifiersTest(AbstractNodeGroupInterfa
 
 def main():
     global args
-    import argparse
 
     if '--' in sys.argv:
         argv = [sys.argv[0]] + sys.argv[sys.argv.index('--') + 1:]
