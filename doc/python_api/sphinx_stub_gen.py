@@ -824,6 +824,14 @@ TYPE_VARS: dict[str, str] = {
     "_C": "TypeVar('_C', bound=type)",
     # The type of a `default` argument, returned when there is no value.
     "_D": "TypeVar('_D')",
+    # The shaders of a list passed to `freestyle.types.Operators.create`: the C code requires a `list`,
+    # which is invariant, so `list[StrokeShader]` would reject a `list[SamplingShader | ...]`.
+    "_StrokeShaderT": "TypeVar('_StrokeShaderT', bound='StrokeShader')",
+}
+# The stub classes type variables are bound to, imported along with them
+# (the bound is a string: a stub imports its classes only when type checking, and a class may follow the TypeVar).
+TYPE_VAR_BOUNDS: dict[str, str] = {
+    "_StrokeShaderT": "freestyle.types.StrokeShader",
 }
 # Pseudo module of `imports` entries naming the type variables a stub uses.
 TYPE_VAR_IMPORT = "__typevar__"
@@ -834,6 +842,10 @@ def track_type_var(name: str, imports: set[tuple[str, str]]) -> None:
     imports.add((TYPE_VAR_IMPORT, name))
     imports.add(("typing", "TypeVar"))
     track_stdlib_imports(TYPE_VARS[name], imports)
+    bound = TYPE_VAR_BOUNDS.get(name)
+    if bound is not None:
+        module, _, short = bound.rpartition(".")
+        imports.add((module, short))
 
 
 def resolve_class_ref(
