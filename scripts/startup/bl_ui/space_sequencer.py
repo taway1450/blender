@@ -1496,7 +1496,8 @@ class SEQUENCER_MT_view_pie(Menu):
         pie.operator("sequencer.view_all")
         pie.operator("sequencer.view_selected", text="Frame Selected", icon='ZOOM_SELECTED')
         pie.operator("sequencer.view_frame")
-        if context.sequencer_scene.use_preview_range:
+        scene = context.sequencer_scene
+        if scene and scene.use_preview_range:
             pie.operator("anim.scene_range_frame", text="Frame Preview Range")
         else:
             pie.operator("anim.scene_range_frame", text="Frame Scene Range")
@@ -1816,7 +1817,8 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
         layout.use_property_decorate = False
 
         st = context.space_data
-        ed = context.sequencer_scene.sequence_editor
+        scene = context.sequencer_scene
+        ed = scene.sequence_editor if scene else None
 
         col = layout.column()
         col.prop(st, "proxy_render_size")
