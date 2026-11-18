@@ -4526,7 +4526,7 @@ static void rna_def_node_internal_link(BlenderRNA *brna)
   prop = RNA_def_property(srna, "from_socket", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "NodeSocket");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
+  RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP | PROP_NEVER_NULL);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_pointer_funcs(
       prop, "rna_NodeInternalLink_from_socket_get", nullptr, nullptr, nullptr);
@@ -4535,7 +4535,7 @@ static void rna_def_node_internal_link(BlenderRNA *brna)
   prop = RNA_def_property(srna, "to_socket", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "NodeSocket");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
+  RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP | PROP_NEVER_NULL);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_pointer_funcs(
       prop, "rna_NodeInternalLink_to_socket_get", nullptr, nullptr, nullptr);
