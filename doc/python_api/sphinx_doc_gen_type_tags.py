@@ -91,6 +91,14 @@ class Probe:
             instances.append(instance)
         return base, attr, instances
 
+    def found(self, base: str, attr: str, instances: list[Any]) -> Family:
+        """The instances of ``base`` that Blender's data already holds, noting the values none of them has."""
+        values = {getattr(instance, attr) for instance in instances}
+        for value in enum_ids(base, attr):
+            if value not in values:
+                self.missing.append("{:s}.{:s} {!r}: no instance found".format(base, attr, value))
+        return base, attr, instances
+
 
 def enum_ids(struct_id: str, attr: str) -> list[str]:
     return [item.identifier for item in getattr(bpy.types, struct_id).bl_rna.properties[attr].enum_items]
@@ -307,6 +315,18 @@ def node_families(p: Probe) -> Iterator[Family]:
     yield "NodeTreeInterfaceItem", "item_type", items
 
 
+def editor_families(p: Probe) -> Iterator[Family]:
+    # Only drawing a spreadsheet makes its table and viewer path: read those of the startup file's spreadsheets.
+    spreadsheets = [
+        space for screen in bpy.data.screens for area in screen.areas for space in area.spaces
+        if space.type == 'SPREADSHEET'
+    ]
+    yield p.found("SpreadsheetTableID", "type", [
+        table.id for space in spreadsheets for table in space.tables if table.id is not None
+    ])
+    yield p.found("ViewerPathElem", "type", [elem for space in spreadsheets for elem in space.viewer_path.path])
+
+
 def property_families(_p: Probe) -> Iterator[Family]:
     # The properties of every struct and the parameters of its functions.
     properties = []
@@ -328,6 +348,7 @@ FAMILIES: tuple[Callable[[Probe], Iterator[Family]], ...] = (
     strip_families,
     space_families,
     node_families,
+    editor_families,
     property_families,
 )
 
