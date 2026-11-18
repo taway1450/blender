@@ -62,6 +62,8 @@ class Probe:
         self.directory = directory
         self.ids: list[Any] = []
         self.missing: list[str] = []
+        # Undo what removing `ids` does not: called last first.
+        self.cleanups: list[Callable[[], None]] = []
         self._channel = 0
 
     def keep(self, id_data: Any) -> Any:
@@ -163,6 +165,30 @@ def boid_families(p: Probe) -> Iterator[Family]:
             bpy.ops.boid.rule_add(type=value)
         return rules[-1]
     yield p.family("BoidRule", "type", make)
+
+
+def project_families(p: Probe) -> Iterator[Family]:
+    # Project variables exist only in a project: make one when there is none.
+    if bpy.data.project is None:
+        try:
+            bpy.ops.project.new(directory=os.path.join(p.directory, NAME))
+        except Exception as ex:
+            p.missing.append("ProjectVariable.type: no project: {:s}".format(str(ex).strip()))
+            return
+    variables = bpy.data.project.variables
+    made: list[Any] = []
+
+    def make(value: str) -> Any:
+        made.append(variable := variables.new("{:s}_{:s}".format(NAME, value.lower()), type=value))
+        return variable
+
+    def cleanup() -> None:
+        for variable in reversed(made):
+            variables.remove(variable)
+        # Clear the project's unsaved changes, so that Blender does not write them when it quits.
+        bpy.ops.project.config_save()
+    p.cleanups.append(cleanup)
+    yield p.family("ProjectVariable", "type", make)
 
 
 def data_families(p: Probe) -> Iterator[Family]:
@@ -297,6 +323,7 @@ def property_families(_p: Probe) -> Iterator[Family]:
 FAMILIES: tuple[Callable[[Probe], Iterator[Family]], ...] = (
     object_families,
     boid_families,
+    project_families,
     data_families,
     strip_families,
     space_families,
@@ -449,6 +476,8 @@ def probe() -> TypeTags:
                 for view_family in view_families(p):
                     record_views(tags.views, p.missing, view_family)
         finally:
+            for cleanup in reversed(p.cleanups):
+                cleanup()
             bpy.data.batch_remove([id_data for id_data in p.ids if id_data is not None])
         tags.missing.extend(p.missing)
     for struct_values in tags.values.values():
