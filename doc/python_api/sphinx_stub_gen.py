@@ -1801,8 +1801,8 @@ def write_class(
         fw("    def __getitem__(self, key: slice, /) -> tuple[{:s}, ...]: ...\n".format(sequence_elem_type))
         # An item takes an element (a row of a matrix takes any sequence of floats), a slice any iterable of
         # them: `mathutils_array_parse` reads the value with `PySequence_Fast`.
-        setter_type = "Sequence[float]" if sequence_elem_type == "Vector" else sequence_elem_type
-        if setter_type == "Sequence[float]":
+        setter_type = attribute_setter_type(sequence_elem_type) or sequence_elem_type
+        if setter_type != sequence_elem_type:
             imports.add(("collections.abc", "Sequence"))
         imports.add(("collections.abc", "Iterable"))
         fw("    @overload\n")
@@ -1810,8 +1810,10 @@ def write_class(
         fw("    @overload\n")
         fw("    def __setitem__(self, key: slice, value: Iterable[{:s}], /) -> None: ...\n".format(setter_type))
         fw("    def __iter__(self) -> Iterator[{:s}]: ...\n".format(sequence_elem_type))
-        if (current_module, cls.name) in BUFFER_CLASSES:
-            fw("    def __buffer__(self, flags: int, /) -> memoryview: ...\n")
+        has_members = True
+
+    if (current_module, cls.name) in BUFFER_CLASSES:
+        fw("    def __buffer__(self, flags: int, /) -> memoryview: ...\n")
         has_members = True
 
     # A `property` attribute (`Context.property`) shadows the builtin decorator in the class body.
