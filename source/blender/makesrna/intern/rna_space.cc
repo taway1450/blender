@@ -6055,6 +6055,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
   prop = RNA_def_property(srna, "region_3d", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "RegionView3D");
   RNA_def_property_pointer_funcs(prop, "rna_SpaceView3D_region_3d_get", nullptr, nullptr, nullptr);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_ui_text(
       prop,
       "3D Region",
