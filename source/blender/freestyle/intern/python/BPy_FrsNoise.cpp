@@ -98,6 +98,18 @@ PyDoc_STRVAR(
     "   :type oct: int\n"
     "   :return: A noise value.\n"
     "   :rtype: float\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    FrsNoise_drand_doc,
+    ".. method:: rand(seed=0)\n"
+    "\n"
+    "   Returns a pseudo-random number between 0 and 1.\n"
+    "\n"
+    "   :param seed: The seed of the random number generator, used when\n"
+    "      it is not zero.\n"
+    "   :type seed: int\n"
+    "   :return: A pseudo-random number in the range [0, 1).\n"
+    "   :rtype: float\n");
 static PyObject *FrsNoise_drand(BPy_FrsNoise * /*self*/, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"seed", nullptr};
@@ -119,6 +131,19 @@ static PyObject *FrsNoise_drand(BPy_FrsNoise * /*self*/, PyObject *args, PyObjec
   return PyFloat_FromDouble(RandGen::drand48());
 }
 
+PyDoc_STRVAR(
+    /* Wrap. */
+    FrsNoise_turbulence_smooth_doc,
+    ".. method:: turbulence_smooth(v, oct=8)\n"
+    "\n"
+    "   Returns a smooth noise value for a 1D element.\n"
+    "\n"
+    "   :param v: One-dimensional sample point.\n"
+    "   :type v: float\n"
+    "   :param oct: Number of octaves.\n"
+    "   :type oct: int\n"
+    "   :return: A smooth noise value.\n"
+    "   :rtype: float\n");
 static PyObject *FrsNoise_turbulence_smooth(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
   static const char *kwlist[] = {"v", "oct", nullptr};
@@ -399,11 +424,11 @@ static PyMethodDef BPy_FrsNoise_methods[] = {
      (PyCFunction)FrsNoise_smoothNoise3,
      METH_VARARGS | METH_KEYWORDS,
      FrsNoise_smoothNoise3_doc},
-    {"rand", (PyCFunction)FrsNoise_drand, METH_VARARGS | METH_KEYWORDS, nullptr},
+    {"rand", (PyCFunction)FrsNoise_drand, METH_VARARGS | METH_KEYWORDS, FrsNoise_drand_doc},
     {"turbulence_smooth",
      (PyCFunction)FrsNoise_turbulence_smooth,
      METH_VARARGS | METH_KEYWORDS,
-     nullptr},
+     FrsNoise_turbulence_smooth_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
