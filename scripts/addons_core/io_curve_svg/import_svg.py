@@ -514,7 +514,8 @@ class SVGPathParser:
         """
 
         self._data = SVGPathData(d)
-        self._point = None   # Current point
+        # Current point: a path starts at the origin, so a relative first moveto is absolute.
+        self._point = (0.0, 0.0)
         self._handle = None  # Last handle
         self._splines = []   # List of splines in path
         self._spline = None  # Current spline
@@ -550,7 +551,7 @@ class SVGPathParser:
         x = self._data.nextCoord()
         y = self._data.nextCoord()
 
-        if relative and point is not None:
+        if relative:
             x += point[0]
             y += point[1]
 
