@@ -37,12 +37,14 @@ namespace blender {
   "   :param key: Represents the type of data being subscribed to\n" \
   "\n" \
   "      Arguments include\n" \
-  "      - A property instance.\n" \
-  "      - A struct type.\n" \
-  "      - A tuple representing a (struct, property name) pair.\n" \
-  "   :type key: :class:`bpy.types.Property` | " \
-  ":class:`bpy.types.Struct` | " \
-  "tuple[:class:`bpy.types.Struct`, str]\n"
+  "      - A property instance, or a math value it gives (``obj.location``).\n" \
+  "      - A struct instance or type.\n" \
+  "      - A tuple representing a (struct type, property name) pair.\n" \
+  "   :type key: :class:`bpy.types.bpy_prop` | :class:`bpy.types.bpy_struct` | " \
+  "type[:class:`bpy.types.bpy_struct`] | " \
+  "tuple[type[:class:`bpy.types.bpy_struct`] | :class:`bpy.types.Struct`, str] | " \
+  ":class:`mathutils.Vector` | :class:`mathutils.Matrix` | :class:`mathutils.Euler` | " \
+  ":class:`mathutils.Quaternion` | :class:`mathutils.Color`\n"
 
 /**
  * There are multiple ways we can get RNA from Python,

@@ -89,7 +89,9 @@ PyDoc_STRVAR(
     "      This is mainly useful for memory optimizations when you want to store values with\n"
     "      reduced precision. E.g. you can store a float in only 1 byte but it will be\n"
     "      converted to a normal 4 byte float when used.\n"
-    "   :type fetch_mode: Literal['FLOAT', 'INT', 'INT_TO_FLOAT_UNIT']\n");
+    "   :type fetch_mode: Literal['FLOAT', 'INT', 'INT_TO_FLOAT_UNIT']\n"
+    "   :return: The index of the new attribute.\n"
+    "   :rtype: int\n");
 static PyObject *pygpu_vertformat_attr_add(BPyGPUVertFormat *self, PyObject *args, PyObject *kwds)
 {
   const char *id;

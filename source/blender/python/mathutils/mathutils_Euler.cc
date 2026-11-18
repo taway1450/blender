@@ -931,7 +931,7 @@ PyDoc_STRVAR(
     "Wikipedia.\n"
     "\n"
     "   :param angles: (X, Y, Z) angles in radians.\n"
-    "   :type angles: Sequence[float]\n"
+    "   :type angles: Iterable[float]\n"
     "   :param order: Euler rotation order.\n"
     "   :type order: Literal['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']\n");
 PyTypeObject euler_Type = {

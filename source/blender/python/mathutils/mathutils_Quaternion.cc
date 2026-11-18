@@ -1880,7 +1880,7 @@ PyDoc_STRVAR(
     "\n"
     "   :param seq: A (w, x, y, z) quaternion, a 3D exponential map vector,\n"
     "      or a 3D axis vector (when *angle* is also provided).\n"
-    "   :type seq: Sequence[float]\n"
+    "   :type seq: Iterable[float]\n"
     "   :param angle: rotation angle, in radians\n"
     "   :type angle: float\n"
     "\n"

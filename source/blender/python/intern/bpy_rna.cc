@@ -6353,7 +6353,7 @@ PyDoc_STRVAR(
     "   :type attr: str\n"
     "   :param seq: Writable sequence or buffer receiving flattened values.\n"
     "      For array attributes, the length must be ``len(collection) * array_length``.\n"
-    "   :type seq: MutableSequence[bool | int | float] | Buffer\n");
+    "   :type seq: MutableSequence[bool] | MutableSequence[int] | MutableSequence[float] | Buffer\n");
 static PyObject *pyrna_prop_collection_foreach_get(BPy_PropertyRNA *self, PyObject *args)
 {
   PYRNA_PROP_CHECK_OBJ(self);

@@ -399,7 +399,7 @@ PyDoc_STRVAR(
     "   :param name: Name of the uniform variable whose value is to be changed.\n"
     "   :type name: str\n"
     "   :param value: Value that will be used to update the specified uniform variable.\n"
-    "   :type value: float | Sequence[float]\n");
+    "   :type value: float | Sequence[float] | :class:`mathutils.Matrix`\n");
 static PyObject *pygpu_shader_uniform_float(BPyGPUShader *self, PyObject *args)
 {
   const char *error_prefix = "GPUShader.uniform_float";

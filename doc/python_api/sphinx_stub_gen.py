@@ -827,11 +827,15 @@ TYPE_VARS: dict[str, str] = {
     # The shaders of a list passed to `freestyle.types.Operators.create`: the C code requires a `list`,
     # which is invariant, so `list[StrokeShader]` would reject a `list[SamplingShader | ...]`.
     "_StrokeShaderT": "TypeVar('_StrokeShaderT', bound='StrokeShader')",
+    # The data-blocks `BlendDataLibraries.write` takes: the C code requires a `set`, which is invariant,
+    # so `set[ID]` would reject a `set[Object]`.
+    "_IDT": "TypeVar('_IDT', bound='ID')",
 }
 # The stub classes type variables are bound to, imported along with them
 # (the bound is a string: a stub imports its classes only when type checking, and a class may follow the TypeVar).
 TYPE_VAR_BOUNDS: dict[str, str] = {
     "_StrokeShaderT": "freestyle.types.StrokeShader",
+    "_IDT": "bpy.types.ID",
 }
 # Pseudo module of `imports` entries naming the type variables a stub uses.
 TYPE_VAR_IMPORT = "__typevar__"
