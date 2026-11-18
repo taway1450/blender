@@ -2458,6 +2458,7 @@ static void rna_def_trackingObject(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "MovieTrackingReconstruction");
   RNA_def_property_pointer_funcs(
       prop, "rna_trackingObject_reconstruction_get", nullptr, nullptr, nullptr);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
 
   /* scale */
   prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_NONE);
@@ -2663,6 +2664,7 @@ static void rna_def_tracking(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, nullptr, "reconstruction_legacy");
   RNA_def_property_pointer_funcs(
       prop, "rna_trackingReconstruction_get", nullptr, nullptr, nullptr);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_struct_type(prop, "MovieTrackingReconstruction");
 
   /* objects */
