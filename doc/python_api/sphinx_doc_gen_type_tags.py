@@ -34,6 +34,10 @@ Family = tuple[str, str, list[Any]]
 # A base struct without a tag and instances of each of its subclasses.
 UntaggedFamily = tuple[str, list[Any]]
 
+# An enum item read from RNA while probing, passed back to whichever enum it was read from:
+# only Blender knows which identifiers it takes, so it is typed as any of them.
+EnumItem = Any
+
 
 class TagView(NamedTuple):
     """
@@ -107,7 +111,7 @@ class Probe:
         self._channel += 1
         return self._channel
 
-    def family(self, base: str, attr: str, make: Callable[[str], Any]) -> Family:
+    def family(self, base: str, attr: str, make: Callable[[EnumItem], Any]) -> Family:
         """An instance for each value of the enum ``base.attr``, made by ``make(value)``."""
         instances = []
         for value in enum_ids(base, attr):
@@ -144,7 +148,7 @@ def tag_property(struct_id: str, attr: str) -> Any:
     raise KeyError("{:s}.{:s}".format(struct_id, attr))
 
 
-def enum_ids(struct_id: str, attr: str) -> list[str]:
+def enum_ids(struct_id: str, attr: str) -> list[EnumItem]:
     return [item.identifier for item in tag_property(struct_id, attr).enum_items]
 
 
@@ -212,7 +216,7 @@ def boid_families(p: Probe) -> Iterator[Family]:
     settings.physics_type = 'BOIDS'
     rules = settings.boids.active_boid_state.rules
 
-    def make(value: str) -> Any:
+    def make(value: EnumItem) -> Any:
         with bpy.context.temp_override(particle_settings=settings):
             bpy.ops.boid.rule_add(type=value)
         return rules[-1]
@@ -241,7 +245,7 @@ def project_families(p: Probe) -> Iterator[Family]:
     variables = bpy.data.project.variables
     made: list[Any] = []
 
-    def make(value: str) -> Any:
+    def make(value: EnumItem) -> Any:
         made.append(variable := variables.new("{:s}_{:s}".format(NAME, value.lower()), type=value))
         return variable
 
@@ -323,7 +327,7 @@ def space_families(p: Probe) -> Iterator[Family]:
     area = windows[0].screen.areas[0]
     area_type = area.type
 
-    def make(value: str) -> Any:
+    def make(value: EnumItem) -> Any:
         area.type = value
         return area.spaces.active
     try:
@@ -335,7 +339,8 @@ def space_families(p: Probe) -> Iterator[Family]:
 def node_families(p: Probe) -> Iterator[Family]:
     # The built-in node trees, every node that one of them accepts, and their sockets.
     trees = []
-    for tree_id in subclasses(bpy.types.NodeTree):
+    tree_ids: list[EnumItem] = subclasses(bpy.types.NodeTree)
+    for tree_id in tree_ids:
         try:
             trees.append(p.keep(bpy.data.node_groups.new(NAME, tree_id)))
         except Exception:
@@ -437,7 +442,7 @@ def curve_constructors(p: Probe) -> Iterator[ConstructorFamily]:
     yield "BlendDataCurves", "new", "type", results
 
 
-def function_enum_ids(struct_id: str, function: str, parameter: str) -> list[str]:
+def function_enum_ids(struct_id: str, function: str, parameter: str) -> list[EnumItem]:
     params = getattr(bpy.types, struct_id).bl_rna.functions[function].parameters
     return [item.identifier for item in params[parameter].enum_items]
 
