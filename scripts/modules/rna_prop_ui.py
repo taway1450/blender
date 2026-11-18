@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from typing import TYPE_CHECKING
-
 import bpy
 
 from mathutils import Vector
@@ -262,11 +260,7 @@ class PropertyPanel:
 
     # Defined by subclasses.
     _context_path: str
-    _property_type: type | tuple[type, ...]
-
-    if TYPE_CHECKING:
-        # A member of the panel this class is mixed into.
-        layout: bpy.types.UILayout
+    _property_type: type | tuple[type, ...] | None
 
     @classmethod
     def poll(cls, context):
