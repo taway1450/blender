@@ -2510,6 +2510,7 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
       srna, "viewfinder", "XrViewfinderState", "Viewfinder", "Viewfinder State");
   RNA_def_property_pointer_funcs(
       prop, "rna_XrSessionState_viewfinder_get", nullptr, nullptr, nullptr);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
 
   func = RNA_def_function(srna, "is_running", "rna_XrSessionState_is_running");
   RNA_def_function_ui_description(func, "Query if the VR session is currently running");
