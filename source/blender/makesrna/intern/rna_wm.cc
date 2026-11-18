@@ -2920,13 +2920,15 @@ static void rna_def_wm_keyconfigs(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Active KeyConfig", "Active key configuration (preset)");
 
-  prop = RNA_def_property(srna, "default", PROP_POINTER, PROP_NEVER_NULL);
+  prop = RNA_def_property(srna, "default", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_pointer_funcs(
       prop, "rna_WindowManager_default_keyconfig_get", nullptr, nullptr, nullptr);
   RNA_def_property_struct_type(prop, "KeyConfig");
   RNA_def_property_ui_text(prop, "Default Key Configuration", "Default builtin key configuration");
 
-  prop = RNA_def_property(srna, "addon", PROP_POINTER, PROP_NEVER_NULL);
+  prop = RNA_def_property(srna, "addon", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_struct_type(prop, "KeyConfig");
   RNA_def_property_pointer_funcs(
       prop, "rna_WindowManager_addon_keyconfig_get", nullptr, nullptr, nullptr);
@@ -2936,7 +2938,8 @@ static void rna_def_wm_keyconfigs(BlenderRNA *brna, PropertyRNA *cprop)
       "Key configuration that can be extended by add-ons, and is added to the active "
       "configuration when handling events");
 
-  prop = RNA_def_property(srna, "user", PROP_POINTER, PROP_NEVER_NULL);
+  prop = RNA_def_property(srna, "user", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_struct_type(prop, "KeyConfig");
   RNA_def_property_pointer_funcs(
       prop, "rna_WindowManager_user_keyconfig_get", nullptr, nullptr, nullptr);
