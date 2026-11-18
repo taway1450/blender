@@ -355,6 +355,10 @@ class NewGeometryNodeGroupTool(Operator):
 
 
 class ZoneOperator:
+    # Defined by subclasses.
+    input_node_type: str
+    output_node_type: str
+
     @classmethod
     def get_node(cls, context):
         node = context.active_node

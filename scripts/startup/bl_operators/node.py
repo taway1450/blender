@@ -820,6 +820,10 @@ class NODE_OT_swap_typed_bundle(NodeSwapOperator, bpy.types.Operator):
 
 
 class ZoneOperator:
+    # Defined by subclasses, as class attributes or operator properties.
+    input_node_type: str
+    output_node_type: str
+
     offset: FloatVectorProperty(
         name="Offset",
         description="Offset of nodes from the cursor when added",
