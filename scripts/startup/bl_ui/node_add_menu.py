@@ -84,6 +84,7 @@ class NodeMenu(Menu):
     main_operator_id: str
     zone_operator_id: str
     new_empty_group_operator_id: str
+    typed_bundle_operator_id: str
 
     root_asset_menu: str
     pathing_dict: dict[str, str]
@@ -432,6 +433,11 @@ class NodeMenu(Menu):
     def draw_root_assets(cls, layout):
         if cls.draw_assets:
             layout.menu_contents(cls.root_asset_menu)
+
+    @classmethod
+    def draw_assets_for_catalog(cls, layout, catalog_path):
+        """Draw the node group assets of a catalog (implemented by AddNodeMenu and SwapNodeMenu)."""
+        raise NotImplementedError
 
 
 class AddNodeMenu(NodeMenu):
