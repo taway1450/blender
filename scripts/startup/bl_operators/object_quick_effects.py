@@ -35,6 +35,26 @@ def object_ensure_material(obj, mat_name):
     return mat
 
 
+def cancel_rejected_modifier(operator, context, obj, *, modifiers=(), objects=(), selection=None):
+    """
+    Report that ``obj`` rejected a modifier and take back what the operator added before cancelling:
+    the ``modifiers`` (pairs of object and modifier), the new ``objects``
+    and the ``selection`` (selected objects, active object) they replaced.
+    """
+    operator.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(obj.name))
+    for owner, modifier in modifiers:
+        owner.modifiers.remove(modifier)
+    if objects:
+        with context.temp_override(selected_objects=list(objects)):
+            bpy.ops.object.delete()
+    if selection is not None:
+        selected, active = selection
+        for selected_object in selected:
+            selected_object.select_set(True)
+        context.view_layer.objects.active = active
+    return {'CANCELLED'}
+
+
 class ObjectModeOperator:
     @classmethod
     def poll(cls, context):
@@ -147,6 +167,20 @@ class QuickFur(ObjectModeOperator, Operator):
         mesh_with_zero_area = False
         mesh_missing_uv_map = False
         modifier_apply_error = False
+        # Taken back when a curves object rejects a modifier: the curves objects, the modifiers
+        # `curves_empty_hair_add` gives their surfaces and the selection they replaced.
+        selection = (context.selected_objects, context.view_layer.objects.active)
+        surface_modifiers = {obj.name: {mod.name for mod in obj.modifiers} for obj in mesh_objects}
+        curves_objects = []
+
+        def cancel(curves_object):
+            added = [
+                (obj, mod) for obj in mesh_objects for mod in obj.modifiers
+                if mod.name not in surface_modifiers[obj.name]
+            ]
+            return cancel_rejected_modifier(
+                self, context, curves_object, modifiers=added, objects=curves_objects, selection=selection,
+            )
 
         for mesh_object in mesh_objects:
             mesh = mesh_object.data
@@ -157,6 +191,7 @@ class QuickFur(ObjectModeOperator, Operator):
             with context.temp_override(active_object=mesh_object):
                 bpy.ops.object.curves_empty_hair_add()
             curves_object = context.active_object
+            curves_objects.append(curves_object)
             curves = curves_object.data
             curves.materials.append(material)
 
@@ -171,8 +206,7 @@ class QuickFur(ObjectModeOperator, Operator):
 
             generate_modifier = curves_object.modifiers.new(name=data_("Generate"), type='NODES')
             if generate_modifier is None:
-                self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(curves_object.name))
-                return {'CANCELLED'}
+                return cancel(curves_object)
             generate_modifier.node_group = node_groups.generate
             generate_modifier.properties.inputs.Input_12.value = True
             generate_modifier.properties.inputs.Input_20.value = self.length
@@ -181,15 +215,13 @@ class QuickFur(ObjectModeOperator, Operator):
 
             radius_modifier = curves_object.modifiers.new(name=data_("Set Hair Curve Profile"), type='NODES')
             if radius_modifier is None:
-                self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(curves_object.name))
-                return {'CANCELLED'}
+                return cancel(curves_object)
             radius_modifier.node_group = node_groups.radius
             radius_modifier.properties.inputs.Input_3.value = self.radius
 
             interpolate_modifier = curves_object.modifiers.new(name=data_("Interpolate Hair Curves"), type='NODES')
             if interpolate_modifier is None:
-                self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(curves_object.name))
-                return {'CANCELLED'}
+                return cancel(curves_object)
             interpolate_modifier.node_group = node_groups.interpolate
             interpolate_modifier.properties.inputs.Input_12.value = True
             interpolate_modifier.properties.inputs.Input_15.value = density
@@ -199,15 +231,13 @@ class QuickFur(ObjectModeOperator, Operator):
             if self.use_noise:
                 noise_modifier = curves_object.modifiers.new(name=data_("Hair Curves Noise"), type='NODES')
                 if noise_modifier is None:
-                    self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(curves_object.name))
-                    return {'CANCELLED'}
+                    return cancel(curves_object)
                 noise_modifier.node_group = node_groups.noise
 
             if self.use_frizz:
                 frizz_modifier = curves_object.modifiers.new(name=data_("Frizz Hair Curves"), type='NODES')
                 if frizz_modifier is None:
-                    self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(curves_object.name))
-                    return {'CANCELLED'}
+                    return cancel(curves_object)
                 frizz_modifier.node_group = node_groups.frizz
 
             if self.apply_hair_guides:
@@ -488,25 +518,15 @@ class QuickSmoke(ObjectModeOperator, Operator):
                 self.report({'ERROR'}, rpt_("Object {!r} already has a fluid modifier").format(obj.name))
                 return {'CANCELLED'}
 
+        # The flows and the domain take their modifiers before the flows are set up,
+        # so a cancelled run only has to remove them again.
+        selection = (context.selected_objects, context.view_layer.objects.active)
+        flows = []
         for obj in mesh_objects:
             fluid = obj.modifiers.new(name=data_("Fluid"), type='FLUID')
             if fluid is None:
-                self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(obj.name))
-                return {'CANCELLED'}
-            fluid.fluid_type = 'FLOW'
-
-            # set type
-            fluid.flow_settings.flow_type = self.style
-
-            # set flow behavior
-            fluid.flow_settings.flow_behavior = 'INFLOW'
-
-            # use some surface distance for smoke emission
-            fluid.flow_settings.surface_distance = 1.0
-
-            if not self.show_flows:
-                obj.display_type = 'WIRE'
-
+                return cancel_rejected_modifier(self, context, obj, modifiers=flows)
+            flows.append((obj, fluid))
             # store bounding box min/max for the domain object
             obj_bb_minmax(obj, min_co, max_co)
 
@@ -522,8 +542,23 @@ class QuickSmoke(ObjectModeOperator, Operator):
         # setup smoke domain
         fluid = obj.modifiers.new(name=data_("Fluid"), type='FLUID')
         if fluid is None:
-            self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(obj.name))
-            return {'CANCELLED'}
+            return cancel_rejected_modifier(self, context, obj, modifiers=flows, objects=[obj], selection=selection)
+
+        for flow_object, flow in flows:
+            flow.fluid_type = 'FLOW'
+
+            # set type
+            flow.flow_settings.flow_type = self.style
+
+            # set flow behavior
+            flow.flow_settings.flow_behavior = 'INFLOW'
+
+            # use some surface distance for smoke emission
+            flow.flow_settings.surface_distance = 1.0
+
+            if not self.show_flows:
+                flow_object.display_type = 'WIRE'
+
         fluid.fluid_type = 'DOMAIN'
         # The default value leads to unstable simulations (see #126924).
         fluid.domain_settings.cfl_condition = 4.0
@@ -601,33 +636,15 @@ class QuickLiquid(Operator):
                 self.report({'ERROR'}, rpt_("Object {!r} already has a fluid modifier").format(obj.name))
                 return {'CANCELLED'}
 
-        # set shading type to wireframe so that liquid particles are visible
-        if (screen := context.screen) is not None:
-            for area in screen.areas:
-                if area.type == 'VIEW_3D':
-                    for space in area.spaces:
-                        if space.type == 'VIEW_3D':
-                            space.shading.type = 'WIREFRAME'
-
+        # The flows and the domain take their modifiers before the flows are set up,
+        # so a cancelled run only has to remove them again.
+        selection = (context.selected_objects, context.view_layer.objects.active)
+        flows = []
         for obj in mesh_objects:
             fluid = obj.modifiers.new(name=data_("Fluid"), type='FLUID')
             if fluid is None:
-                self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(obj.name))
-                return {'CANCELLED'}
-            fluid.fluid_type = 'FLOW'
-
-            # set type
-            fluid.flow_settings.flow_type = 'LIQUID'
-
-            # set flow behavior
-            fluid.flow_settings.flow_behavior = 'GEOMETRY'
-
-            # use some surface distance for smoke emission
-            fluid.flow_settings.surface_distance = 0.0
-
-            if not self.show_flows:
-                obj.display_type = 'WIRE'
-
+                return cancel_rejected_modifier(self, context, obj, modifiers=flows)
+            flows.append((obj, fluid))
             # store bounding box min/max for the domain object
             obj_bb_minmax(obj, min_co, max_co)
 
@@ -643,8 +660,31 @@ class QuickLiquid(Operator):
         # setup liquid domain
         fluid = obj.modifiers.new(name=data_("Fluid"), type='FLUID')
         if fluid is None:
-            self.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(obj.name))
-            return {'CANCELLED'}
+            return cancel_rejected_modifier(self, context, obj, modifiers=flows, objects=[obj], selection=selection)
+
+        # set shading type to wireframe so that liquid particles are visible
+        if (screen := context.screen) is not None:
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    for space in area.spaces:
+                        if space.type == 'VIEW_3D':
+                            space.shading.type = 'WIREFRAME'
+
+        for flow_object, flow in flows:
+            flow.fluid_type = 'FLOW'
+
+            # set type
+            flow.flow_settings.flow_type = 'LIQUID'
+
+            # set flow behavior
+            flow.flow_settings.flow_behavior = 'GEOMETRY'
+
+            # use some surface distance for smoke emission
+            flow.flow_settings.surface_distance = 0.0
+
+            if not self.show_flows:
+                flow_object.display_type = 'WIRE'
+
         fluid.fluid_type = 'DOMAIN'
         # set all domain borders to obstacle
         fluid.domain_settings.use_collision_border_front = True
