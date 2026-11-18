@@ -183,7 +183,9 @@ class CurveMappingModifier(ScalarBlendModifier):
 class ThicknessModifierMixIn:
     def __init__(self):
         scene = getCurrentScene()
-        self.persp_camera = (scene.camera.data.type == 'PERSP')
+        camera = scene.camera
+        # Any object can be the scene camera; only a camera object can be other than perspective.
+        self.persp_camera = (camera.type != 'CAMERA' or camera.data.type == 'PERSP')
 
     def set_thickness(self, sv, outer, inner):
         fe = sv.fedge
