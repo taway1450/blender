@@ -1755,7 +1755,35 @@ class ClassOverrides(NamedTuple):
     attributes: dict[str, tuple[str, str]] | None = None
 
 
+# RNA functions that return a data-block of the type they are called on, `(struct, function)`:
+# `ID.copy` copies it (`BKE_id_copy`) and `ID.evaluated_get` gives its evaluated version (`DEG_get_evaluated_id`).
+RNA_SELF_RETURNS: set[tuple[str, str]] = {
+    ("ID", "copy"),
+    ("ID", "evaluated_get"),
+}
+
+# A BMesh element is indexed by a custom-data layer of its sequence (`loop[uv_layer]`): the value is the layer's
+# type (a float, a `Vector`, a `BMLoopUV`, a `BMDeformVert`...), see `BPy_BMLayerItem_GetItem`.
+BMESH_ELEM_LAYER_ACCESS = ClassOverrides(
+    dunders={
+        "__getitem__": DunderInfo(
+            params={"key": DunderParam(":class:`bmesh.types.BMLayerItem`", "The custom-data layer.")},
+            return_type="Any",
+        ),
+        "__setitem__": DunderInfo(
+            params={
+                "key": DunderParam(":class:`bmesh.types.BMLayerItem`", "The custom-data layer."),
+                "value": DunderParam("Any", "The layer's value for this element."),
+            },
+        ),
+    },
+)
+
 CLASS_OVERRIDES: dict[tuple[str, str], ClassOverrides] = {
+    ("bmesh.types", "BMVert"): BMESH_ELEM_LAYER_ACCESS,
+    ("bmesh.types", "BMEdge"): BMESH_ELEM_LAYER_ACCESS,
+    ("bmesh.types", "BMFace"): BMESH_ELEM_LAYER_ACCESS,
+    ("bmesh.types", "BMLoop"): BMESH_ELEM_LAYER_ACCESS,
     ("mathutils", "Matrix"): ClassOverrides(
         dunders={
             "__getitem__": DunderInfo(return_type=":class:`Vector`"),
@@ -2393,7 +2421,8 @@ context_type_map = {
     "pointcloud": [("PointCloud", False)],
     "pose_bone": [("PoseBone", False)],
     "pose_object": [("Object", False)],
-    "property": [("AnyType", False), ("str", False), ("int", False)],
+    # A `(data-block or struct, data path, array index)` tuple, see `ContextDataType::Property` in `bpy_rna.cc`.
+    "property": [("tuple[:class:`bpy_struct`, str, int] | None", False)],
     "scene": [("Scene", False)],
     "sculpt_object": [("Object", False)],
     "selectable_objects": [("Object", True)],
@@ -3143,8 +3172,13 @@ def pyrna2sphinx(basepath: Path) -> None:
         del key, descr
 
         for func in struct.functions:
-            args_kw_only_index = next((i for i, prop in enumerate(func.args) if not prop.is_required), -1)
-            if args_kw_only_index == -1:
+            # Blender calls a callback a class registers (`Gizmo.draw_select`) with every argument, positionally
+            # (`bpy_class_call`), so an override may name them as it likes and take its optional ones without a default.
+            args_kw_only_index = -1 if func.bl_func.is_registered else next(
+                (i for i, prop in enumerate(func.args) if not prop.is_required), -1)
+            if func.bl_func.is_registered:
+                args_str = ", ".join(prop.identifier for prop in func.args)
+            elif args_kw_only_index == -1:
                 args_str = ", ".join(prop.get_arg_default(force=False) for prop in func.args)
             else:
                 args_str = ", ".join([
@@ -3198,7 +3232,11 @@ def pyrna2sphinx(basepath: Path) -> None:
                 write_param("      ", fw, prop)
 
             if len(func.return_values) == 1:
-                write_param("      ", fw, func.return_values[0], is_return=True)
+                write_param("      ", fw, func.return_values[0], is_return=True, type_map=(
+                    (lambda type_descr, struct_id=struct_id: type_descr.replace(
+                        ":class:`{:s}`".format(struct_id), "Self"))
+                    if (struct_id, func.identifier) in RNA_SELF_RETURNS else None
+                ))
             elif func.return_values:  # Multiple return values.
                 fw("      :return:\n")
                 type_descrs = []
