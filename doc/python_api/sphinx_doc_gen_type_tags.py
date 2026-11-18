@@ -46,6 +46,8 @@ class TagView(NamedTuple):
 
 class TypeTags(NamedTuple):
     # Struct identifier -> {tag attribute: the values of its instances}, for the subclasses of a base.
+    # A struct between the base and its subclasses holds a value its instances all share
+    # (`NodeTreeInterfaceSocket.item_type` is ``'SOCKET'``).
     values: dict[str, dict[str, list[str]]]
     # The tag views of the structs whose tag decides the type of other attributes.
     views: list[TagView]
@@ -247,8 +249,23 @@ def node_families(p: Probe) -> Iterator[Family]:
     sockets = [socket for node in nodes for socket in (*node.inputs, *node.outputs)]
     yield "NodeTree", "bl_idname", trees
     yield "Node", "bl_idname", nodes
+    # The legacy type, which several node classes share (`'MATH'`).
+    yield "Node", "type", nodes
     yield "NodeSocket", "bl_idname", sockets
     yield "NodeSocket", "type", sockets
+    # A panel and a socket of each type in the interface of each tree.
+    items = []
+    for tree in trees:
+        try:
+            items.append(tree.interface.new_panel(NAME))
+        except Exception:
+            pass
+        for socket_id in subclasses(bpy.types.NodeSocket):
+            try:
+                items.append(tree.interface.new_socket(NAME, socket_type=socket_id, in_out='INPUT'))
+            except Exception:
+                pass
+    yield "NodeTreeInterfaceItem", "item_type", items
 
 
 def property_families(_p: Probe) -> Iterator[Family]:
@@ -347,13 +364,25 @@ VIEW_FAMILIES: tuple[Callable[[Probe], Iterator[ViewFamily]], ...] = (
 
 def record(values: dict[str, dict[str, list[str]]], family: Family) -> None:
     base, attr, instances = family
+    # Tag value -> the subclasses of the instances that have it.
+    by_value: dict[str, set[str]] = {}
     for instance in instances:
         struct_id = type(instance).bl_rna.identifier
         if struct_id == base or base not in struct_ancestors(struct_id):
             continue
-        struct_values = values.setdefault(struct_id, {}).setdefault(attr, [])
-        if (value := getattr(instance, attr)) not in struct_values:
-            struct_values.append(value)
+        by_value.setdefault(getattr(instance, attr), set()).add(struct_id)
+    for value, struct_ids in by_value.items():
+        # When the subclasses of a value derive from a struct below the base whose instances all have the value,
+        # that struct holds it (`NodeTreeInterfaceSocket` for ``'SOCKET'``, not each socket type).
+        if len(struct_ids) > 1 and (holder := common_base(struct_ids)) != base and all(
+                other == value or holder not in struct_ancestors(struct_id)
+                for other, other_ids in by_value.items() for struct_id in other_ids
+        ):
+            struct_ids = {holder}
+        for struct_id in struct_ids:
+            struct_values = values.setdefault(struct_id, {}).setdefault(attr, [])
+            if value not in struct_values:
+                struct_values.append(value)
 
 
 def record_refined(refined: dict[str, str], family: Family) -> None:
