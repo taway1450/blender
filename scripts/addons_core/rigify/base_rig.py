@@ -251,7 +251,7 @@ class BaseRig(GenerateCallbackHost, BaseRigMixin):
     ###########################################################
     # Bone ownership
 
-    def find_org_bones(self, pose_bone: PoseBone) -> str | list[str] | BaseBoneDict:
+    def find_org_bones(self, pose_bone: PoseBone, /) -> str | list[str] | BaseBoneDict:
         """
         Select bones directly owned by the rig. Returning the
         same bone from multiple rigs is an error.
