@@ -35,14 +35,19 @@ def object_ensure_material(obj, mat_name):
     return mat
 
 
-def cancel_rejected_modifier(operator, context, obj, *, modifiers=(), objects=(), selection=None):
+def cancel_rejected_modifier(operator, context, obj, *, modifiers=(), surfaces=(), objects=(), selection=None):
     """
     Report that ``obj`` rejected a modifier and take back what the operator added before cancelling:
-    the ``modifiers`` (pairs of object and modifier), the new ``objects``
+    the ``modifiers`` (pairs of object and modifier), the modifiers of the ``surfaces``
+    (pairs of object and the names of the modifiers it had), the new ``objects``
     and the ``selection`` (selected objects, active object) they replaced.
     """
     operator.report({'ERROR'}, rpt_("Modifiers cannot be added to object: {:s}").format(obj.name))
-    for owner, modifier in modifiers:
+    surface_modifiers = [
+        (surface, modifier) for surface, names in surfaces
+        for modifier in surface.modifiers if modifier.name not in names
+    ]
+    for owner, modifier in (*modifiers, *surface_modifiers):
         owner.modifiers.remove(modifier)
     if objects:
         with context.temp_override(selected_objects=list(objects)):
@@ -170,17 +175,12 @@ class QuickFur(ObjectModeOperator, Operator):
         # Taken back when a curves object rejects a modifier: the curves objects, the modifiers
         # `curves_empty_hair_add` gives their surfaces and the selection they replaced.
         selection = (context.selected_objects, context.view_layer.objects.active)
-        surface_modifiers = {obj.name: {mod.name for mod in obj.modifiers} for obj in mesh_objects}
         curves_objects = []
-
-        def cancel(curves_object):
-            added = [
-                (obj, mod) for obj in mesh_objects for mod in obj.modifiers
-                if mod.name not in surface_modifiers[obj.name]
-            ]
-            return cancel_rejected_modifier(
-                self, context, curves_object, modifiers=added, objects=curves_objects, selection=selection,
-            )
+        taken_back = {
+            "surfaces": [(obj, {mod.name for mod in obj.modifiers}) for obj in mesh_objects],
+            "objects": curves_objects,
+            "selection": selection,
+        }
 
         for mesh_object in mesh_objects:
             mesh = mesh_object.data
@@ -206,7 +206,7 @@ class QuickFur(ObjectModeOperator, Operator):
 
             generate_modifier = curves_object.modifiers.new(name=data_("Generate"), type='NODES')
             if generate_modifier is None:
-                return cancel(curves_object)
+                return cancel_rejected_modifier(self, context, curves_object, **taken_back)
             generate_modifier.node_group = node_groups.generate
             generate_modifier.properties.inputs.Input_12.value = True
             generate_modifier.properties.inputs.Input_20.value = self.length
@@ -215,13 +215,13 @@ class QuickFur(ObjectModeOperator, Operator):
 
             radius_modifier = curves_object.modifiers.new(name=data_("Set Hair Curve Profile"), type='NODES')
             if radius_modifier is None:
-                return cancel(curves_object)
+                return cancel_rejected_modifier(self, context, curves_object, **taken_back)
             radius_modifier.node_group = node_groups.radius
             radius_modifier.properties.inputs.Input_3.value = self.radius
 
             interpolate_modifier = curves_object.modifiers.new(name=data_("Interpolate Hair Curves"), type='NODES')
             if interpolate_modifier is None:
-                return cancel(curves_object)
+                return cancel_rejected_modifier(self, context, curves_object, **taken_back)
             interpolate_modifier.node_group = node_groups.interpolate
             interpolate_modifier.properties.inputs.Input_12.value = True
             interpolate_modifier.properties.inputs.Input_15.value = density
@@ -231,13 +231,13 @@ class QuickFur(ObjectModeOperator, Operator):
             if self.use_noise:
                 noise_modifier = curves_object.modifiers.new(name=data_("Hair Curves Noise"), type='NODES')
                 if noise_modifier is None:
-                    return cancel(curves_object)
+                    return cancel_rejected_modifier(self, context, curves_object, **taken_back)
                 noise_modifier.node_group = node_groups.noise
 
             if self.use_frizz:
                 frizz_modifier = curves_object.modifiers.new(name=data_("Frizz Hair Curves"), type='NODES')
                 if frizz_modifier is None:
-                    return cancel(curves_object)
+                    return cancel_rejected_modifier(self, context, curves_object, **taken_back)
                 frizz_modifier.node_group = node_groups.frizz
 
             if self.apply_hair_guides:
