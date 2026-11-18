@@ -189,6 +189,9 @@ class CenterAlignMixIn:
     Deriving classes need to implement a ``draw_centered(context, layout)`` function.
     """
 
+    def draw_centered(self, context, layout, /):
+        raise NotImplementedError
+
     def draw(self, context):
         layout = self.layout
         width = context.region.width
@@ -2837,6 +2840,8 @@ class StudioLightPanel:
 
 
 class StudioLightPanelMixin:
+    # Defined by subclasses.
+    sl_type: str
 
     def _get_lights(self, prefs):
         return [light for light in prefs.studio_lights if light.is_user_defined and light.type == self.sl_type]

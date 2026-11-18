@@ -26,6 +26,8 @@ class BrushAssetShelf:
     filter_brush = True
     brush_type_prop = None
     mode_prop = None
+    # Defined by subclasses: the object mode the shelf is for.
+    mode: str
 
     @classmethod
     def poll(cls, context):

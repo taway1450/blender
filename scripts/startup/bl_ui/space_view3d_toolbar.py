@@ -419,6 +419,13 @@ class SelectPaintSlotHelper:
     canvas_source_attr_name = "canvas_source"
     canvas_image_attr_name = "canvas_image"
 
+    # Implemented by subclasses.
+    def get_mode_settings(self, context, /):
+        raise NotImplementedError
+
+    def draw_image_interpolation(self, *, layout, mode_settings):
+        raise NotImplementedError
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True

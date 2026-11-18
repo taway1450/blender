@@ -221,6 +221,8 @@ class ToolSelectPanelHelper:
       When the context is None, all potential tools must be returned.
     """
 
+    keymap_prefix: str
+
     @classmethod
     def tools_all(cls):
         """

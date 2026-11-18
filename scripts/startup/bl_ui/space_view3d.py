@@ -4606,6 +4606,9 @@ class VIEW3D_MT_pose_context_menu(Menu):
 
 
 class BoneOptions:
+    # Defined by subclasses: 'TOGGLE', 'ENABLE' or 'DISABLE'.
+    type: str
+
     def draw(self, context):
         layout = self.layout
 
