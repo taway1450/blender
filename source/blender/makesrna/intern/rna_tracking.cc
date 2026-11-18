@@ -2522,7 +2522,7 @@ static void rna_def_trackingObjects(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_struct_type(prop, "MovieTrackingObject");
   RNA_def_property_pointer_funcs(
       prop, "rna_tracking_active_object_get", "rna_tracking_active_object_set", nullptr, nullptr);
-  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK | PROP_NEVER_NULL);
   RNA_def_property_ui_text(prop, "Active Object", "Active object in this tracking data object");
 }
 
