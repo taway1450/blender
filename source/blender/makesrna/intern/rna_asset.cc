@@ -783,6 +783,7 @@ static void rna_def_asset_representation(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "AssetMetaData");
   RNA_def_property_pointer_funcs(
       prop, "rna_AssetRepresentation_metadata_get", nullptr, nullptr, nullptr);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_ui_text(prop, "Asset Metadata", "Additional information about the asset");
 
   prop = RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
