@@ -1126,6 +1126,9 @@ class PARTICLE_PT_physics_fluid_interaction(ParticleButtonsPanel, Panel):
         layout.use_property_split = True
 
         psys = context.particle_system
+        if psys is None:
+            # The targets belong to the particle system, absent when the particle settings are pinned.
+            return
 
         row = layout.row()
         row.template_list(
@@ -1491,7 +1494,7 @@ class PARTICLE_PT_render_path_timing(ParticleButtonsPanel, Panel):
 
         col.prop(part, "use_absolute_path_time")
 
-        if part.type == 'HAIR' or psys.point_cache.is_baked:
+        if part.type == 'HAIR' or (psys is not None and psys.point_cache.is_baked):
             col.prop(part, "path_start", text="Start", slider=not part.use_absolute_path_time)
 
         col.prop(part, "path_end", text="End", slider=not part.use_absolute_path_time)
