@@ -51,6 +51,7 @@ from freestyle.types import (
     Interface0DIterator,
     Stroke,
     StrokeShader,
+    StrokeVertex,
     StrokeVertexIterator,
     Operators,
 )
@@ -59,6 +60,7 @@ from mathutils import Vector
 from functools import lru_cache, namedtuple
 from math import cos, sin, pi, atan2
 from itertools import tee, compress
+from typing import cast
 
 
 # -- types -- #
@@ -200,7 +202,8 @@ def normal_at_I0D(it: Interface0DIterator) -> Vector:
         _curr, b = next(it), next(it)
         # give iterator back in original state
         it.decrement()
-    return (b.point - a.point).orthogonal().normalized()
+    # Every caller iterates over a stroke, so the objects are stroke vertices.
+    return (b.point - cast(StrokeVertex, a).point).orthogonal().normalized()
 
 
 def angle_x_normal(it: Interface0DIterator):
