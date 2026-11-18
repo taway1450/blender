@@ -12,7 +12,15 @@ import sys
 import unittest
 
 import bpy
-from bpy.types import Constraint, bpy_prop_collection
+from bpy.types import (
+    ActionConstraint,
+    ChildOfConstraint,
+    Constraint,
+    CopyLocationConstraint,
+    CopyTransformsConstraint,
+    GeometryAttributeConstraint,
+    bpy_prop_collection,
+)
 from mathutils import Matrix
 
 
@@ -147,6 +155,7 @@ class ChildOfTest(AbstractConstraintTests):
         """Child Of: rotation only."""
         owner = bpy.context.scene.objects['Child Of.object.owner']
         constraint = owner.constraints['Child Of']
+        assert isinstance(constraint, ChildOfConstraint)
         constraint.use_location_x = constraint.use_location_y = constraint.use_location_z = False
         constraint.use_scale_x = constraint.use_scale_y = constraint.use_scale_z = False
 
@@ -176,6 +185,7 @@ class ChildOfTest(AbstractConstraintTests):
         """Child Of: loc/rot/scale on only Y and Z axes."""
         owner = bpy.context.scene.objects['Child Of.object.owner']
         constraint = owner.constraints['Child Of']
+        assert isinstance(constraint, ChildOfConstraint)
         constraint.use_location_x = False
         constraint.use_rotation_x = False
         constraint.use_scale_x = False
@@ -312,6 +322,7 @@ class CustomSpaceTest(AbstractConstraintTests):
     def test_loc_like_object(self):
         """Custom Space: basic custom space evaluation for objects"""
         loc_like_constraint = bpy.data.objects["Custom Space.object.owner"].constraints["Copy Location"]
+        assert isinstance(loc_like_constraint, CopyLocationConstraint)
         loc_like_constraint.use_x = True
         loc_like_constraint.use_y = True
         loc_like_constraint.use_z = True
@@ -347,6 +358,7 @@ class CustomSpaceTest(AbstractConstraintTests):
     def test_loc_like_armature(self):
         """Custom Space: basic custom space evaluation for bones"""
         loc_like_constraint = bpy.data.objects["Custom Space.armature.owner"].pose.bones["Bone"].constraints["Copy Location"]
+        assert isinstance(loc_like_constraint, CopyLocationConstraint)
         loc_like_constraint.use_x = True
         loc_like_constraint.use_y = True
         loc_like_constraint.use_z = True
@@ -386,6 +398,7 @@ class CopyTransformsTest(AbstractConstraintTests):
     def test_mix_mode_object(self):
         """Copy Transforms: all mix modes for objects"""
         constraint = bpy.data.objects["Copy Transforms.object.owner"].constraints["Copy Transforms"]
+        assert isinstance(constraint, CopyTransformsConstraint)
 
         constraint.mix_mode = 'REPLACE'
         self.matrix_test('Copy Transforms.object.owner', Matrix((
@@ -450,6 +463,7 @@ class ActionConstraintTest(AbstractConstraintTests):
     def constraint(self) -> Constraint:
         owner = bpy.context.scene.objects["Action.owner"]
         constraint = owner.constraints["Action"]
+        assert isinstance(constraint, ActionConstraint)
         return constraint
 
     def test_assign_action_slot_virgin(self):
@@ -476,6 +490,7 @@ class ActionConstraintTest(AbstractConstraintTests):
         strip.key_insert(slot, "location", 0, 7.0, 10.0)
 
         con = owner.constraints["Action"]
+        assert isinstance(con, ActionConstraint)
         con.action = action
         con.action_slot = slot
         con.transform_channel = 'LOCATION_X'
@@ -512,6 +527,7 @@ class GeometryAttributeConstraintTest(AbstractConstraintTests):
     def test_mix_modes(self):
         owner = bpy.context.scene.objects["Geometry Attribute.owner"]
         con = owner.constraints["Geometry Attribute"]
+        assert isinstance(con, GeometryAttributeConstraint)
         con.apply_target_transform = False
 
         # This should produce the matrix as stored in the geometry attribute.
@@ -534,6 +550,7 @@ class GeometryAttributeConstraintTest(AbstractConstraintTests):
     def test_apply_target_transform(self):
         owner = bpy.context.scene.objects["Geometry Attribute.owner"]
         con = owner.constraints["Geometry Attribute"]
+        assert isinstance(con, GeometryAttributeConstraint)
         con.apply_target_transform = True
 
         con.mix_mode = 'REPLACE'
