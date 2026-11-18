@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+from typing import TYPE_CHECKING
+
 import bpy
 from bpy.types import (
     Menu,
@@ -81,10 +83,15 @@ class AddPresetBase:
     # only because invoke_props_popup requires. Also do not add to search menu.
     bl_options = {'REGISTER', 'INTERNAL'}
 
-    # Defined by subclasses.
+    # Defined by subclasses, as class attributes or properties.
     preset_menu: str
-    preset_subdir: str
-    preset_values: list[str]
+
+    if TYPE_CHECKING:
+        @property
+        def preset_subdir(self) -> str: ...
+
+        @property
+        def preset_values(self) -> list[str]: ...
 
     name: StringProperty(
         name="Name",
