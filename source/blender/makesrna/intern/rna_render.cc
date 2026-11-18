@@ -671,10 +671,11 @@ static void rna_def_render_engine(BlenderRNA *brna)
   func = RNA_def_function(srna, "update_render_passes", nullptr);
   RNA_def_function_ui_description(func, "Update the render passes that will be generated");
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
+  /* `RE_engine_update_render_passes` calls it only with both. */
   parm = RNA_def_pointer(func, "scene", "Scene", "", "");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_pointer(func, "renderlayer", "ViewLayer", "", "");
-  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "update_custom_camera", nullptr);
   RNA_def_function_ui_description(func, "Compile custom camera");

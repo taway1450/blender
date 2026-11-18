@@ -780,14 +780,18 @@ static ID *rna_ID_evaluated_get(ID *id, Depsgraph *depsgraph)
   return DEG_get_evaluated(depsgraph, id);
 }
 
-static ID *rna_ID_copy(ID *id, Main *bmain)
+static ID *rna_ID_copy(ID *id, Main *bmain, ReportList *reports)
 {
   ID *newid = BKE_id_copy_for_use_in_bmain(bmain, id);
 
-  if (newid != nullptr) {
-    id_us_min(newid);
-    BKE_main_ensure_invariants(*bmain, *newid);
+  if (newid == nullptr) {
+    /* A data-block type flagged #IDTYPE_FLAGS_NO_COPY (a window manager). */
+    BKE_reportf(reports, RPT_ERROR, "Data-block '%s' cannot be copied", id->name + 2);
+    return nullptr;
   }
+
+  id_us_min(newid);
+  BKE_main_ensure_invariants(*bmain, *newid);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
 
@@ -2671,8 +2675,9 @@ static void rna_def_ID(BlenderRNA *brna)
       "Create a copy of this data-block (not supported for all data-blocks). "
       "The result is added to the Blend-File Data (Main database), with all references to other "
       "data-blocks ensured to be from within the same Blend-File Data.");
-  RNA_def_function_flag(func, FUNC_USE_MAIN);
+  RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "id", "ID", "", "New copy of the ID");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "asset_mark", "rna_ID_asset_mark");
