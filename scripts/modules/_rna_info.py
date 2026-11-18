@@ -304,15 +304,23 @@ class InfoPropertyRNA:
         "is_path_supports_blend_relative",
         "is_path_supports_templates",
         "deprecated",
+        "parent_id",
     )
     global_lookup = {}
 
     def __init__(self, rna_prop):
         self.bl_prop = rna_prop
+        # The identifier of the struct (or the function) that has the property, see `GetInfoPropertyRNA`.
+        self.parent_id = ""
         self.identifier = rna_prop.identifier
         self.name = rna_prop.name
         self.description = rna_prop.description.strip()
         self.default_str = "<UNKNOWN>"
+
+    def is_callback_argument(self):
+        """Whether this is an argument of a function a class registers, which Blender calls."""
+        # The parent of a function argument is the RNA function (`InfoFunctionRNA.build`).
+        return not isinstance(self.parent_id, str) and self.parent_id.is_registered
 
     def build(self):
         rna_prop = self.bl_prop
@@ -519,7 +527,10 @@ class InfoPropertyRNA:
             if self.type in {"float", "int"}:
                 type_info.append("in [{:s}, {:s}]".format(range_str(self.min), range_str(self.max)))
             elif self.type == "enum":
-                if [item[0] for item in self.enum_items] == ["DEFAULT"]:
+                if (
+                        [item[0] for item in self.enum_items] in ENUM_PLACEHOLDER_ITEMS or
+                        (self.parent_id, self.identifier) in ENUM_RUNTIME_ITEMS
+                ):
                     # A dynamic enum whose static items are only a placeholder default
                     # (e.g. `rna_enum_dummy_DEFAULT_items`), its real items come from a callback.
                     enum_items_str = ""
@@ -564,8 +575,12 @@ class InfoPropertyRNA:
                         class_fmt.format(self.fixed_type.identifier),
                     )
             elif self.fixed_type.identifier == "AnyType":
-                # A pointer to `AnyType` accepts data of any type (see `RNA_struct_is_a`).
+                # A pointer to `AnyType` accepts data of any type (see `RNA_struct_is_a`),
+                # and an argument also a collection that has an RNA type (`view_layer.objects`),
+                # see `pyrna_py_to_prop`. A callback's argument is a struct Blender gives (`UIList.draw_item`).
                 type_str += class_fmt.format("bpy_struct")
+                if as_arg and not self.is_callback_argument():
+                    type_str += " | " + class_fmt.format("bpy_prop_collection")
             else:
                 type_str += class_fmt.format(self.fixed_type.identifier)
 
@@ -573,6 +588,9 @@ class InfoPropertyRNA:
         # `is_never_none` is set.  For arguments, check `default_str`
         # since any parameter defaulting to `None` must accept it.
         if as_arg and self.default_str == "None" and not self.is_never_none:
+            type_str += " | None"
+        elif as_arg and self.type == "string" and not self.is_never_none:
+            # A string argument without `PROP_NEVER_NULL` takes `None` (`pyrna_py_to_prop`).
             type_str += " | None"
         elif not as_arg and self.type == "pointer" and not self.is_never_none:
             type_str += " | None"
@@ -764,8 +782,19 @@ def GetInfoStructRNA(bl_rna):
     return _GetInfoRNA(bl_rna, InfoStructRNA)
 
 
+# The static items of a dynamic enum that stand in for its real items, which come from a callback:
+# `rna_enum_dummy_DEFAULT_items`, a compositor node's image layer or view layer, a region's panel category.
+ENUM_PLACEHOLDER_ITEMS = [["DEFAULT"], ["PLACEHOLDER"], ["UNSUPPORTED"]]
+# Enums whose static items are only the built-in ones, their callback adding what is registered at run time:
+# `RenderSettings.engine` gives every registered render engine (`rna_RenderSettings_engine_itemf`).
+ENUM_RUNTIME_ITEMS = {("RenderSettings", "engine")}
+
+
 def GetInfoPropertyRNA(bl_rna, parent_id):
-    return _GetInfoRNA(bl_rna, InfoPropertyRNA, parent_id)
+    info = _GetInfoRNA(bl_rna, InfoPropertyRNA, parent_id)
+    if info is not None:
+        info.parent_id = parent_id
+    return info
 
 
 def GetInfoFunctionRNA(bl_rna, parent_id):
