@@ -1125,6 +1125,7 @@ void RNA_def_main_node_groups(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, PROP_ENUM_NO_CONTEXT, PARM_REQUIRED);
   /* return type */
   parm = RNA_def_pointer(func, "tree", "NodeTree", "", "New node tree data-block");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_Main_ID_remove");
