@@ -1314,6 +1314,47 @@ def is_positional_only_method(module_name: str, method_name: str) -> bool:
 CLASS_EXTRA_MEMBERS: dict[tuple[str, str], str] = {}
 
 
+# The ID each struct's `id_data` returns, where every RNA pointer to it is made with that `owner_id`: a node is only
+# reached through its node tree, a modifier through its object. `bpy_struct.id_data` can only say `ID`; subclasses
+# inherit the narrower type. A struct also reached through another ID's pointer is left out: `PoseBone.bone` keeps the
+# object as owner, so a `Bone`'s is the armature or the object.
+ID_DATA_OWNERS: dict[str, str] = {
+    # The node tree, embedded (`Material.node_tree`) or not.
+    "Node": "NodeTree",
+    "NodeSocket": "NodeTree",
+    "NodeLink": "NodeTree",
+    "NodeTreeInterfaceItem": "NodeTree",
+    # The armature object, or the armature in edit mode.
+    "PoseBone": "Object",
+    "EditBone": "Armature",
+    # The object, for an object's stacks and a pose bone's constraints alike.
+    "Modifier": "Object",
+    "Constraint": "Object",
+    "ParticleSystem": "Object",
+    "VertexGroup": "Object",
+    # The mesh.
+    "MeshVertex": "Mesh",
+    "MeshEdge": "Mesh",
+    "MeshPolygon": "Mesh",
+    "MeshLoop": "Mesh",
+    "MeshLoopTriangle": "Mesh",
+    # The shape key data-block.
+    "ShapeKey": "Key",
+    # The scene.
+    "ViewLayer": "Scene",
+    "LayerCollection": "Scene",
+    "Strip": "Scene",
+}
+
+
+def class_extra_members(module_name: str, class_name: str) -> str | None:
+    """The hand-written members of a class: `CLASS_EXTRA_MEMBERS` and the `id_data` of `ID_DATA_OWNERS`."""
+    fragments = [CLASS_EXTRA_MEMBERS.get((module_name, class_name))]
+    if module_name == "bpy.types" and (owner := ID_DATA_OWNERS.get(class_name)) is not None:
+        fragments.append("id_data: {:s} = ...  # ty: ignore[incompatible-mutable-override]\n".format(owner))
+    return "".join(fragment for fragment in fragments if fragment is not None) or None
+
+
 # Private members of documented modules that Blender's own scripts use. The API docs leave
 # out every name with a leading underscore, so they have no RST to generate from; these
 # fragments are appended verbatim to the module's stub.
@@ -1832,7 +1873,7 @@ def write_class(
         ):
             has_members = True
 
-    extra_members = CLASS_EXTRA_MEMBERS.get((current_module, cls.name))
+    extra_members = class_extra_members(current_module, cls.name)
     if extra_members is not None:
         # Track imports for any type names referenced in the fragment, then
         # write each non-empty line indented one level into the class body.
