@@ -335,23 +335,30 @@ def main():
                 elif tp == BMO_OP_SLOT_ELEMENT_BUF:
                     assert tp_sub is not None
 
-                    ls = []
+                    names = []
                     if tp_sub & BM_VERT:
-                        ls.append(":class:`bmesh.types.BMVert`")
+                        names.append("BMVert")
                     if tp_sub & BM_EDGE:
-                        ls.append(":class:`bmesh.types.BMEdge`")
+                        names.append("BMEdge")
                     if tp_sub & BM_FACE:
-                        ls.append(":class:`bmesh.types.BMFace`")
-                    assert ls  # Must be at least one.
+                        names.append("BMFace")
+                    assert names  # Must be at least one.
+                    ls = [":class:`bmesh.types.{:s}`".format(name) for name in names]
 
                     if tp_sub & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE:
                         tp_str = " | ".join(ls)
                         default_value = 'None'
                     else:
-                        tp_str = "list[{:s}]".format(" | ".join(ls))
+                        # Any sequence of the elements, the mesh's own sequence of a type (all its elements, e.g.
+                        # `bm.faces`) or an element sequence of one (e.g. `face.verts`), see `bpy_slot_from_py`.
+                        tp_str = " | ".join(
+                            ["Sequence[{:s}]".format(" | ".join(ls))] +
+                            [":class:`bmesh.types.{:s}Seq`".format(name) for name in names] +
+                            [":class:`bmesh.types.BMElemSeq`[:class:`bmesh.types.{:s}`]".format(name) for name in names]
+                        )
                         default_value = '[]'
 
-                    del ls
+                    del ls, names
                 elif tp == BMO_OP_SLOT_MAPPING:
                     elem_union = (
                         ":class:`bmesh.types.BMVert` | "
