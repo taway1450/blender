@@ -656,7 +656,7 @@ class pyViewMapGradientNormBP1D(BinaryPredicate1D):
 class pyShuffleBP1D(BinaryPredicate1D):
     def __init__(self):
         BinaryPredicate1D.__init__(self)
-        random.seed = 1
+        random.seed(1)
 
     def __call__(self, inter1, inter2):
         return (random.uniform(0, 1) < random.uniform(0, 1))
