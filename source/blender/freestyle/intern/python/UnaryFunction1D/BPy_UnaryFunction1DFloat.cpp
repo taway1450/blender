@@ -53,7 +53,17 @@ PyDoc_STRVAR(
     "   or the integration method given as an argument.\n"
     "\n"
     "   :param integration_type: An integration method.\n"
-    "   :type integration_type: :class:`IntegrationType`\n");
+    "   :type integration_type: :class:`IntegrationType`\n"
+    "\n"
+    ".. method:: __call__(inter)\n"
+    "\n"
+    "   Returns the result of the function evaluated on the\n"
+    "   :class:`Interface1D`.\n"
+    "\n"
+    "   :param inter: An Interface1D object.\n"
+    "   :type inter: :class:`Interface1D`\n"
+    "   :return: The result of the function.\n"
+    "   :rtype: float\n");
 static int UnaryFunction1DFloat___init__(BPy_UnaryFunction1DFloat *self,
                                          PyObject *args,
                                          PyObject *kwds)

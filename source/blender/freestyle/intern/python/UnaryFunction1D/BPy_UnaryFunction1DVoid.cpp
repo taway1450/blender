@@ -73,7 +73,14 @@ PyDoc_STRVAR(
     "   or the integration method given as an argument.\n"
     "\n"
     "   :param integration_type: An integration method.\n"
-    "   :type integration_type: :class:`IntegrationType`\n");
+    "   :type integration_type: :class:`IntegrationType`\n"
+    "\n"
+    ".. method:: __call__(inter)\n"
+    "\n"
+    "   Evaluates the function on the :class:`Interface1D`.\n"
+    "\n"
+    "   :param inter: An Interface1D object.\n"
+    "   :type inter: :class:`Interface1D`\n");
 static int UnaryFunction1DVoid___init__(BPy_UnaryFunction1DVoid *self,
                                         PyObject *args,
                                         PyObject *kwds)

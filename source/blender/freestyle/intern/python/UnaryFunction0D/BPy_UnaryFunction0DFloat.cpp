@@ -84,7 +84,17 @@ PyDoc_STRVAR(
     "\n"
     ".. method:: __init__()\n"
     "\n"
-    "   Default constructor.\n");
+    "   Default constructor.\n"
+    "\n"
+    ".. method:: __call__(it)\n"
+    "\n"
+    "   Returns the result of the function evaluated at the\n"
+    "   :class:`Interface0D` pointed by the iterator.\n"
+    "\n"
+    "   :param it: An Interface0DIterator object.\n"
+    "   :type it: :class:`Interface0DIterator`\n"
+    "   :return: The result of the function.\n"
+    "   :rtype: float\n");
 static int UnaryFunction0DFloat___init__(BPy_UnaryFunction0DFloat *self,
                                          PyObject *args,
                                          PyObject *kwds)
