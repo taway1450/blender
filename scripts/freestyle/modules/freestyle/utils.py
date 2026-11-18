@@ -109,7 +109,10 @@ def bound(lower, x, higher):
 
 
 def get_strokes():
-    """Get all strokes that are currently available"""
+    """Get all strokes that are currently available
+
+    :rtype: tuple[:class:`Stroke`, ...]
+    """
     return tuple(map(Operators.get_stroke_from_index, range(Operators.get_strokes_size())))
 
 
@@ -477,6 +480,7 @@ def pairwise(iterable, types=None):
         method is used instead of standard tee-based pairing. When ``None``
         defaults to ``(Stroke, StrokeVertexIterator)``.
     :type types: tuple[type, ...] | None
+    :rtype: Iterator[tuple[Any, Any]]
     """
     # use .incremented() for types that support it
     if types is None:
@@ -495,6 +499,7 @@ def tripplewise(iterable):
 
     :param iterable: An iterable of items.
     :type iterable: Iterable[Any]
+    :rtype: Iterator[tuple[Any, Any, Any]]
     """
     a, b, c = tee(iterable)
     next(b, None)
@@ -507,6 +512,7 @@ def iter_t2d_along_stroke(stroke):
 
     :param stroke: A stroke.
     :type stroke: :class:`Stroke`
+    :rtype: Iterator[float]
     """
     total = stroke.length_2d
     distance = 0.0
@@ -531,6 +537,7 @@ def iter_distance_from_camera(stroke, range_min, range_max, normfac):
     :type range_max: float
     :param normfac: Normalization factor applied to ``distance - range_min``.
     :type normfac: float
+    :rtype: Iterator[tuple[:class:`StrokeVertex`, float]]
     """
     for svert in stroke:
         # length in the camera coordinate
@@ -557,6 +564,7 @@ def iter_distance_from_object(stroke, location, range_min, range_max, normfac):
     :type range_max: float
     :param normfac: Normalization factor applied to ``distance - range_min``.
     :type normfac: float
+    :rtype: Iterator[tuple[:class:`StrokeVertex`, float]]
     """
     for svert in stroke:
         distance = (svert.point_3d - location).length  # in the camera coordinate
@@ -575,6 +583,7 @@ def iter_material_value(stroke, func, attribute):
     :type func: Callable[[:class:`Interface0DIterator`], :class:`freestyle.types.Material`]
     :param attribute: The material attribute name (e.g. ``LINE``, ``DIFF``, ``ALPHA``).
     :type attribute: str
+    :rtype: Iterator[tuple[:class:`StrokeVertex`, float]]
     """
     it = Interface0DIterator(stroke)
     for svert in it:
@@ -623,6 +632,7 @@ def iter_distance_along_stroke(stroke):
 
     :param stroke: A stroke.
     :type stroke: :class:`Stroke`
+    :rtype: Iterator[float]
     """
     distance = 0.0
     # the positions need to be copied, because they are changed in the calling function
@@ -643,6 +653,7 @@ def stroke_curvature(it):
 
     :param it: An iterator over a stroke's vertices.
     :type it: :class:`StrokeVertexIterator`
+    :rtype: Iterator[float]
     """
     for _ in it:
         if (it.is_begin or it.is_end):
@@ -683,13 +694,17 @@ def stroke_normal(stroke):
 
     :param stroke: A stroke.
     :type stroke: :class:`Stroke`
+    :rtype: Iterator[:class:`mathutils.Vector`]
     """
     it = iter(stroke)
     yield from (normal_at_I0D(it) for _ in it)
 
 
 def get_test_stroke():
-    """Returns a static stroke object for testing """
+    """Returns a static stroke object for testing
+
+    :rtype: :class:`Stroke`
+    """
     from freestyle.types import Stroke, Interface0DIterator, StrokeVertexIterator, SVertex, Id, StrokeVertex
     # points for our fake stroke
     points = (Vector((1.0, 5.0, 3.0)), Vector((1.0, 2.0, 9.0)),
