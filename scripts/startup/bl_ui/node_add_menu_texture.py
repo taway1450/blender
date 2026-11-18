@@ -2,14 +2,13 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-from bpy.types import Menu
 from bpy.app.translations import (
     contexts as i18n_contexts,
 )
 from bl_ui import node_add_menu
 
 
-class NODE_MT_texture_node_input_base(Menu):
+class NODE_MT_texture_node_input_base(node_add_menu.NodeMenu):
     bl_label = "Input"
 
     def draw(self, _context):
@@ -20,7 +19,7 @@ class NODE_MT_texture_node_input_base(Menu):
         self.node_operator(layout, "TextureNodeTexture")
 
 
-class NODE_MT_texture_node_output_base(Menu):
+class NODE_MT_texture_node_output_base(node_add_menu.NodeMenu):
     bl_label = "Output"
 
     def draw(self, _context):
@@ -29,7 +28,7 @@ class NODE_MT_texture_node_output_base(Menu):
         self.node_operator(layout, "TextureNodeViewer")
 
 
-class NODE_MT_texture_node_color_base(Menu):
+class NODE_MT_texture_node_color_base(node_add_menu.NodeMenu):
     bl_label = "Color"
 
     def draw(self, _context):
@@ -43,7 +42,7 @@ class NODE_MT_texture_node_color_base(Menu):
         self.node_operator(layout, "TextureNodeSeparateColor")
 
 
-class NODE_MT_texture_node_converter_base(Menu):
+class NODE_MT_texture_node_converter_base(node_add_menu.NodeMenu):
     bl_label = "Converter"
 
     def draw(self, _context):
@@ -55,7 +54,7 @@ class NODE_MT_texture_node_converter_base(Menu):
         self.node_operator(layout, "TextureNodeValToNor")
 
 
-class NODE_MT_texture_node_distort_base(Menu):
+class NODE_MT_texture_node_distort_base(node_add_menu.NodeMenu):
     bl_label = "Distort"
 
     def draw(self, _context):
@@ -66,7 +65,7 @@ class NODE_MT_texture_node_distort_base(Menu):
         self.node_operator(layout, "TextureNodeTranslate")
 
 
-class NODE_MT_texture_node_pattern_base(Menu):
+class NODE_MT_texture_node_pattern_base(node_add_menu.NodeMenu):
     bl_label = "Pattern"
     bl_translation_context = i18n_contexts.id_texture
 
@@ -76,7 +75,7 @@ class NODE_MT_texture_node_pattern_base(Menu):
         self.node_operator(layout, "TextureNodeChecker")
 
 
-class NODE_MT_texture_node_texture_base(Menu):
+class NODE_MT_texture_node_texture_base(node_add_menu.NodeMenu):
     bl_label = "Texture"
 
     def draw(self, _context):
