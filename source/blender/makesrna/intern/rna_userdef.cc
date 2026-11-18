@@ -7584,6 +7584,7 @@ static void rna_def_userdef_asset_library_collection(BlenderRNA *brna, PropertyR
       "When set, the library is defined by this extension (repository module and package ID)");
   /* return type */
   parm = RNA_def_pointer(func, "library", "UserAssetLibrary", "", "Newly added asset library");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, ParameterFlag(0));
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_userdef_asset_library_remove");
