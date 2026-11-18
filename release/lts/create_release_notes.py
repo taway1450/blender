@@ -62,6 +62,7 @@ def main() -> int:
         print("")
 
     lts_issue.print_notes(version=version, format=args.format, issue=issue)
+    return 0
 
 
 if __name__ == "__main__":
