@@ -2844,7 +2844,9 @@ def pyrna2sphinx(basepath: Path) -> None:
             is_return: bool = False,
             *,
             is_operator_arg: bool = False,
+            type_map: Callable[[str], str] | None = None,
     ) -> None:
+        """``type_map`` rewrites the type written for ``prop``."""
         if is_return:
             id_name = "return"
             id_type = "rtype"
@@ -2928,6 +2930,8 @@ def pyrna2sphinx(basepath: Path) -> None:
                 fw("\n")
                 pyrna_struct_keys2sphinx(ident + "   ", fw, fixed_type)
 
+        if type_map is not None:
+            type_descr = type_map(type_descr)
         fw(ident + ":{:s}{:s}: {:s}\n".format(id_type, identifier, type_descr))
 
     def tag_type_override(struct_id: str, prop: stub.InfoPropertyRNA) -> str | None:
@@ -2952,6 +2956,12 @@ def pyrna2sphinx(basepath: Path) -> None:
                 " | ".join(":class:`{:s}`".format(union_id) for union_id in union_ids),
             )
         return None
+
+    # The functions whose argument names the subclass of their result, written as overloads.
+    constructors = {
+        (constructor.struct, constructor.function): constructor
+        for constructor in (type_tags.constructors if type_tags is not None else ())
+    }
 
     def write_struct(struct: stub.InfoStructRNA) -> None:
         # if not struct.identifier.startswith("Sc") and not struct.identifier.startswith("I"):
@@ -3143,6 +3153,37 @@ def pyrna2sphinx(basepath: Path) -> None:
 
                 ])
             del args_kw_only_index
+
+            # An overload for each value of a constructor's argument (`curves.new(type='FONT')` gives a `TextCurve`),
+            # the stubs' `@overload` (`:noindex:` past the first).
+            if (constructor := constructors.get((struct_id, func.identifier))) is not None:
+                assert len(func.return_values) == 1 and func.return_values[0].fixed_type is not None
+                result_class = ":class:`{:s}`".format(func.return_values[0].fixed_type.identifier)
+                for i, (value, result_id) in enumerate(constructor.results.items()):
+                    fw("   .. {:s}:: {:s}({:s})\n".format(
+                        "classmethod" if func.is_classmethod else "method",
+                        func.identifier,
+                        args_str,
+                    ))
+                    if i:
+                        fw("      :noindex:\n")
+                    fw("\n")
+                    fw("      {:s}\n\n".format(func.description))
+                    for prop in func.args:
+                        write_param("      ", fw, prop, type_map=(
+                            (lambda _type_descr, value=value: "Literal[{!r}]".format(value))
+                            if prop.identifier == constructor.parameter else None
+                        ))
+                    write_param("      ", fw, func.return_values[0], is_return=True, type_map=(
+                        lambda type_descr, result_id=result_id: type_descr.replace(
+                            result_class, ":class:`{:s}`".format(result_id))
+                    ))
+                    # fake-bpy-module reads an overload from this field, not from `:noindex:`.
+                    fw("      :option function: overload\n")
+                    fw("\n")
+                write_example_ref("      ", fw, struct_module_name + "." + struct_id + "." + func.identifier)
+                fw("\n")
+                continue
 
             fw("   .. {:s}:: {:s}({:s})\n\n".format(
                 "classmethod" if func.is_classmethod else "method",

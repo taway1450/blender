@@ -13,6 +13,7 @@ so that the stubs can state that a :class:`bpy.types.SubsurfModifier` has the ty
 
 __all__ = (
     "BaseTag",
+    "Constructor",
     "TypeTags",
     "probe",
 )
@@ -54,6 +55,18 @@ class BaseTag(NamedTuple):
     is_readonly: bool
 
 
+class Constructor(NamedTuple):
+    """
+    A function whose argument names the subclass of the struct it returns: ``BlendDataCurves.new(name, type)``
+    gives a :class:`bpy.types.TextCurve` for ``'FONT'``, though :class:`bpy.types.Curve` has no tag that says so.
+    """
+    struct: str
+    function: str
+    parameter: str
+    # Each value of the parameter -> the struct identifier of the result.
+    results: dict[str, str]
+
+
 class TypeTags(NamedTuple):
     # Struct identifier -> {tag attribute: the values of its instances}, for the subclasses of a base.
     # A struct between the base and its subclasses holds a value its instances all share
@@ -69,6 +82,8 @@ class TypeTags(NamedTuple):
     # Base struct identifier without a tag -> the subclasses its instances are always one of
     # (a `GreasePencilTreeNode` is a `GreasePencilLayer` or a `GreasePencilLayerGroup`).
     unions: dict[str, list[str]]
+    # The functions whose argument names the subclass of their result.
+    constructors: list[Constructor]
     # The tag values the probe could not make an instance of: `"Strip.type 'MOVIE': error"`.
     missing: list[str]
 
@@ -407,6 +422,32 @@ UNTAGGED_FAMILIES: tuple[Callable[[Probe], Iterator[UntaggedFamily]], ...] = (
 
 
 # -----------------------------------------------------------------------------
+# Constructors: a function, its parameter, and the result for each value of the parameter.
+
+ConstructorFamily = tuple[str, str, str, dict[str, Any]]
+
+
+def curve_constructors(p: Probe) -> Iterator[ConstructorFamily]:
+    results = {}
+    for value in function_enum_ids("BlendDataCurves", "new", "type"):
+        try:
+            results[value] = p.keep(bpy.data.curves.new(NAME, value))
+        except Exception as ex:
+            p.missing.append("BlendDataCurves.new(type={!r}): {:s}".format(value, str(ex).strip()))
+    yield "BlendDataCurves", "new", "type", results
+
+
+def function_enum_ids(struct_id: str, function: str, parameter: str) -> list[str]:
+    params = getattr(bpy.types, struct_id).bl_rna.functions[function].parameters
+    return [item.identifier for item in params[parameter].enum_items]
+
+
+CONSTRUCTOR_FAMILIES: tuple[Callable[[Probe], Iterator[ConstructorFamily]], ...] = (
+    curve_constructors,
+)
+
+
+# -----------------------------------------------------------------------------
 # Tag views: a base struct, its tag attribute, the attributes the tag decides,
 # and instances of the base for each tag value.
 
@@ -529,6 +570,13 @@ def record_union(unions: dict[str, list[str]], missing: list[str], family: Untag
     unions[base] = sorted(struct_ids)
 
 
+def record_constructor(constructors: list[Constructor], family: ConstructorFamily) -> None:
+    struct_id, function, parameter, results = family
+    result_ids = {value: type(result).bl_rna.identifier for value, result in results.items()}
+    if len(set(result_ids.values())) > 1:
+        constructors.append(Constructor(struct_id, function, parameter, result_ids))
+
+
 def record_refined(refined: dict[str, str], family: Family) -> None:
     """When the base's tag is an enum with a single value, its instances are all of one subclass."""
     base, attr, instances = family
@@ -567,7 +615,7 @@ def record_views(views: list[TagView], missing: list[str], family: ViewFamily) -
 
 def probe() -> TypeTags:
     """Make the instances of every family and read their subclasses and tags."""
-    tags = TypeTags(values={}, views=[], refined={}, base_tags={}, unions={}, missing=[])
+    tags = TypeTags(values={}, views=[], refined={}, base_tags={}, unions={}, constructors=[], missing=[])
     with tempfile.TemporaryDirectory() as directory:
         p = Probe(directory)
         try:
@@ -579,6 +627,9 @@ def probe() -> TypeTags:
             for untagged_families in UNTAGGED_FAMILIES:
                 for untagged_family in untagged_families(p):
                     record_union(tags.unions, p.missing, untagged_family)
+            for constructor_families in CONSTRUCTOR_FAMILIES:
+                for constructor_family in constructor_families(p):
+                    record_constructor(tags.constructors, constructor_family)
             for view_families in VIEW_FAMILIES:
                 for view_family in view_families(p):
                     record_views(tags.views, p.missing, view_family)
