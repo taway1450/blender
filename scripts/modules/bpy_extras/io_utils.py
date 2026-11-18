@@ -18,6 +18,8 @@ __all__ = (
     "unique_name",
 )
 
+from typing import TYPE_CHECKING
+
 import bpy
 from bpy.props import (
     BoolProperty,
@@ -58,6 +60,9 @@ class ExportHelper:
     # subclasses can override with decorator
     # True == use ext, False == no ext, None == do nothing.
     check_extension = True
+
+    # Defined by subclasses: the extension of the exported file (e.g. ".obj").
+    filename_ext: str
 
     def invoke(self, context, event):
         """
@@ -124,6 +129,13 @@ class ImportHelper:
         subtype='FILE_PATH',
         options={'SKIP_PRESET', 'HIDDEN'}
     )
+
+    if TYPE_CHECKING:
+        # Members of the operator this helper is mixed into; `files` is a `CollectionProperty`
+        # the operator defines when it imports several files at once.
+        bl_label: str
+        properties: bpy.types.OperatorProperties
+        files: bpy.types.bpy_prop_collection[bpy.types.OperatorFileListElement]
 
     def invoke(self, context, event):
         """
