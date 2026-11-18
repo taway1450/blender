@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+from typing import TYPE_CHECKING
+
 import bpy
 
 from mathutils import Vector
@@ -257,6 +259,14 @@ class PropertyPanel:
     bl_label = "Custom Properties"
     bl_options = {'DEFAULT_CLOSED'}
     bl_order = 1000  # Order panel after all others
+
+    # Defined by subclasses.
+    _context_path: str
+    _property_type: type | tuple[type, ...]
+
+    if TYPE_CHECKING:
+        # A member of the panel this class is mixed into.
+        layout: bpy.types.UILayout
 
     @classmethod
     def poll(cls, context):
