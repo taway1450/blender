@@ -8762,6 +8762,8 @@ class VIEW3D_PT_greasepencil_draw_context_menu(Panel):
         tool_settings = context.tool_settings
         settings = tool_settings.gpencil_paint
         brush = settings.brush
+        if brush is None:
+            return
         gp_settings = brush.gpencil_settings
 
         is_pin_vertex = gp_settings.brush_draw_mode == 'VERTEXCOLOR'
@@ -8851,6 +8853,8 @@ class VIEW3D_PT_greasepencil_sculpt_context_menu(Panel):
         tool_settings = context.tool_settings
         paint = tool_settings.gpencil_sculpt_paint
         brush = paint.brush
+        if brush is None:
+            return
         layout = self.layout
 
         ups = paint.unified_paint_settings
@@ -8887,6 +8891,8 @@ class VIEW3D_PT_greasepencil_vertex_paint_context_menu(Panel):
         tool_settings = context.tool_settings
         settings = tool_settings.gpencil_vertex_paint
         brush = settings.brush
+        if brush is None:
+            return
         gp_settings = brush.gpencil_settings
 
         col = layout.column()
@@ -8985,6 +8991,8 @@ class VIEW3D_PT_paint_vertex_context_menu(Panel):
         layout = self.layout
 
         brush = context.tool_settings.vertex_paint.brush
+        if brush is None:
+            return
         capabilities = brush.vertex_paint_capabilities
 
         if capabilities.has_color:
@@ -9034,6 +9042,8 @@ class VIEW3D_PT_paint_texture_context_menu(Panel):
         paint = context.tool_settings.image_paint
         space = context.space_data
         brush = paint.brush
+        if brush is None:
+            return
         capabilities = brush.image_paint_capabilities
 
         if capabilities.has_color:
@@ -9151,6 +9161,8 @@ class VIEW3D_PT_sculpt_context_menu(Panel):
 
         paint = context.tool_settings.sculpt
         brush = paint.brush
+        if brush is None:
+            return
         capabilities = brush.sculpt_capabilities
 
         if capabilities.has_color:

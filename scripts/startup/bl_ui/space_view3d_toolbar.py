@@ -1052,10 +1052,10 @@ class VIEW3D_PT_sculpt_options_gravity(Panel, View3DPaintPanel):
 
         tool_settings = context.tool_settings
         sculpt = tool_settings.sculpt
-        capabilities = sculpt.brush.sculpt_capabilities
+        brush = sculpt.brush
 
         col = layout.column()
-        col.active = capabilities.has_gravity
+        col.active = brush is not None and brush.sculpt_capabilities.has_gravity
         col.prop(sculpt, "gravity", slider=True, text="Factor")
         col.prop(sculpt, "gravity_object")
 
@@ -1614,6 +1614,8 @@ class VIEW3D_PT_tools_grease_pencil_sculpt_settings(Panel, View3DPanel, GreasePe
         tool_settings = context.scene.tool_settings
         settings = tool_settings.gpencil_sculpt_paint
         brush = settings.brush
+        if brush is None:
+            return
 
         # Grease Pencil
         from bl_ui.properties_paint_common import (
@@ -1621,7 +1623,7 @@ class VIEW3D_PT_tools_grease_pencil_sculpt_settings(Panel, View3DPanel, GreasePe
         )
         brush_basic_grease_pencil_sculpt_settings(layout, context, brush)
 
-        tool = settings.brush.gpencil_sculpt_brush_type
+        tool = brush.gpencil_sculpt_brush_type
         if tool in {'SMOOTH', 'RANDOMIZE'}:
             col = layout.column(heading="Affect", align=True)
             col.prop(brush.gpencil_settings, "use_edit_position", text="Position")
