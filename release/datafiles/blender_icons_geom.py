@@ -129,7 +129,8 @@ def mesh_data_lists_from_mesh(me, material_colors):
     me_verts = me.vertices[:]
     me_polys = me.polygons[:]
 
-    if me.attributes.active_color:
+    me_loops_color_active = me.attributes.active_color
+    if me_loops_color_active:
         me_loops_color = me_loops_color_active.data[:]
     else:
         me_loops_color = None
