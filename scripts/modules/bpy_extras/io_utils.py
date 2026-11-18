@@ -490,10 +490,10 @@ def unpack_list(list_of_tuples):
     """
     Flatten a sequence of tuples into a single list.
 
-    :param list_of_tuples: A sequence of tuples to unpack.
-    :type list_of_tuples: Sequence[tuple]
+    :param list_of_tuples: A sequence of tuples (or other iterables, such as vectors) to unpack.
+    :type list_of_tuples: Iterable[Iterable[Any]]
     :return: A flat list of all values.
-    :rtype: list
+    :rtype: list[Any]
     """
     flat_list = []
     flat_list_extend = flat_list.extend  # a tiny bit faster

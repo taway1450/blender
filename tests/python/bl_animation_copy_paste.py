@@ -9,6 +9,7 @@ import tempfile
 import mathutils
 
 import unittest
+from collections.abc import Sequence
 import sys
 
 
@@ -43,7 +44,7 @@ class AbstractCopyPasteTest(unittest.TestCase):
         if not equal:
             raise self.failureException(f"Matrices don't match\n{a}\n{b}")
 
-    def _assert_almost_equal_lists(self, a: list[float], b: list[float]):
+    def _assert_almost_equal_lists(self, a: Sequence[float], b: Sequence[float]):
         equal = True
         assert len(a) == len(b)
         for i in range(len(a)):
