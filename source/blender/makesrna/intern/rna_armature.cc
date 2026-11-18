@@ -1419,6 +1419,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   if (editbone) {
     RNA_def_property_pointer_funcs(prop, "rna_EditBone_color_get", nullptr, nullptr, nullptr);
+    RNA_def_property_flag(prop, PROP_NEVER_NULL);
   }
 
   prop = RNA_def_property(srna, "display_type", PROP_ENUM, PROP_NONE);
