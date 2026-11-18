@@ -81,7 +81,7 @@ import unicodedata
 import unittest
 
 from collections.abc import Callable, Iterator
-from typing import ContextManager, NamedTuple, Self
+from typing import ContextManager, Literal, NamedTuple, Self
 
 import blf  # type: ignore[import-not-found]
 import bpy  # type: ignore[import-not-found]
@@ -477,9 +477,9 @@ class CaseVFont(NamedTuple):
     position_offset: tuple[float, float] = (0.0, 0.0)
     font_size: float = globals_vfont.size
     text_boxes: list[TextBox] | None = None
-    overflow: str = 'NONE'
-    align_x: str = 'LEFT'
-    align_y: str = 'TOP_BASELINE'
+    overflow: Literal['NONE', 'SCALE', 'TRUNCATE'] = 'NONE'
+    align_x: Literal['LEFT', 'CENTER', 'RIGHT', 'JUSTIFY', 'FLUSH'] = 'LEFT'
+    align_y: Literal['TOP', 'TOP_BASELINE', 'CENTER', 'BOTTOM_BASELINE', 'BOTTOM'] = 'TOP_BASELINE'
     space_word: float = 1.0
     space_line: float = 1.0
     space_character: float = 1.0
