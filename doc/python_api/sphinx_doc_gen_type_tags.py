@@ -152,6 +152,19 @@ def object_families(p: Probe) -> Iterator[Family]:
     yield p.family("FModifier", "type", lambda value: fcurve.modifiers.new(value))
 
 
+def boid_families(p: Probe) -> Iterator[Family]:
+    # Only an operator adds a boid rule, to the active state of the particle settings in the context.
+    settings = p.keep(bpy.data.particles.new(NAME))
+    settings.physics_type = 'BOIDS'
+    rules = settings.boids.active_boid_state.rules
+
+    def make(value: str) -> Any:
+        with bpy.context.temp_override(particle_settings=settings):
+            bpy.ops.boid.rule_add(type=value)
+        return rules[-1]
+    yield p.family("BoidRule", "type", make)
+
+
 def data_families(p: Probe) -> Iterator[Family]:
     yield p.family("Light", "type", lambda value: p.keep(bpy.data.lights.new(NAME, value)))
     yield p.family("LightProbe", "type", lambda value: p.keep(bpy.data.lightprobes.new(NAME, value)))
@@ -283,6 +296,7 @@ def property_families(_p: Probe) -> Iterator[Family]:
 
 FAMILIES: tuple[Callable[[Probe], Iterator[Family]], ...] = (
     object_families,
+    boid_families,
     data_families,
     strip_families,
     space_families,
