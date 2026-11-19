@@ -389,7 +389,8 @@ def main():
         # Files
         if '--dna-versioned' in sys.argv:
             blender_version = '_'.join(map(str, bpy.app.version))
-            filename = 'dna-{0}-{1}_endian-{2}-{3}'.format(platform.machine(), sys.byteorder, blender_version, bpy.app.build_hash)
+            filename = 'dna-{0}-{1}_endian-{2}-{3}'.format(
+                platform.machine(), sys.byteorder, blender_version, bpy.app.build_hash)
         else:
             filename = 'dna'
         dir = os.path.dirname(__file__)

@@ -3162,7 +3162,9 @@ def pyrna2sphinx(basepath: Path) -> None:
                     mathutils_fmt=":class:`mathutils.{:s}`",
                     literal_fmt="``{!r}``",
                     collection_id=_BPY_PROP_COLLECTION_ID,
-                    enum_descr_override=pyrna_enum2sphinx_shared_link(prop) if USE_SHARED_RNA_ENUM_ITEMS_STATIC else None,
+                    enum_descr_override=(
+                        pyrna_enum2sphinx_shared_link(prop) if USE_SHARED_RNA_ENUM_ITEMS_STATIC else None
+                    ),
                 )
                 if type_descr not in type_descrs:
                     type_descrs.append(type_descr)
