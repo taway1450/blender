@@ -1344,6 +1344,8 @@ ID_DATA_OWNERS: dict[str, str] = {
     # The armature object, or the armature in edit mode.
     "PoseBone": "Object",
     "EditBone": "Armature",
+    # The armature, also through a pose bone's bone (`rna_PoseChannel_bone_get` makes the pointer with the armature).
+    "BoneCollection": "Armature",
     # The object, for an object's stacks and a pose bone's constraints alike.
     "Modifier": "Object",
     "Constraint": "Object",

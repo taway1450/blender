@@ -421,8 +421,22 @@ def grease_pencil_families(p: Probe) -> Iterator[UntaggedFamily]:
     yield "GreasePencilTreeNode", list(grease_pencil.root_nodes)
 
 
+def ik_param_families(p: Probe) -> Iterator[UntaggedFamily]:
+    # A pose has IK parameters for the iTaSC solver only (`BKE_pose_ikparam_init`), so its `ik_param` is
+    # `Itasc | None`. The pose is made when the depsgraph evaluates the object.
+    ob = new_object(p, bpy.data.armatures.new(NAME))
+    bpy.context.scene.collection.objects.link(ob)
+    bpy.context.view_layer.update()
+    if (pose := ob.pose) is None:
+        p.missing.append("IKParam: no pose made")
+        return
+    pose.ik_solver = 'ITASC'
+    yield "IKParam", [pose.ik_param]
+
+
 UNTAGGED_FAMILIES: tuple[Callable[[Probe], Iterator[UntaggedFamily]], ...] = (
     grease_pencil_families,
+    ik_param_families,
 )
 
 

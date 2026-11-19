@@ -674,6 +674,30 @@ RNA_THICK_WRAP_ARRAYS: dict[tuple[str, str], str] = {
 }
 
 
+# Properties whose items RNA can't type, as the struct is refined by something its `refine` function can't see.
+# Maps `(struct, property)` to the type. The points of a `ShapeKey` are refined by the type of the data-block owning
+# its `Key` (`rna_ShapeKey_data_begin`): a mesh or lattice point, a curve point or a Bézier point.
+RNA_PROPERTY_TYPES: dict[tuple[str, str], str] = {
+    ("ShapeKey", "data"): (
+        ":class:`bpy_prop_collection`\\ [:class:`ShapeKeyPoint` | :class:`ShapeKeyCurvePoint` | "
+        ":class:`ShapeKeyBezierPoint`]"
+    ),
+}
+
+# Bases whose instances are always one of their subclasses (`rna_Light_refine`, `rna_Attribute_refine`,
+# `rna_UserAssetLibrary_refine`): a property every direct subclass declares is the base's too, of the union of their
+# types (`Light.shadow_maximum_resolution`, `Attribute.data`). Written for the stubs only (see `USE_STUB_GEN`).
+RNA_REFINED_BASES: Final = ("Attribute", "Light", "UserAssetLibrary")
+
+# RNA functions of a base an ID type redeclares, as their result is never None for it: `(base, function)` maps to the
+# property the ID type has when it does. `ID.animation_data_create` gives None only for an ID type that can't have
+# animation data (`BKE_animdata_ensure_id`), the types without an `animation_data` property.
+# Written for the stubs only (see `USE_STUB_GEN`).
+RNA_ID_NEVER_NONE_RETURNS: Final[dict[tuple[str, str], str]] = {
+    ("ID", "animation_data_create"): "animation_data",
+}
+
+
 def rna_thick_wrap_arrays_check() -> None:
     """Check that the arrays in ``RNA_THICK_WRAP_ARRAYS`` readable without a library are still tuples."""
     for struct_id, value in (("BlendData", bpy.data), ("Preferences", bpy.context.preferences)):
@@ -3081,6 +3105,38 @@ def pyrna2sphinx(basepath: Path) -> None:
             )
         return None
 
+    def refined_base_properties(struct: stub.InfoStructRNA) -> list[tuple[str, bool, list[str]]]:
+        """
+        The properties every direct subclass of ``struct`` declares and ``struct`` doesn't:
+        ``(identifier, whether any is read-only, the type of each, without repeats)``.
+        """
+        subclasses = [s for s in structs.values() if s.base is struct]
+        if not subclasses:
+            return []
+        base_ids = {prop.identifier for base in (struct, *struct.get_bases()) for prop in base.properties}
+        props_by_id: dict[str, list[stub.InfoPropertyRNA]] = {}
+        for subclass in subclasses:
+            for prop in subclass.properties:
+                if prop.identifier not in base_ids:
+                    props_by_id.setdefault(prop.identifier, []).append(prop)
+        result = []
+        for identifier, props in sorted(props_by_id.items()):
+            if len(props) != len(subclasses):
+                continue
+            type_descrs: list[str] = []
+            for prop in props:
+                type_descr, _type_info = prop.get_type_description(
+                    class_fmt=":class:`{:s}`",
+                    mathutils_fmt=":class:`mathutils.{:s}`",
+                    literal_fmt="``{!r}``",
+                    collection_id=_BPY_PROP_COLLECTION_ID,
+                    enum_descr_override=pyrna_enum2sphinx_shared_link(prop) if USE_SHARED_RNA_ENUM_ITEMS_STATIC else None,
+                )
+                if type_descr not in type_descrs:
+                    type_descrs.append(type_descr)
+            result.append((identifier, any(prop.is_readonly for prop in props), type_descrs))
+        return result
+
     # The functions whose argument names the subclass of their result, written as overloads.
     constructors = {
         (constructor.struct, constructor.function): constructor
@@ -3216,8 +3272,20 @@ def pyrna2sphinx(basepath: Path) -> None:
 
             pyrna_prop_body2sphinx(
                 "      ", fw, prop,
-                type_override=RNA_THICK_WRAP_ARRAYS.get((struct_id, identifier)) or tag_type_override(struct_id, prop),
+                type_override=(
+                    RNA_THICK_WRAP_ARRAYS.get((struct_id, identifier)) or
+                    RNA_PROPERTY_TYPES.get((struct_id, identifier)) or
+                    tag_type_override(struct_id, prop)
+                ),
             )
+
+        # The properties every subclass of a refined base declares (`Light.shadow_maximum_resolution`).
+        if USE_STUB_GEN and struct_id in RNA_REFINED_BASES:
+            for identifier, readonly, type_descrs in refined_base_properties(struct):
+                fw("   .. {:s}:: {:s}\n\n".format("data" if readonly else "attribute", identifier))
+                fw("      The {:s} of every subclass of :class:`{:s}`{:s}\n\n".format(
+                    identifier, struct_id, " (readonly)" if readonly else ""))
+                fw("      :type: {:s}\n\n".format(" | ".join(type_descrs)))
 
         # Screen context members (only for Context struct).
         if struct_id == "Context":
@@ -3374,6 +3442,22 @@ def pyrna2sphinx(basepath: Path) -> None:
             write_example_ref("      ", fw, struct_module_name + "." + struct_id + "." + func.identifier)
 
             fw("\n")
+
+        # A function of a base whose result is never None for this ID type (`Object.animation_data_create`).
+        if USE_STUB_GEN:
+            direct_ids = {prop.identifier for prop in struct.properties}
+            for base in struct.get_bases():
+                for func in base.functions:
+                    prop_id = RNA_ID_NEVER_NONE_RETURNS.get((base.identifier, func.identifier))
+                    if prop_id is None or prop_id not in direct_ids:
+                        continue
+                    assert not func.args and len(func.return_values) == 1
+                    fw("   .. method:: {:s}()\n\n".format(func.identifier))
+                    fw("      {:s}\n\n".format(func.description))
+                    write_param("      ", fw, func.return_values[0], is_return=True, type_map=(
+                        lambda type_descr: type_descr.removesuffix(" | None")
+                    ))
+                    fw("\n")
 
         # Python methods.
         py_funcs = struct.get_py_functions()
