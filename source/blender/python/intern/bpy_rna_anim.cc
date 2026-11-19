@@ -627,9 +627,23 @@ char pyrna_struct_driver_add_doc[] =
     "   :type path: str\n"
     "   :param index: array index of the property drive. "
     "Defaults to -1 for all indices or a single channel if the property is not an array.\n"
-    "   :type index: int\n"
+    "   :type index: Literal[-1]\n"
     "   :return: The driver added or a list of drivers when index is -1.\n"
-    "   :rtype: :class:`bpy.types.FCurve` | list[:class:`bpy.types.FCurve`]\n";
+    "   :rtype: :class:`bpy.types._DriverFCurve` | list[:class:`bpy.types._DriverFCurve`]\n"
+    "   :option function: overload\n"
+    "\n"
+    ".. method:: driver_add(path, index, /)\n"
+    "   :noindex:\n"
+    "\n"
+    "   Adds a driver to the channel of the given property\n"
+    "\n"
+    "   :param path: path to the property to drive, analogous to the fcurve's data path.\n"
+    "   :type path: str\n"
+    "   :param index: array index of the property drive.\n"
+    "   :type index: int\n"
+    "   :return: The driver added.\n"
+    "   :rtype: :class:`bpy.types._DriverFCurve`\n"
+    "   :option function: overload\n";
 PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 {
   const char *path, *path_full;

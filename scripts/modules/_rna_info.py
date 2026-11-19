@@ -795,6 +795,15 @@ ENUM_RUNTIME_ITEMS = {
     ("ColorManagedViewSettings", "look"),
     ("ColorManagedDisplaySettings", "display_device"),
     ("Curve", "fill_mode"),
+    # The fluid cache formats, field and source a domain or flow offers depend on its type and settings
+    # (`rna_Fluid_cachetype_mesh_itemf` adds `'OBJECT'` and `'BOBJECT'`, `rna_Fluid_cobafield_itemf` the fields).
+    ("FluidDomainSettings", "cache_mesh_format"),
+    ("FluidDomainSettings", "cache_data_format"),
+    ("FluidDomainSettings", "cache_particle_format"),
+    ("FluidDomainSettings", "cache_noise_format"),
+    ("FluidDomainSettings", "openvdb_data_depth"),
+    ("FluidDomainSettings", "color_ramp_field"),
+    ("FluidFlowSettings", "flow_source"),
 }
 
 

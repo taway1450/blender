@@ -682,6 +682,10 @@ RNA_PROPERTY_TYPES: dict[tuple[str, str], str] = {
         ":class:`bpy_prop_collection`\\ [:class:`ShapeKeyPoint` | :class:`ShapeKeyCurvePoint` | "
         ":class:`ShapeKeyBezierPoint`]"
     ),
+    # The F-Curves of drivers, each with its driver (see `DRIVER_FCURVE_VIEW`).
+    ("AnimData", "drivers"): ":class:`AnimDataDrivers`\\ [:class:`_DriverFCurve`]",
+    # A pixel per item, a value per channel in each (`RNA_def_property_multi_array(prop, 2, ...)`).
+    ("RenderPass", "rect"): ":class:`bpy_prop_array`\\ [:class:`bpy_prop_array`\\ [float]]",
 }
 
 # Bases whose instances are always one of their subclasses (`rna_Light_refine`, `rna_Attribute_refine`,
@@ -1867,6 +1871,19 @@ RNA_SELF_RETURNS: set[tuple[str, str]] = {
     ("ID", "evaluated_get"),
 }
 
+# The F-Curve of a driver, whose `driver` is never None (`BKE_fcurve_create` with `alloc_driver_fcurve`), for the stubs:
+# what `AnimData.drivers` holds, its functions and `bpy_struct.driver_add` give. Not a class at runtime.
+DRIVER_FCURVE_VIEW: Final = "_DriverFCurve"
+
+# RNA functions whose result is a private view of the struct RNA gives (see `DRIVER_FCURVE_VIEW`):
+# `(struct, function)` maps to `(struct, view)`. Written for the stubs only (see `USE_STUB_GEN`).
+RNA_RETURN_VIEWS: Final[dict[tuple[str, str], tuple[str, str]]] = {
+    ("AnimDataDrivers", "new"): ("FCurve", DRIVER_FCURVE_VIEW),
+    ("AnimDataDrivers", "from_existing"): ("FCurve", DRIVER_FCURVE_VIEW),
+    ("AnimDataDrivers", "find"): ("FCurve", DRIVER_FCURVE_VIEW),
+}
+
+
 # A BMesh element is indexed by a custom-data layer of its sequence (`loop[uv_layer]`): the value is the layer's
 # type (a float, a `Vector`, a `BMLoopUV`, a `BMDeformVert`...), see `BPy_BMLayerItem_GetItem`.
 BMESH_ELEM_LAYER_ACCESS = ClassOverrides(
@@ -2951,6 +2968,26 @@ def write_type_tag_views(basepath: Path, type_tags: Any) -> None:
                     fw("      (readonly)\n\n")
 
 
+def write_driver_fcurve_view(basepath: Path) -> None:
+    """
+    Write the page of ``_DriverFCurve``, the F-Curve of a driver, whose ``driver`` is set (see `DRIVER_FCURVE_VIEW`).
+    The page is in no table of contents, as the class is private: it doesn't exist at runtime.
+    """
+    assert bpy.types.FCurve.bl_rna.properties["driver"].is_readonly
+    with open(basepath / "bpy.types.{:s}.rst".format(DRIVER_FCURVE_VIEW), "w", encoding="utf-8") as fh:
+        fw = fh.write
+        fw(":orphan:\n\n")
+        fw(title_string(DRIVER_FCURVE_VIEW, "="))
+        fw(".. currentmodule:: bpy.types\n\n")
+        fw(".. class:: {:s}(FCurve)\n\n".format(DRIVER_FCURVE_VIEW))
+        fw("   An :class:`FCurve` of a driver (``AnimData.drivers``, ``driver_add()``), "
+           "for type checkers (not a class at runtime)\n\n")
+        fw("   .. data:: driver\n\n")
+        fw("      The driver of the F-Curve, which every F-Curve of a driver has\n\n")
+        fw("      :type: :class:`Driver`\n\n")
+        fw("      (readonly)\n\n")
+
+
 def pyrna2sphinx(basepath: Path) -> None:
     """
     ``bpy.types`` and ``bpy.ops``.
@@ -3172,7 +3209,7 @@ def pyrna2sphinx(basepath: Path) -> None:
         return result
 
     # The functions whose argument names the subclass of their result, written as overloads.
-    constructors = {
+    constructors: dict[tuple[str, str], Any] = {
         (constructor.struct, constructor.function): constructor
         for constructor in (type_tags.constructors if type_tags is not None else ())
     }
@@ -3444,11 +3481,15 @@ def pyrna2sphinx(basepath: Path) -> None:
                 write_param("      ", fw, prop)
 
             if len(func.return_values) == 1:
-                write_param("      ", fw, func.return_values[0], is_return=True, type_map=(
-                    (lambda type_descr, struct_id=struct_id: type_descr.replace(
+                type_map: Callable[[str], str] | None = None
+                if (struct_id, func.identifier) in RNA_SELF_RETURNS:
+                    type_map = (lambda type_descr, struct_id=struct_id: type_descr.replace(
                         ":class:`{:s}`".format(struct_id), "Self"))
-                    if (struct_id, func.identifier) in RNA_SELF_RETURNS else None
-                ))
+                elif USE_STUB_GEN and (view := RNA_RETURN_VIEWS.get((struct_id, func.identifier))) is not None:
+                    # A private view of the struct RNA gives (`AnimDataDrivers.new` gives a `_DriverFCurve`).
+                    type_map = (lambda type_descr, view=view: type_descr.replace(
+                        ":class:`{:s}`".format(view[0]), ":class:`{:s}`".format(view[1])))
+                write_param("      ", fw, func.return_values[0], is_return=True, type_map=type_map)
             elif func.return_values:  # Multiple return values.
                 fw("      :return:\n")
                 type_descrs = []
@@ -3727,6 +3768,9 @@ def pyrna2sphinx(basepath: Path) -> None:
 
         if node_sockets is not None:
             write_node_socket_views(basepath, node_sockets)
+
+        if USE_STUB_GEN:
+            write_driver_fcurve_view(basepath)
 
     # Operators.
     def write_ops() -> None:
