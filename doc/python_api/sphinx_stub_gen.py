@@ -1253,6 +1253,13 @@ SETTER_VALUE_TYPES: dict[str, str] = {
     "Matrix": "Matrix | Sequence[Sequence[float]]",
 }
 
+# The value a writable attribute of a C extension type takes, where it is wider than the value it reads:
+# `(module, class, attribute)` maps to the setter's type.
+ATTRIBUTE_SETTER_TYPES: dict[tuple[str, str, str], str] = {
+    # Reads as a list, takes an int or any sequence of ints (`pygpu_buffer_dimensions_set`).
+    ("gpu.types", "Buffer", "dimensions"): "int | Sequence[int]",
+}
+
 BPY_PROP_ARRAY_RE = re.compile(r"bpy_prop_array\[(.+)\]")
 
 
@@ -1282,6 +1289,8 @@ SEQUENCE_ELEM_TYPES: dict[tuple[str, str], str] = {
 
 # C extension classes that implement the buffer protocol (`PyBufferProcs`): `memoryview(vec)`.
 BUFFER_CLASSES: set[tuple[str, str]] = {
+    # `pygpu_buffer__bf_getbuffer`.
+    ("gpu.types", "Buffer"),
     ("mathutils", "Color"),
     ("mathutils", "Euler"),
     ("mathutils", "Quaternion"),
@@ -1873,6 +1882,7 @@ def write_class(
         if write_attribute(
                 fw, attr, imports, current_module, class_locations,
                 is_narrowed=is_narrowed, property_decorator=property_decorator,
+                setter_type=ATTRIBUTE_SETTER_TYPES.get((current_module, cls.name, attr.name)),
         ):
             has_members = True
 
@@ -1982,11 +1992,13 @@ def write_attribute(
     *,
     is_narrowed: bool = False,
     property_decorator: str = "property",
+    setter_type: str | None = None,
 ) -> bool:
     """
     Write an attribute declaration. Returns True if written.
     ``is_narrowed``: the attribute narrows the type a base declares (`SubsurfModifier.type` is ``'SUBSURF'``).
     ``property_decorator``: how the class body spells the builtin `property` (``Context.property`` shadows it).
+    ``setter_type``: the value the attribute takes, when it is wider than its type (see `ATTRIBUTE_SETTER_TYPES`).
     """
     name = attr.name
 
@@ -1999,7 +2011,8 @@ def write_attribute(
     else:
         imports.add(("typing", "Any"))
         type_ann = "Any"
-    setter_type = attribute_setter_type(type_ann)
+    if setter_type is None:
+        setter_type = attribute_setter_type(type_ann)
     if setter_type is not None and not attr.readonly and not attr.declaration and not is_narrowed:
         # A writable math or array attribute reads as the math object or the array but takes any sequence of
         # its elements, as `pyrna_py_to_array` does (`ob.location = (1, 1, 1)`): a property with a wider setter.

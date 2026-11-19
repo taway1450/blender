@@ -141,8 +141,8 @@ PyDoc_STRVAR(
     "\n"
     "   Update the data of the storage buffer object.\n"
     "\n"
-    "   :param data: Data to fill the buffer.\n"
-    "   :type data: Buffer\n");
+    "   :param data: Data to fill the buffer, any object supporting the buffer protocol.\n"
+    "   :type data: collections.abc.Buffer\n");
 static PyObject *pygpu_storagebuffer_update(BPyGPUStorageBuf *self, PyObject *obj)
 {
   BPYGPU_STORAGEBUF_CHECK_OBJ(self);
@@ -268,8 +268,8 @@ PyDoc_STRVAR(
     "\n"
     "   .. method:: __init__(data)\n"
     "\n"
-    "      :param data: Data to fill the buffer.\n"
-    "      :type data: Buffer\n");
+    "      :param data: Data to fill the buffer, any object supporting the buffer protocol.\n"
+    "      :type data: collections.abc.Buffer\n");
 PyTypeObject BPyGPUStorageBuf_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GPUStorageBuf",

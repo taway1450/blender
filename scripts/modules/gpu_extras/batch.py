@@ -20,7 +20,7 @@ def batch_for_shader(shader, type, content, *, indices=None):
     :type content: dict[str, Buffer | Sequence[float] | Sequence[int] | \
 Sequence[Sequence[float]] | Sequence[Sequence[int]]]
     :param indices: Optional index buffer contents. When omitted, the batch draws all vertices in order.
-    :type indices: Sequence[int] | Sequence[Sequence[int]] | None
+    :type indices: Buffer | Sequence[int] | Sequence[Sequence[int]] | None
     :return: compatible batch
     :rtype: :class:`gpu.types.GPUBatch`
     """

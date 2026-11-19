@@ -256,7 +256,10 @@ PyDoc_STRVAR(
     pygpu_framebuffer_bind_doc,
     ".. method:: bind()\n"
     "\n"
-    "   Context manager to ensure balanced bind calls, even in the case of an error.\n");
+    "   Context manager to ensure balanced bind calls, even in the case of an error.\n"
+    "\n"
+    "   :return: The context manager binding the frame buffer.\n"
+    "   :rtype: contextlib.AbstractContextManager[None]\n");
 static PyObject *pygpu_framebuffer_bind(BPyGPUFrameBuffer *self)
 {
   PyFrameBufferStackContext *ret = PyObject_New(PyFrameBufferStackContext,

@@ -1831,6 +1831,9 @@ class ClassOverrides(NamedTuple):
     # Read-only attributes introspection can't find (not in the type's `__dict__`),
     # mapped to their `(description, RST type)`.
     attributes: dict[str, tuple[str, str]] | None = None
+    # Dunders of `dunders` the type supports without a slot of its own, written although it isn't in its `__dict__`:
+    # `__iter__` falls back to the sequence protocol (`sq_item`).
+    implied_dunders: set[str] | None = None
 
 
 # RNA functions that return a data-block of the type they are called on, `(struct, function)`:
@@ -2135,6 +2138,15 @@ CLASS_OVERRIDES: dict[tuple[str, str], ClassOverrides] = {
     ("bmesh.types", "BMLayerCollection"): ClassOverrides(
         dunders={"__getitem__": DunderInfo(return_type=":class:`BMLayerItem`")},
     ),
+    # An item of a `gpu.types.Buffer` is a float or an int by its format, or a row `Buffer` of a multi-dimension one
+    # (`pygpu_buffer__sq_item`), and iterating goes through the items.
+    ("gpu.types", "Buffer"): ClassOverrides(
+        dunders={
+            "__getitem__": DunderInfo(return_type="Any"),
+            "__iter__": DunderInfo(return_type="Iterator[Any]"),
+        },
+        implied_dunders={"__iter__"},
+    ),
 }
 
 EMPTY_CLASS_OVERRIDES = ClassOverrides()
@@ -2152,9 +2164,10 @@ def write_dunder_methods(fw: WriteFn, class_value: type, module_name: str, type_
     overrides = CLASS_OVERRIDES.get((module_name, type_name), EMPTY_CLASS_OVERRIDES)
     excluded = overrides.excluded_dunders or set()
     class_dunders = overrides.dunders or {}
+    implied = overrides.implied_dunders or set()
     dunder_keys = {
         key for key in DUNDER_METHODS.keys() | class_dunders.keys()
-        if key not in excluded and class_value.__dict__.get(key) is not None
+        if key not in excluded and (key in implied or class_value.__dict__.get(key) is not None)
     }
     if not dunder_keys:
         return
