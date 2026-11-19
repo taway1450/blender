@@ -83,20 +83,6 @@ class DATA_PT_display(ArmatureButtonsPanel, Panel):
         sub.prop(arm, "relation_line_position", text="Relations", expand=True)
 
 
-class DATA_UL_bone_collections(UIList):
-    def draw_item(self, _context, layout, armature, bcoll, _icon, _active_data, _active_propname, _index):
-        active_bone = armature.edit_bones.active or armature.bones.active
-        has_active_bone = active_bone and bcoll.name in active_bone.collections
-
-        layout.prop(bcoll, "name", text="", emboss=False, icon='DOT' if has_active_bone else 'BLANK1')
-
-        if armature.override_library:
-            icon = 'LIBRARY_DATA_OVERRIDE' if bcoll.is_local_override else 'BLANK1'
-            layout.prop(bcoll, "is_local_override", text="", emboss=False, icon=icon)
-
-        layout.prop(bcoll, "is_visible", text="", emboss=False, icon='HIDE_OFF' if bcoll.is_visible else 'HIDE_ON')
-
-
 class DATA_PT_bone_collections(ArmatureButtonsPanel, Panel):
     bl_label = "Bone Collections"
 
@@ -416,7 +402,6 @@ classes = (
     DATA_PT_context_arm,
     DATA_PT_pose,
     DATA_PT_bone_collections,
-    DATA_UL_bone_collections,
     ARMATURE_MT_collection_context_menu,
     ARMATURE_MT_collection_tree_context_menu,
     DATA_PT_motion_paths,

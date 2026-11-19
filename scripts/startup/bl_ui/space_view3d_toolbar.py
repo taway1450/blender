@@ -1446,21 +1446,6 @@ class VIEW3D_PT_tools_imagepaint_options_cavity(Panel):
         col.template_curve_mapping(ipaint, "cavity_curve", brush=True)
 
 
-class VIEW3D_PT_imagepaint_options(View3DPaintPanel):
-    bl_label = "Options"
-
-    @classmethod
-    def poll(cls, _context):
-        # This is currently unused, since there aren't any Vertex Paint mode specific options.
-        return False
-        # return (context.image_paint_object and context.tool_settings.image_paint)
-
-    def draw(self, _context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-
 class VIEW3D_MT_tools_projectpaint_stencil(Menu):
     bl_label = "Mask Layer"
 

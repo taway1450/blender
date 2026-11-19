@@ -11,7 +11,7 @@ It's called "global" to avoid confusion with the Blender World data-block.
 """
 
 import abc
-from typing import TYPE_CHECKING, Callable, Iterable, Literal, Optional, Any, TypeAlias
+from typing import Iterable, Literal, Optional, Any, TypeAlias
 
 import bpy
 from bpy.types import (
@@ -20,9 +20,6 @@ from bpy.types import (
     Depsgraph,
 )
 from mathutils import Matrix
-
-if TYPE_CHECKING:
-    from _rna_enums import rna_enum_wm_report_items
 
 
 _axis_enum_items = [
@@ -617,14 +614,6 @@ class FixToCameraCommon:
     """Common functionality for the Fix To Scene Camera operator + its 'delete' button."""
 
     keytype = 'GENERATED'
-
-    # Operator method stubs to avoid PyLance/MyPy errors:
-    @classmethod
-    def poll_message_set(cls, message: str | Callable[..., str | None], *args: Any) -> None:
-        super().poll_message_set(message, *args)
-
-    def report(self, type: "set[rna_enum_wm_report_items]", message: str) -> None:
-        super().report(type, message)
 
     # Implement in subclass:
     def _execute(self, context: Context, transformables: list[Transformable]) -> None:

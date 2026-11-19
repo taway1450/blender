@@ -39,6 +39,8 @@ __all__ = (
     "script_path_user",
     "extension_path_user",
     "script_paths",
+    "script_paths_pref",
+    "is_path_extension",
     "smpte_from_frame",
     "smpte_from_seconds",
     "units",
