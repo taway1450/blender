@@ -178,7 +178,7 @@ class DeformModifierSpec:
     For deform modifiers which have an object operator
     """
 
-    def __init__(self, frame_number: int, modifier_list: list, operator_spec: OperatorSpec = None):
+    def __init__(self, frame_number: int, modifier_list: list, operator_spec: OperatorSpec | None = None):
         """
         Constructs a Deform Modifier spec (for user input).
 

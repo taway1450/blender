@@ -739,7 +739,7 @@ class TestPropArrayDynamicAssign(unittest.TestCase):
 
     def tearDown(self):
         bpy.data.images.remove(self.image)
-        self.image = None
+        del self.image
 
     def test_assign_fixed_under_1px(self):
         image = self.image
@@ -779,8 +779,8 @@ class TestPropArrayDynamicArg(unittest.TestCase):
     def tearDown(self):
         bpy.data.objects.remove(self.ob)
         bpy.data.meshes.remove(self.me)
-        self.me = None
-        self.ob = None
+        del self.me
+        del self.ob
 
     def test_param_dynamic(self):
         ob = self.ob
@@ -812,8 +812,8 @@ class TestPropArrayInvalidForeachGetSet(unittest.TestCase):
     def tearDown(self):
         bpy.data.objects.remove(self.ob)
         bpy.data.meshes.remove(self.me)
-        self.me = None
-        self.ob = None
+        del self.me
+        del self.ob
 
     def test_foreach_valid(self):
         me = self.me

@@ -74,7 +74,8 @@ class Report:
         output_dir: pathlib.Path,
         input_dir: pathlib.Path,
         reference_dir: pathlib.Path,
-        comparison_func: Callable[[str, dict], None] | None = None,
+        # Replaces `generate_generic_data_desc`: called with no argument, or the output file of an export.
+        comparison_func: Callable[..., str] | None = None,
     ):
         self.title = title
         self.output_dir = output_dir
@@ -437,7 +438,7 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
         return desc
 
     @staticmethod
-    def _write_animdata_desc(adt: bpy.types.AnimData, desc: StringIO) -> None:
+    def _write_animdata_desc(adt: bpy.types.AnimData | None, desc: StringIO) -> None:
         if adt:
             if adt.action:
                 desc.write(f"  - anim act:{adt.action.name}")
@@ -907,7 +908,8 @@ integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw
     def generate_and_check(
             self,
             input_file: pathlib.Path,
-            generate_func: Callable[[str, dict], None],
+            # Called with the input file and parameters, and for an export the output file and export parameters.
+            generate_func: Callable[..., None],
             output_filepath: pathlib.Path | None = None,
     ) -> bool:
         """

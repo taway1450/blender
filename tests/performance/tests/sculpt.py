@@ -5,6 +5,7 @@
 import api
 import enum
 import pathlib
+from typing import Any
 
 
 class SculptMode(enum.IntEnum):
@@ -40,7 +41,7 @@ def set_view3d_context_override(context_override):
                 context_override["region"] = region
 
 
-def prepare_sculpt_scene(context: any, mode: SculptMode, subdivision_level=3):
+def prepare_sculpt_scene(context: Any, mode: SculptMode, subdivision_level=3):
     """
     Prepare a clean state of the scene suitable for benchmarking
 
@@ -102,7 +103,7 @@ def prepare_sculpt_scene(context: any, mode: SculptMode, subdivision_level=3):
         bpy.ops.sculpt.dynamic_topology_toggle()
 
 
-def prepare_brush(context: any, brush_type: BrushType):
+def prepare_brush(context: Any, brush_type: BrushType):
     """Activates and sets common brush settings"""
     import bpy
     bpy.ops.brush.asset_activate(

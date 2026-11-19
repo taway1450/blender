@@ -5,6 +5,7 @@
 import api
 import enum
 import pathlib
+from typing import Any
 
 
 class BrushType(enum.Enum):
@@ -57,7 +58,7 @@ def set_view3d_context_override(context_override):
                 context_override["region"] = region
 
 
-def prepare_scene(context: any, object: MeshType, image_dimension: int, data_type: DataType):
+def prepare_scene(context: Any, object: MeshType, image_dimension: int, data_type: DataType):
     """
     Prepare a clean state of the scene suitable for benchmarking
     """
@@ -236,7 +237,7 @@ def _run_brush_test(args: dict):
     return _measure_brush_strokes(context, args.get("test_setup", False), total_time_start, timeout)
 
 
-def prepare_udim_scene(context: any, data_type: DataType, brush_type: BrushType, subdivide_level: int = 0):
+def prepare_udim_scene(context: Any, data_type: DataType, brush_type: BrushType, subdivide_level: int = 0):
     import bpy
 
     bpy.context.preferences.experimental.use_3d_texture_paint = True

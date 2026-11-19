@@ -4,6 +4,7 @@
 
 import argparse
 import unittest
+from collections.abc import Iterable
 import bpy
 import pathlib
 import sys
@@ -17,7 +18,7 @@ blender -b --factory-startup --python tests/python/bl_animation_keyframing.py --
 args: argparse.Namespace
 
 
-def _fcurve_paths_match(fcurves: list[bpy.types.FCurve], expected_paths: list[str]) -> None:
+def _fcurve_paths_match(fcurves: Iterable[bpy.types.FCurve], expected_paths: list[str]) -> None:
     data_paths = list(set([fcurve.data_path for fcurve in fcurves]))
     data_paths.sort()
     expected_paths.sort()

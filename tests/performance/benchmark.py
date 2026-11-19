@@ -150,7 +150,7 @@ def status_rows(config: api.TestConfig, layout: dict) -> list:
     return [groups[key] for key in sorted(groups)]
 
 
-def init_table(config: api.TestConfig, layout: dict = None) -> api.MarkdownTable:
+def init_table(config: api.TestConfig, layout: dict | None = None) -> api.MarkdownTable:
     if layout is None:
         layout = resolve_status_layout(config, [])
 

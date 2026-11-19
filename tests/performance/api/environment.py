@@ -356,7 +356,7 @@ class TestEnvironment:
 
         return names
 
-    def get_configs(self, name: str = None, names_only: bool = False) -> list:
+    def get_configs(self, name: str | None = None, names_only: bool = False) -> list:
         # Get list of configurations in the benchmarks directory.
         configs = []
 
