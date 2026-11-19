@@ -36,7 +36,6 @@ class ModalOperator(bpy.types.Operator):
 
     def __del__(self):
         print("End")
-        super().__del__()
 
     def execute(self, context):
         context.object.location.x = self.value / 100.0

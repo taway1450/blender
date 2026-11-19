@@ -29,7 +29,7 @@ class CustomRenderEngine(bpy.types.RenderEngine):
     # render engine data here, for example stopping running render threads.
     def __del__(self):
         # Own delete code...
-        super().__del__()
+        pass
 
     # This is the method called by Blender for both final renders (F12) and
     # small preview for materials, world and lights.
