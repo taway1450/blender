@@ -393,10 +393,10 @@ class MeshTest(ABC):
             bm.faces if select_mode == 'FACE' else None
         )
 
-        items.ensure_lookup_table()
-
         if items is None:
             raise ValueError("Invalid selection mode")
+
+        items.ensure_lookup_table()
         for index in selection:
             items[index].select = True
 

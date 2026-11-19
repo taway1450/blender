@@ -361,11 +361,11 @@ class NodeGroupInterfaceTests:
     def do_test_move(self, socket_type):
         tree, group_node = self.make_group_and_instance()
 
+        panel0 = tree.interface.new_panel("Panel 0")
         in0 = tree.interface.new_socket("Input 0", socket_type=socket_type, in_out='INPUT')
         in1 = tree.interface.new_socket("Input 1", socket_type=socket_type, in_out='INPUT', parent=panel0)
         out0 = tree.interface.new_socket("Output 0", socket_type=socket_type, in_out='OUTPUT')
         out1 = tree.interface.new_socket("Output 1", socket_type=socket_type, in_out='OUTPUT', parent=panel0)
-        panel0 = tree.interface.new_panel("Panel 0")
         panel1 = tree.interface.new_panel("Panel 1")
 
 

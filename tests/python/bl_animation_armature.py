@@ -248,9 +248,8 @@ class ArmatureCreationTest(unittest.TestCase):
         arm = bpy.data.armatures.new('Armature')
         arm_ob = bpy.data.objects.new('ArmObject', arm)
 
-        # Remove any pre-existing bone.
-        while arm.bones:
-            arm.bones.remove(arm.bones[0])
+        # A new armature has no bones (and `arm.bones` can't remove any, only edit bones can).
+        assert not arm.bones
 
         bpy.context.scene.collection.objects.link(arm_ob)
         bpy.context.view_layer.objects.active = arm_ob
