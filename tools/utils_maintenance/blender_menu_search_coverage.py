@@ -424,10 +424,10 @@ def ctx_editmode_mesh():
 def ctx_editmode_mesh_extra():
     bpy.ops.object.vertex_group_add()
     bpy.ops.object.shape_key_add(from_mix=False)  # Basis Key
-    shape_key = bpy.ops.object.shape_key_add(from_mix=True)
-    shape_key.value = 0.0
+    bpy.ops.object.shape_key_add(from_mix=True)
+    bpy.context.object.active_shape_key.value = 0.0
     bpy.ops.mesh.uv_texture_add()
-    bpy.ops.mesh.vertex_color_add()
+    bpy.ops.geometry.color_attribute_add()
     bpy.ops.object.material_slot_add()
     # Edit-mode last!
     bpy.ops.object.mode_set(mode='EDIT')
@@ -480,8 +480,8 @@ def ctx_object_empty():
 
 
 def ctx_gpencil_edit():
-    bpy.ops.object.gpencil_add(type='STROKE')
-    bpy.ops.object.mode_set(mode='EDIT_GPENCIL')
+    bpy.ops.object.grease_pencil_add(type='STROKE')
+    bpy.ops.object.mode_set(mode='EDIT')
 
 
 def ctx_gpencil_sculpt():

@@ -40,6 +40,7 @@
 #
 ######################################################
 
+import platform
 import sys
 from string import Template     # strings completion
 
@@ -388,7 +389,7 @@ def main():
         # Files
         if '--dna-versioned' in sys.argv:
             blender_version = '_'.join(map(str, bpy.app.version))
-            filename = 'dna-{0}-{1}_endian-{2}-{3}'.format(sys.arch, sys.byteorder, blender_version, bpy.app.build_hash)
+            filename = 'dna-{0}-{1}_endian-{2}-{3}'.format(platform.machine(), sys.byteorder, blender_version, bpy.app.build_hash)
         else:
             filename = 'dna'
         dir = os.path.dirname(__file__)
@@ -449,7 +450,7 @@ def main():
         # quit blender
         if not bpy.app.background:
             log.info("7: quit blender")
-            bpy.ops.wm.exit_blender()
+            bpy.ops.wm.quit_blender()
 
     except ImportError:
         log.warning("  skipping, not running in Blender")
