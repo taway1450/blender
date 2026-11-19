@@ -1051,7 +1051,7 @@ class AddPresetGpencilMaterial(AddPresetBase, Operator):
     preset_menu = "MATERIAL_PT_gpencil_material_presets"
 
     preset_defines = [
-        "material = bpy.context.object.active_material",
+        "material = bpy.context.material",
         "gpcolor = material.grease_pencil",
     ]
 

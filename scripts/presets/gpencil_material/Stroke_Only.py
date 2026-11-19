@@ -1,5 +1,5 @@
 import bpy
-material = bpy.context.object.active_material
+material = bpy.context.material
 gpcolor = material.grease_pencil
 
 gpcolor.mode = 'LINE'
