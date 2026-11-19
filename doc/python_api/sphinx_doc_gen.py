@@ -208,6 +208,84 @@ def rna_type_tags() -> Any:
         print("Type tag not probed: {:s}".format(line))
     return tags
 
+
+def rna_node_sockets() -> Any:
+    """
+    Probe the socket each key of a built-in node's ``inputs`` and ``outputs`` gives
+    (``principled.inputs["Base Color"]`` is a ``NodeSocketColor``) with ``sphinx_doc_gen_node_sockets.py``,
+    for the stubs (see `USE_STUB_GEN`).
+    """
+    sys.path.insert(0, str(SCRIPT_DIR))
+    try:
+        import sphinx_doc_gen_node_sockets  # type: ignore[import-not-found]
+    finally:
+        del sys.path[0]
+    sockets = sphinx_doc_gen_node_sockets.probe()
+    for line in sockets.missing:
+        print("Node sockets not probed: {:s}".format(line))
+    return sockets
+
+
+def node_socket_view_id(node_id: str, side: str) -> str:
+    """The private class of a node's ``inputs`` or ``outputs`` that knows its keys: ``_ShaderNodeMath_inputs``."""
+    return "_{:s}_{:s}".format(node_id, side)
+
+
+def node_socket_sides(node_sockets: Any, node_id: str) -> list[tuple[str, Any]]:
+    """The sides (``"inputs"``, ``"outputs"``) of a node that have a key, with their socket tables."""
+    tables = node_sockets.tables.get(node_id)
+    if tables is None:
+        return []
+    return [(side, table) for side, table in zip(("inputs", "outputs"), tables) if table.names or table.indices]
+
+
+def write_node_socket_views(basepath: Path, node_sockets: Any) -> None:
+    """
+    Write a page for the ``inputs`` and ``outputs`` of each built-in node that `rna_node_sockets` probed: an
+    overload of ``__getitem__`` per socket type its keys give, then the collection's own signatures for any
+    other key. The pages are in no table of contents, as the classes are private: they don't exist at runtime.
+    """
+    for node_id in sorted(node_sockets.tables):
+        for side, table in node_socket_sides(node_sockets, node_id):
+            base = "NodeInputs" if side == "inputs" else "NodeOutputs"
+            # Socket classes (in the order found) -> the keys that give them: names sorted, then indices.
+            by_result: dict[tuple[str, ...], list[str | int]] = {}
+            for key, classes in sorted(table.names.items()):
+                by_result.setdefault(tuple(classes), []).append(key)
+            for index, classes in sorted(table.indices.items()):
+                by_result.setdefault(tuple(classes), []).append(index)
+            overloads = [
+                ("Literal[{:s}]".format(", ".join(repr(key) for key in keys)),
+                 " | ".join(":class:`{:s}`".format(struct_id) for struct_id in classes))
+                for classes, keys in by_result.items()
+            ]
+            overloads += [
+                ("int | str", ":class:`NodeSocket`"),
+                ("slice", "list[:class:`NodeSocket`]"),
+            ]
+            view_id = node_socket_view_id(node_id, side)
+            with open(basepath / "bpy.types.{:s}.rst".format(view_id), "w", encoding="utf-8") as fh:
+                fw = fh.write
+                fw(":orphan:\n\n")
+                fw(title_string(view_id, "="))
+                fw(".. currentmodule:: bpy.types\n\n")
+                fw(".. class:: {:s}({:s})\n\n".format(view_id, base))
+                fw("   The {:s} of a :class:`{:s}`, by the keys it declares, for type checkers "
+                   "(not a class at runtime)\n\n".format(side, node_id))
+                for i, (key_type, result_type) in enumerate(overloads):
+                    fw("   .. method:: __getitem__(key, /)\n")
+                    if i:
+                        fw("      :noindex:\n")
+                    fw("\n")
+                    fw("      The socket of a name, an identifier or an index\n\n")
+                    fw("      :param key: The identifier or name of the socket, or its index (never None)\n")
+                    fw("      :type key: {:s}\n".format(key_type))
+                    fw("      :return: The socket\n")
+                    fw("      :rtype: {:s}\n".format(result_type))
+                    # fake-bpy-module reads an overload from this field, not from `:noindex:`.
+                    fw("      :option function: overload\n")
+                    fw("\n")
+
 # ----------------------------------------------------------------------------
 # Global State
 
@@ -2846,6 +2924,8 @@ def pyrna2sphinx(basepath: Path) -> None:
 
     # The Type tag of each refined subclass, written for the stubs only.
     type_tags = rna_type_tags() if USE_STUB_GEN and "bpy.types" not in GLOBAL.exclude_modules else None
+    # The socket each key of a built-in node's `inputs` and `outputs` gives, written for the stubs only.
+    node_sockets = rna_node_sockets() if USE_STUB_GEN and "bpy.types" not in GLOBAL.exclude_modules else None
 
     if type_tags is not None:
         # Every instance of a base whose tag allows a single subclass is of that subclass (`ActionStrip`):
@@ -3157,6 +3237,14 @@ def pyrna2sphinx(basepath: Path) -> None:
                 fw("      The {:s} of every :class:`{:s}`, which each subclass defines{:s}\n\n".format(
                     identifier, struct_id, " (readonly)" if base_tag.is_readonly else ""))
                 fw("      :type: Literal[{:s}]\n\n".format(", ".join(repr(value) for value in base_tag.values)))
+
+        # A built-in node's `inputs` and `outputs`, whose keys name sockets of known types.
+        if node_sockets is not None:
+            for side, _table in node_socket_sides(node_sockets, struct_id):
+                fw("   .. data:: {:s}\n\n".format(side))
+                fw("      The {:s} of every :class:`{:s}`, by the keys it declares (readonly)\n\n".format(
+                    side, struct_id))
+                fw("      :type: :class:`{:s}`\n\n".format(node_socket_view_id(struct_id, side)))
 
         # Python attributes.
         py_properties = struct.get_py_properties()
@@ -3495,6 +3583,9 @@ def pyrna2sphinx(basepath: Path) -> None:
 
         if type_tags is not None:
             write_type_tag_views(basepath, type_tags)
+
+        if node_sockets is not None:
+            write_node_socket_views(basepath, node_sockets)
 
     # Operators.
     def write_ops() -> None:
