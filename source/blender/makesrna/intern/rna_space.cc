@@ -7680,6 +7680,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
   prop = RNA_def_property(srna, "dopesheet", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "DopeSheet");
   RNA_def_property_pointer_sdna(prop, nullptr, "ads");
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_ui_text(prop, "Dope Sheet", "Settings for filtering animation data");
 
   /* Read-only state info. */
@@ -7761,6 +7762,7 @@ static void rna_def_space_nla(BlenderRNA *brna)
   prop = RNA_def_property(srna, "dopesheet", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "DopeSheet");
   RNA_def_property_pointer_sdna(prop, nullptr, "ads");
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_ui_text(prop, "Dope Sheet", "Settings for filtering animation data");
 }
 

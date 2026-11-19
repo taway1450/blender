@@ -496,6 +496,7 @@ static void rna_def_area_spaces(BlenderRNA *brna, PropertyRNA *cprop)
   prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "spacedata.first_");
   RNA_def_property_struct_type(prop, "Space");
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
   RNA_def_property_ui_text(prop, "Active Space", "Space currently being displayed in this area");
 }
 
