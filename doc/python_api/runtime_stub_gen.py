@@ -134,21 +134,25 @@ def write_preferences() -> None:
     default_addons_file().write_text(json.dumps(names), encoding="utf-8")
 
 
-def enable_default_addons() -> list[str]:
+def enable_default_addons() -> dict[str, dict[str, Any]]:
     """
-    Enable the add-ons factory startup enables that are not enabled yet; their names. Blender keeps some enabled
-    whatever the preferences say (``addon_utils._addons_hidden_core``: ``bl_pkg``, ``io_scene_fbx``, ...): those
-    are in the stubs, as a user can't disable them.
+    Enable the add-ons factory startup enables that are not enabled yet, one at a time: what each registers
+    (:func:`rna_delta`), by name. Blender keeps some enabled whatever the preferences say
+    (``addon_utils._addons_hidden_core``: ``bl_pkg``, ``io_scene_fbx``, ...): those are in the stubs, as a user
+    can't disable them.
     """
-    names = [name for name in json.loads(default_addons_file().read_text(encoding="utf-8"))
-             if not addon_utils.check(name)[1]]
-    errors: list[str] = []
-    for name in names:
+    deltas: dict[str, dict[str, Any]] = {}
+    for name in json.loads(default_addons_file().read_text(encoding="utf-8")):
+        if addon_utils.check(name)[1]:
+            continue
+        before = rna_facts()
+        errors: list[str] = []
         if addon_utils.enable(name, default_set=True, handle_error=lambda ex: errors.append(repr(ex))) is None:
             errors.append("{:s} not enabled".format(name))
-    if errors:
-        raise SystemExit("runtime_stub_gen: enabling the factory add-ons failed: {!r}".format(errors))
-    return names
+        if errors:
+            raise SystemExit("runtime_stub_gen: enabling the factory add-on {:s} failed: {!r}".format(name, errors))
+        deltas[name] = rna_delta(before, rna_facts())
+    return deltas
 
 
 def enable_addon(addon: Path) -> str:
@@ -187,6 +191,28 @@ def bare_python_classes(types_module: Any) -> dict[str, str]:
                 getattr(sys.modules[module], cls.name, None) is value
         ):
             found[cls.name] = module
+    return found
+
+
+def python_operator_classes(types_module: Any) -> dict[str, str]:
+    """
+    The operator classes a Python module registers, which ``bpy.types`` has under their class name
+    (``bpy.types.PREFERENCES_OT_copy_prev``) but ``sphinx_doc_gen`` doesn't write: name -> module, for those the
+    module has under that name.
+    """
+    documented = {cls.name for cls in types_module.classes}
+    found: dict[str, str] = {}
+    pending: list[type] = [bpy.types.Operator, bpy.types.Macro]
+    while pending:
+        for cls in pending.pop().__subclasses__():
+            pending.append(cls)
+            name, module = cls.__name__, getattr(cls, "__module__", None)
+            if (
+                    name not in documented and isinstance(module, str) and module not in RNA_CLASS_MODULES and
+                    is_python_module(module) and getattr(sys.modules[module], name, None) is cls and
+                    getattr(bpy.types, name, None) is cls
+            ):
+                found[name] = module
     return found
 
 
@@ -276,6 +302,7 @@ def generate_stubs(doc_gen: Any, stub_gen: Any, output: Path, work: Path, packag
     types_module = modules["bpy.types"]
     reexported = bare_python_classes(types_module)
     types_module.classes = [cls for cls in types_module.classes if cls.name not in reexported]
+    reexported.update(python_operator_classes(types_module))
     facts["typed_addon_properties"] = (
         type_addon_struct_properties(doc_gen, stub_gen, types_module, package) if package else []
     )
@@ -422,7 +449,8 @@ def blend_overlay(manifest: dict[str, Any]) -> str:
         return "_" + path
 
     data_body = [
-        "    @property\n    def {:s}(self) -> {:s}: ...\n".format(collection, collection_class(ident(collection), entry))
+        "    @property\n    def {:s}(self) -> {:s}: ...\n".format(
+            collection, collection_class(ident(collection), entry))
         for collection, entry in manifest["data"].items()
     ]
     classes.append("class _BlendData(BlendData):\n{:s}\n".format("".join(data_body) or "    ..."))
@@ -491,12 +519,11 @@ def main() -> None:
 
     facts.update(generate_stubs(sphinx_doc_gen, sphinx_stub_gen, args.output, args.work, package))
 
-    before = rna_facts()
-    facts["default_addons"] = enable_default_addons()
-    (args.work / "default_addons.json").write_text(json.dumps(
-        {"addons": facts["default_addons"], **rna_delta(before, rna_facts())}, indent=1), encoding="utf-8")
+    default_addons = enable_default_addons()
+    facts["default_addons"] = sorted(default_addons)
+    (args.work / "default_addons.json").write_text(json.dumps(default_addons, indent=1), encoding="utf-8")
 
-    if args.addon is not None and package is not None:
+    if package is not None:
         facts["blend_files"] = write_blend_content(args.addon.resolve(), package, args.output, args.work)
     facts["seconds_total"] = round(time.perf_counter() - started, 2)
     (args.work / "facts.json").write_text(json.dumps(facts, indent=1, sort_keys=True), encoding="utf-8")
