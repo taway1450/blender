@@ -1124,6 +1124,11 @@ class UpgradeMetarigTypes(bpy.types.Operator):
     bl_description = "Upgrade the Rigify types on the active metarig armature"
     bl_options = {'UNDO'}
 
+    @classmethod
+    def poll(cls, context):
+        ob = context.active_object
+        return ob is not None and ob.type == 'ARMATURE'
+
     def execute(self, context):
         upgrade_metarig_types(verify_armature_obj(context.active_object))
         return {'FINISHED'}
@@ -1136,6 +1141,11 @@ class UpgradeMetarigLayers(bpy.types.Operator):
     bl_label = "Rigify Upgrade Metarig Layers"
     bl_description = "Upgrade the metarig from bone layers to bone collections"
     bl_options = {'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.active_object
+        return ob is not None and ob.type == 'ARMATURE'
 
     def execute(self, context):
         upgrade_metarig_layers(verify_armature_obj(context.active_object))
@@ -1405,7 +1415,7 @@ def fk_to_ik(rig: ArmatureObject, window='ALL'):
                 for f in frames:
                     if not bones_in_frame(f, rig, *args):
                         continue
-                    scn.frame_set(f)
+                    scn.frame_set(round(f))
                     func(**kwargs)
                     bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_VisualLocRot')
                     bpy.ops.anim.keyframe_insert_menu(type='Scaling')
@@ -1480,7 +1490,7 @@ def ik_to_fk(rig: ArmatureObject, window='ALL'):
                 for f in frames:
                     if not bones_in_frame(f, rig, *args):
                         continue
-                    scn.frame_set(f)
+                    scn.frame_set(round(f))
                     func(**kwargs)
                     bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_VisualLocRot')
                     bpy.ops.anim.keyframe_insert_menu(type='Scaling')
@@ -1610,7 +1620,7 @@ def rot_pole_toggle(rig: ArmatureObject, window='ALL', value=False, toggle=False
                 for f in frames:
                     if bake and not bones_in_frame(f, rig, *args):
                         continue
-                    scn.frame_set(f)
+                    scn.frame_set(round(f))
                     func1(**kwargs1)
                     rig.pose.bones[names['parent']]['pole_vector'] = new_pole_vector_value
                     func2(**kwargs2)

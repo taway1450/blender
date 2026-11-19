@@ -219,6 +219,11 @@ class POSE_OT_convert_rotation(bpy.types.Operator):
     )
     selected_action: StringProperty(name="Action")
 
+    @classmethod
+    def poll(cls, context):
+        ob = context.active_object
+        return ob is not None and ob.type == 'ARMATURE'
+
     def invoke(self, context, event):
         ob = context.object
         if ob and ob.type == 'ARMATURE' and ob.animation_data and ob.animation_data.action:
