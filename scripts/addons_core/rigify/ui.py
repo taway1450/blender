@@ -1415,7 +1415,8 @@ def fk_to_ik(rig: ArmatureObject, window='ALL'):
                 for f in frames:
                     if not bones_in_frame(f, rig, *args):
                         continue
-                    scn.frame_set(round(f))
+                    frame, subframe = divmod(f, 1.0)
+                    scn.frame_set(int(frame), subframe=subframe)
                     func(**kwargs)
                     bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_VisualLocRot')
                     bpy.ops.anim.keyframe_insert_menu(type='Scaling')
@@ -1490,7 +1491,8 @@ def ik_to_fk(rig: ArmatureObject, window='ALL'):
                 for f in frames:
                     if not bones_in_frame(f, rig, *args):
                         continue
-                    scn.frame_set(round(f))
+                    frame, subframe = divmod(f, 1.0)
+                    scn.frame_set(int(frame), subframe=subframe)
                     func(**kwargs)
                     bpy.ops.anim.keyframe_insert_menu(type='BUILTIN_KSI_VisualLocRot')
                     bpy.ops.anim.keyframe_insert_menu(type='Scaling')
@@ -1620,7 +1622,8 @@ def rot_pole_toggle(rig: ArmatureObject, window='ALL', value=False, toggle=False
                 for f in frames:
                     if bake and not bones_in_frame(f, rig, *args):
                         continue
-                    scn.frame_set(round(f))
+                    frame, subframe = divmod(f, 1.0)
+                    scn.frame_set(int(frame), subframe=subframe)
                     func1(**kwargs1)
                     rig.pose.bones[names['parent']]['pole_vector'] = new_pole_vector_value
                     func2(**kwargs2)

@@ -372,7 +372,8 @@ class PREFERENCES_OT_keymap_restore(Operator):
             for km in wm.keyconfigs.user.keymaps:
                 km.restore_to_default()
         else:
-            km = context.keymap
+            # Set by the key map editor's button; missing when the operator runs from elsewhere.
+            km = getattr(context, "keymap", None)
             if km is None:
                 return {'CANCELLED'}
             km.restore_to_default()

@@ -345,8 +345,8 @@ class TestBlendFilePathForeach(TestHelper):
 
     @staticmethod
     def _file_path_foreach(
-        subtypes: set[str] | None = None,
-        visit_keys: set[str] | None = None,
+        subset: list[bpy.types.ID] | None = None,
+        visit_types: set[str] | None = None,
         flags: set[str] | None = None,
     ) -> set[tuple[bpy.types.ID, Path]]:
         """Call bpy.data.file_path_foreach(), returning the visited paths as set of (datablock, path) tuples.
@@ -362,10 +362,10 @@ class TestBlendFilePathForeach(TestHelper):
         # Dynamically build the keyword arguments, because the None values are not
         # valid, and should be encoded as not having the kwarg.
         kwargs = {}
-        if subtypes is not None:
-            kwargs['subtypes'] = subtypes
-        if visit_keys is not None:
-            kwargs['visit_keys'] = visit_keys
+        if subset is not None:
+            kwargs['subset'] = subset
+        if visit_types is not None:
+            kwargs['visit_types'] = visit_types
         if flags is not None:
             kwargs['flags'] = flags
 
