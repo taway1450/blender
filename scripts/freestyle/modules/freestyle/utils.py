@@ -57,7 +57,8 @@ from freestyle.types import (
 )
 
 from mathutils import Vector
-from functools import lru_cache, namedtuple
+from collections import namedtuple
+from functools import lru_cache
 from math import cos, sin, pi, atan2
 from itertools import tee, compress
 from typing import cast

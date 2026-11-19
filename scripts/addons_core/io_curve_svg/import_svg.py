@@ -5,6 +5,7 @@
 
 import re
 import xml.dom.minidom
+import xml.parsers.expat
 from math import cos, sin, tan, atan2, pi, ceil
 from typing import Any
 

@@ -88,7 +88,7 @@ STATUS_NON_ERROR = {'STATUS', 'PROGRESS'}
 #
 
 def remote_url_params_strip(url: str) -> str:
-    import urllib
+    import urllib.parse
     # Parse the URL to get its scheme, domain, and query parameters.
     parsed_url = urllib.parse.urlparse(url)
 

@@ -525,12 +525,12 @@ def generate_menu(bl_idname: str, template: type[Menu], layout_base: type[Menu],
 def generate_menus(menus: dict, template: type[Menu], base_dict: dict):
     import copy
     pathing_dict = copy.copy(base_dict)
-    menus = tuple(
+    menu_classes = tuple(
         generate_menu(bl_idname, template, layout_base, pathing_dict)
         for bl_idname, layout_base in menus.items()
     )
-    generate_pathing_dict(pathing_dict, menus)
-    return menus
+    generate_pathing_dict(pathing_dict, menu_classes)
+    return menu_classes
 
 
 def generate_pathing_dict(pathing_dict, menus):

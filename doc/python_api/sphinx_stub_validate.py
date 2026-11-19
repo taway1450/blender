@@ -33,6 +33,7 @@ import traceback
 import types
 
 from collections.abc import (
+    Generator,
     Iterable,
     Iterator,
     Sequence,
@@ -165,7 +166,7 @@ class PyiFinder(importlib.abc.MetaPathFinder):
 
 
 @contextlib.contextmanager
-def sys_meta_path_insert_context(finder: importlib.abc.MetaPathFinder) -> Iterator[None]:
+def sys_meta_path_insert_context(finder: importlib.abc.MetaPathFinder) -> Generator[None, None, None]:
     """Temporarily insert *finder* at the start of ``sys.meta_path``."""
     sys.meta_path.insert(0, finder)
     try:
@@ -176,7 +177,7 @@ def sys_meta_path_insert_context(finder: importlib.abc.MetaPathFinder) -> Iterat
 
 
 @contextlib.contextmanager
-def sys_modules_remove_context(module_names: list[str]) -> Iterator[None]:
+def sys_modules_remove_context(module_names: list[str]) -> Generator[None, None, None]:
     """
     Temporarily remove *module_names* from ``sys.modules``.
 
@@ -194,7 +195,7 @@ def sys_modules_remove_context(module_names: list[str]) -> Iterator[None]:
 @contextlib.contextmanager
 def backup_attrs_and_assign_multi(
         *obj_attrs: tuple[object, dict[str, object]],
-) -> Iterator[None]:
+) -> Generator[None, None, None]:
     """
     Context manager that saves and assigns attributes on multiple objects,
     restoring all originals on exit.
@@ -215,7 +216,7 @@ def backup_attrs_and_assign_multi(
 
 
 @contextlib.contextmanager
-def stub_import_context(stubs_dir: Path, module_names: list[str]) -> Iterator[None]:
+def stub_import_context(stubs_dir: Path, module_names: list[str]) -> Generator[None, None, None]:
     """
     Temporarily import *module_names* from the ``.pyi`` stubs under *stubs_dir*.
 

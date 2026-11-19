@@ -475,7 +475,7 @@ class EditGenerator:
         raise RuntimeError("Class {!r} should not be instantiated".format(cls))
 
     @staticmethod
-    def edit_list_from_file(_source: str, _data: str, _shared_edit_data: Any) -> list[Edit]:
+    def edit_list_from_file(_source: str, _data: str, _shared_edit_data: Any, /) -> list[Edit]:
         # The `__init_subclass__` function ensures this is always overridden.
         raise RuntimeError("This function must be overridden by it's subclass!")
         # return []
@@ -485,7 +485,7 @@ class EditGenerator:
         return None
 
     @staticmethod
-    def teardown(_shared_edit_data: Any) -> None:
+    def teardown(_shared_edit_data: Any, /) -> None:
         pass
 
 

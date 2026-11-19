@@ -75,7 +75,7 @@ class NodeSockets(NamedTuple):
     missing: list[str]
 
 
-def node_classes() -> list[type]:
+def node_classes() -> list[type[bpy.types.Node]]:
     """The built-in node classes that are registered node types, sorted by identifier."""
     result = []
     for name in sorted(dir(bpy.types)):
@@ -293,7 +293,7 @@ def add_node(trees: list[Any], node_id: str) -> Any:
     raise error
 
 
-def probe_node(trees: list[Any], cls: type) -> tuple[SocketTable, SocketTable]:
+def probe_node(trees: list[Any], cls: type[bpy.types.Node]) -> tuple[SocketTable, SocketTable]:
     node_id = cls.bl_rna.identifier
     node = add_node(trees, node_id)
     by_identifier = allows_identifier_lookup(node_id)

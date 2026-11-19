@@ -54,7 +54,7 @@ class TestEnvironment:
         self._init_default_blender_executable()
         self.set_default_blender_executable()
 
-    def get_machine(self, need_gpus: bool = True) -> None:
+    def get_machine(self, need_gpus: bool = True) -> TestMachine:
         if not self.machine or (need_gpus and not self.machine.has_gpus):
             self.machine = TestMachine(self, need_gpus)
 
@@ -303,7 +303,7 @@ class TestEnvironment:
                        function: Callable[[dict], dict],
                        args: dict,
                        blender_args: list = [],
-                       foreground=False) -> dict:
+                       foreground=False) -> tuple[dict, list[str]]:
         # Run function in a Blender instance. Arguments and return values are
         # passed as a Python object that must be serializable with pickle.
 
@@ -313,13 +313,13 @@ class TestEnvironment:
         modulename = inspect.getmodule(function).__name__
 
         # Serialize arguments in base64, to avoid having to escape it.
-        args = base64.b64encode(pickle.dumps(args))
+        args_encoded = base64.b64encode(pickle.dumps(args))
         output_prefix = 'TEST_OUTPUT: '
 
         expression = (f'import sys, pickle, base64;'
                       f'sys.path.append(r"{package_path}");'
                       f'import {modulename};'
-                      f'args = pickle.loads(base64.b64decode({args}));'
+                      f'args = pickle.loads(base64.b64decode({args_encoded}));'
                       f'result = {modulename}.{functionname}(args);'
                       f'result = base64.b64encode(pickle.dumps(result));'
                       f'print("\\n{output_prefix}" + result.decode() + "\\n")')

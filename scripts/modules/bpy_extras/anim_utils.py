@@ -818,7 +818,7 @@ class KeyframesCo:
             keyframe_points.foreach_get("co", co_buffer)
             co_buffer.extend(key_values)
 
-            ipo_buffer = [None] * len(keyframe_points)
+            ipo_buffer = [0] * len(keyframe_points)
             keyframe_points.foreach_get("interpolation", ipo_buffer)
             ipo_buffer.extend(linear_enum_values)
 

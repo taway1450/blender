@@ -17,6 +17,8 @@ __all__ = (
 
 import sys
 
+import gdb  # GDB's own module, available to the scripts GDB runs.
+
 
 class PrintStructC99(gdb.Command):
     def __init__(self):

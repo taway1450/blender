@@ -53,7 +53,7 @@ class SequencerCrossfadeSounds(Operator):
                 else:
                     strip2 = None
                     break
-        if strip2 is None:
+        if strip1 is None or strip2 is None:
             self.report({'ERROR'}, "Select 2 sound strips")
             return {'CANCELLED'}
         if strip1.left_handle > strip2.left_handle:

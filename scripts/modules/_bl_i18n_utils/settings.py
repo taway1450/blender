@@ -743,6 +743,17 @@ class I18nSettings:
     """
     _settings = None
 
+    # Settings of this module that scripts read from an instance, which holds a copy of the module's globals.
+    LANGUAGES_FILE: str
+    IMPORT_LANGUAGES_SKIP: set[str]
+    WARN_MSGID_NOT_CAPITALIZED: bool
+    PARSER_TEMPLATE_ID: str
+    PARSER_PY_ID: str
+    FRIBIDI_LIB: str
+    SOURCE_DIR: str
+    I18N_DIR: str
+    SPELL_CACHE: str
+
     def __new__(cls, *args, **kwargs):
         # Addon preferences are singleton by definition, so is this class!
         if not I18nSettings._settings:

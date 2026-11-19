@@ -573,7 +573,7 @@ def pkg_manifest_params_compatible_or_error_for_this_system(
         python_versions=python_versions,
         # This system.
         this_platform=platform_from_this_system(),
-        this_python_version=sys.version_info,
+        this_python_version=(sys.version_info.major, sys.version_info.minor, sys.version_info.micro),
         this_blender_version=bpy.app.version,
         error_fn=print,
     )

@@ -1163,6 +1163,8 @@ class USERPREF_PT_theme_user_interface(ThemePanel, CenterAlignMixIn, Panel):
 # This is not registered.
 class PreferenceThemeWidgetColorPanel:
     bl_parent_id = "USERPREF_PT_theme_user_interface"
+    # The widget colors' property of `ThemeUserInterface`, set by each panel class made from this mix-in.
+    wcol: str
 
     def draw(self, context):
         theme = context.preferences.themes[0]
@@ -1195,6 +1197,8 @@ class PreferenceThemeWidgetColorPanel:
 # Base class for dynamically defined widget color panels.
 # This is not registered.
 class PreferenceThemeWidgetShadePanel:
+    # The widget colors' property of `ThemeUserInterface`, set by each panel class made from this mix-in.
+    wcol: str
 
     def draw(self, context):
         theme = context.preferences.themes[0]
@@ -1477,6 +1481,9 @@ class USERPREF_PT_theme_strip_colors(ThemePanel, CenterAlignMixIn, Panel):
 # Base class for dynamically defined theme-space panels.
 # This is not registered.
 class PreferenceThemeSpacePanel:
+    # The path from the theme to the theme data the panel draws, set by each panel class made from this mix-in.
+    datapath: str
+
     @staticmethod
     def _theme_generic(layout, themedata):
 
@@ -1841,7 +1848,7 @@ class USERPREF_UL_extension_repos(UIList):
 
         flags = [self.bitflag_filter_item] * len(items)
 
-        indices = [None] * len(items)
+        indices = [0] * len(items)
         for index, orig_index in enumerate(sorted(
             range(len(items)),
             key=lambda i: (

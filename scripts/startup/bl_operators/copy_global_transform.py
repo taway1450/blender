@@ -500,7 +500,7 @@ class Transformable(metaclass=abc.ABCMeta):
         self._autokey_matrix_world(context)
 
     @abc.abstractmethod
-    def _set_matrix_world(self, context: Context, matrix: Matrix) -> None:
+    def _set_matrix_world(self, context: Context, matrix: Matrix, /) -> None:
         pass
 
     @abc.abstractmethod

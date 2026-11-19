@@ -80,7 +80,7 @@ import tempfile
 import unicodedata
 import unittest
 
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Generator
 from typing import ContextManager, Literal, NamedTuple, Self
 
 import blf  # type: ignore[import-not-found]
@@ -651,7 +651,7 @@ def imbuf_rgb_new(size: tuple[int, int]) -> imbuf.types.ImBuf:
 
 
 @contextlib.contextmanager
-def _blf_wrap_width(font_id: int, wrap_width: int) -> Iterator[None]:
+def _blf_wrap_width(font_id: int, wrap_width: int) -> Generator[None, None, None]:
     """
     Enable BLF WORD_WRAP for the body of the context, restore on exit.
 
@@ -2815,7 +2815,7 @@ class TestTextOnCurve(TestImageComparison_MixIn, unittest.TestCase):
 
     @staticmethod
     @contextlib.contextmanager
-    def _circle(obj: bpy.types.Object) -> Iterator[None]:
+    def _circle(obj: bpy.types.Object) -> Generator[None, None, None]:
         """
         Create a Bezier circle and assign it as the text object's ``follow_curve``.
 

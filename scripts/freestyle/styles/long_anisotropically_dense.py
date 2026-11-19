@@ -13,12 +13,12 @@
 #             ******** The Directional a priori density maps must          ******
 #             ******** have been computed prior to using this style module ******
 
+from freestyle.types import UnaryPredicate1D
 from freestyle.chainingiterators import ChainSilhouetteIterator
 from freestyle.functions import DensityF1D
 from freestyle.predicates import (
     NotUP1D,
     QuantitativeInvisibilityUP1D,
-    UnaryPredicate1D,
     pyHighDensityAnisotropyUP1D,
     pyHigherLengthUP1D,
     pyLengthBP1D,

@@ -172,6 +172,7 @@ class _defs_view3d_generic:
 
 class _defs_annotate:
 
+    @staticmethod
     def draw_settings_common(context, layout, tool):
         gpd = context.annotation_data
         region_type = context.region.type
@@ -311,6 +312,7 @@ class _defs_annotate:
 
 class _defs_transform:
 
+    @staticmethod
     def draw_transform_sculpt_tool_settings(context, layout):
         if context.mode != 'SCULPT':
             return

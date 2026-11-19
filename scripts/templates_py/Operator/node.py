@@ -40,7 +40,7 @@ class NodeOperator(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         space = context.space_data
-        return space.type == 'NODE_EDITOR'
+        return space is not None and space.type == 'NODE_EDITOR'
 
     def execute(self, context):
         main(self, context)

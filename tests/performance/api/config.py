@@ -4,6 +4,7 @@
 
 import json
 import pathlib
+import types
 
 from dataclasses import dataclass, field
 
@@ -105,7 +106,7 @@ class TestQueue:
 
             return [value for _, value in sorted(rows.items())]
 
-    def find(self, revision: str, test: str, category: str, device_id: str) -> dict:
+    def find(self, revision: str, test: str, category: str, device_id: str) -> TestEntry | None:
         sanitized = normalize_device_id(device_id)
         for entry in self.entries:
             if (
@@ -193,7 +194,7 @@ class TestConfig:
         return executables
 
     @staticmethod
-    def _read_config_module(base_dir: pathlib.Path) -> None:
+    def _read_config_module(base_dir: pathlib.Path) -> types.ModuleType:
         # Import config.py as a module.
         import importlib.util
         spec = importlib.util.spec_from_file_location("testconfig", base_dir / 'config.py')
@@ -275,9 +276,9 @@ class TestConfig:
     def _get_entries(self,
                      revision_name: str,
                      git_hash: str,
-                     executable: pathlib.Path,
+                     executable: str,
                      environment: str,
-                     date: int) -> None:
+                     date: int) -> list[TestEntry]:
         entries = []
         for test in self.tests.tests:
             test_name = test.name()

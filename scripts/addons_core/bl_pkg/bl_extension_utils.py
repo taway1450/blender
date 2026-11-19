@@ -576,7 +576,7 @@ def repo_sync(
         dry_run: bool = False,
         demote_connection_errors_to_status: bool = False,
         extension_override: str = "",
-) -> Iterator[InfoItemSeq]:
+) -> Generator[InfoItemSeq, bool, None]:
     """
     Implementation:
     ``bpy.ops.extensions.repo_sync(directory, ...)``.
@@ -608,7 +608,7 @@ def repo_upgrade(
         access_token: str,
         use_idle: bool,
         python_args: Sequence[str],
-) -> Iterator[InfoItemSeq]:
+) -> Generator[InfoItemSeq, bool, None]:
     """
     Implementation:
     ``bpy.ops.extensions.repo_upgrade(directory, ...)``.
@@ -627,7 +627,7 @@ def repo_upgrade(
 def repo_listing(
         *,
         repos: Sequence[str],
-) -> Iterator[InfoItemSeq]:
+) -> Generator[InfoItemSeq, bool, None]:
     """
     Implementation:
     ``bpy.ops.extensions.repo_listing(repos)``.
@@ -651,7 +651,7 @@ def pkg_install_files(
         python_version: tuple[int, int, int],
         use_idle: bool,
         python_args: Sequence[str],
-) -> Iterator[InfoItemSeq]:
+) -> Generator[InfoItemSeq, bool, None]:
     """
     Implementation:
     ``bpy.ops.extensions.pkg_install_files(directory, files, ...)``.
@@ -679,7 +679,7 @@ def pkg_install(
         use_cache: bool,
         use_idle: bool,
         python_args: Sequence[str],
-) -> Iterator[InfoItemSeq]:
+) -> Generator[InfoItemSeq, bool, None]:
     """
     Implementation:
     ``bpy.ops.extensions.pkg_install(directory, pkg_id_sequence, ...)``.
@@ -706,7 +706,7 @@ def pkg_uninstall(
         pkg_id_sequence: Sequence[str],
         use_idle: bool,
         python_args: Sequence[str],
-) -> Iterator[InfoItemSeq]:
+) -> Generator[InfoItemSeq, bool, None]:
     """
     Implementation:
     ``bpy.ops.extensions.pkg_uninstall(directory, pkg_id_sequence, ...)``.

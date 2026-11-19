@@ -27,7 +27,7 @@ from typing import (
 )
 from collections.abc import (
     Callable,
-    Iterator,
+    Generator,
     Sequence,
 )
 
@@ -809,7 +809,7 @@ class TestAssetAuth(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.join(TEMP_DIRS.local_asset_library, filename)))
 
     @contextlib.contextmanager
-    def _servers_running(self) -> Iterator[None]:
+    def _servers_running(self) -> Generator[None, None, None]:
         """
         Serve the "remote" directory & the asset files, from here on this systems
         Blender reaches them over HTTP. Only the "remote" directory needs tokens,

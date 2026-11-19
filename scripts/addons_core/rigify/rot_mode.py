@@ -227,7 +227,7 @@ class POSE_OT_convert_rotation(bpy.types.Operator):
     def invoke(self, context, event):
         ob = context.object
         if ob and ob.type == 'ARMATURE' and ob.animation_data and ob.animation_data.action:
-            self.selected_action = context.object.animation_data.action.name
+            self.selected_action = ob.animation_data.action.name
         else:
             self.affected_actions = 'ALL'
 

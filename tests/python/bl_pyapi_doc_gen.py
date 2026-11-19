@@ -29,7 +29,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from collections.abc import Iterator
+from collections.abc import Generator
 from pathlib import Path
 from typing import NamedTuple
 
@@ -61,7 +61,7 @@ GLOBAL: Global
 # Utilities
 
 @contextlib.contextmanager
-def output_dir_context() -> Iterator[Path]:
+def output_dir_context() -> Generator[Path, None, None]:
     if GLOBAL.user_output_dir is None:
         with tempfile.TemporaryDirectory() as tmpdir:
             yield Path(tmpdir)

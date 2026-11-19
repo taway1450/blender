@@ -18,7 +18,7 @@ import bpy
 
 class NodeCategory:
     @classmethod
-    def poll(cls, _context):
+    def poll(cls, _context, /):
         return True
 
     def __init__(self, identifier, name, *, description="", items=None):

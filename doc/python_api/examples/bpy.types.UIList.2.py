@@ -41,6 +41,7 @@ class MESH_UL_vgroups_slow(bpy.types.UIList):
     )
 
     # This allows us to have mutually exclusive options, which are also all disable-able!
+    @staticmethod
     def _gen_order_update(name1, name2):
         def _u(self, ctxt):
             if (getattr(self, name1)):

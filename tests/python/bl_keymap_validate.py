@@ -32,7 +32,7 @@ from typing import (
     Any,
 )
 from collections.abc import (
-    Iterator,
+    Generator,
     Sequence,
 )
 
@@ -74,7 +74,7 @@ ALLOW_DUPLICATES = {
 def temp_fn_argument_extractor(
         mod: types.ModuleType,
         mod_attr: str,
-) -> Iterator[list[tuple[tuple[tuple[Any], ...], dict[str, dict[str, Any]]]]]:
+) -> Generator[list[tuple[tuple[tuple[Any], ...], dict[str, dict[str, Any]]]], None, None]:
     """
     Temporarily intercept a function, so its arguments can be extracted.
     The context manager gives us a list where each item is a tuple of

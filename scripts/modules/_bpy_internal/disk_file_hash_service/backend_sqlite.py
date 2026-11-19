@@ -12,7 +12,8 @@ import contextlib
 import datetime
 import sqlite3
 from pathlib import Path
-from typing import Iterator, Callable
+from typing import Callable
+from collections.abc import Generator
 
 from . import types
 
@@ -232,7 +233,7 @@ class SQLiteBackend:
         return self._now().isoformat()
 
     @contextlib.contextmanager
-    def _transaction_rw(self) -> Iterator[sqlite3.Connection]:
+    def _transaction_rw(self) -> Generator[sqlite3.Connection, None, None]:
         """Start a read-write transaction.
 
         The transaction is rolled back when an exception is raised, and
@@ -250,7 +251,7 @@ class SQLiteBackend:
             self.db_conn_rw.commit()
 
     @contextlib.contextmanager
-    def _transaction_ro(self) -> Iterator[sqlite3.Connection]:
+    def _transaction_ro(self) -> Generator[sqlite3.Connection, None, None]:
         """Start a read-write transaction.
 
         The transaction is always rolled back, because it shouldn't write

@@ -7,7 +7,9 @@ import random
 
 from typing import Sequence, Any
 
-from bpy.types import PropertyGroup, Action, UIList, UILayout, Context, Panel, Operator, Armature, ActionSlot
+from bpy.types import PropertyGroup, Action, UIList, UILayout, Context, Panel, Operator, Armature
+# The add-on's `ActionSlot` property group below takes the name.
+from bpy.types import ActionSlot as BlenderActionSlot
 from bpy.props import (EnumProperty, IntProperty, BoolProperty, StringProperty, FloatProperty,
                        PointerProperty, CollectionProperty)
 from bpy.app.translations import (
@@ -51,7 +53,7 @@ def poll_trigger_action(_self, action):
     return False
 
 
-def get_first_compatible_action_slot(action: Action, id_type: str) -> ActionSlot | None:
+def get_first_compatible_action_slot(action: Action, id_type: str) -> BlenderActionSlot | None:
     for slot in action.slots:
         if slot.target_id_type in ('UNSPECIFIED', id_type):
             return slot
@@ -130,11 +132,11 @@ class ActionSlot(PropertyGroup, ActionSlotBase):
         return unique_id
 
     @property
-    def action_slot(self) -> ActionSlot | None:
+    def action_slot(self) -> BlenderActionSlot | None:
         return self.action.slots.get("OB" + self.action_slot_ui)
 
     @action_slot.setter
-    def action_slot(self, slot: ActionSlot):
+    def action_slot(self, slot: BlenderActionSlot | None):
         """For convenience, caller can assign an Action Slot,
         even though under the hood we'll actually be storing the slot handle.
         """

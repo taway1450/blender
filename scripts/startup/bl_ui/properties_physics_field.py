@@ -357,7 +357,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
             collision_warning(layout)
             return
 
-        settings = context.object.collision
+        settings = coll
 
         layout.active = settings.use
 
@@ -395,7 +395,7 @@ class PHYSICS_PT_collision_particle(PhysicButtonsPanel, Panel):
             collision_warning(layout)
             return
 
-        settings = context.object.collision
+        settings = coll
 
         layout.active = settings.use
 
@@ -444,7 +444,7 @@ class PHYSICS_PT_collision_softbody(PhysicButtonsPanel, Panel):
             collision_warning(layout)
             return
 
-        settings = context.object.collision
+        settings = coll
 
         layout.active = settings.use
 

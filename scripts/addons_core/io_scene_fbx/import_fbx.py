@@ -2236,7 +2236,7 @@ def blen_read_light(fbx_tmpl, fbx_obj, settings):
 
     lamp = bpy.data.lights.new(name=elem_name_utf8, type=light_type)
 
-    if light_type == 'SPOT':
+    if lamp.type == 'SPOT':
         spot_size = elem_props_get_number(fbx_props, b'OuterAngle', None)
         if spot_size is None:
             # Deprecated.

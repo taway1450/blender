@@ -43,17 +43,17 @@ def add_object_align_init(context, operator):
         space_data = None
 
     # location
-    if operator and properties.is_property_set("location"):
+    if properties is not None and properties.is_property_set("location"):
         location = Matrix.Translation(Vector(properties.location))
     else:
         location = Matrix.Translation(context.scene.cursor.location)
 
-        if operator:
+        if properties is not None:
             properties.location = location.to_translation()
 
     # rotation
     add_align_preference = context.preferences.edit.object_align
-    if operator:
+    if properties is not None:
         if not properties.is_property_set("rotation"):
             # So one of "align" and "rotation" will be set
             properties.align = add_align_preference

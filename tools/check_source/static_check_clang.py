@@ -106,6 +106,7 @@ class ClangChecker:
             _file_data: bytes,
             _tu: ClangTranslationUnit,
             _shared_check_data: Any,
+            /,
     ) -> list[str]:
         raise RuntimeError("This function must be overridden by it's subclass!")
         return []
