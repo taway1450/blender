@@ -604,7 +604,7 @@ class STRIP_PT_source(StripButtonsPanel, Panel):
             else:
                 split.label(text="None")
             # FPS
-            if elem.orig_fps:
+            if elem and elem.orig_fps:
                 split = col.split(factor=col.property_split_factor, align=False)
                 split.alignment = 'RIGHT'
                 split.label(text="FPS")

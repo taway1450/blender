@@ -562,7 +562,7 @@ class QuickSmoke(ObjectModeOperator, Operator):
         fluid.fluid_type = 'DOMAIN'
         # The default value leads to unstable simulations (see #126924).
         fluid.domain_settings.cfl_condition = 4.0
-        if self.style == {'FIRE', 'BOTH'}:
+        if self.style in {'FIRE', 'BOTH'}:
             fluid.domain_settings.use_noise = True
 
         # ensure correct cache file format for smoke

@@ -60,7 +60,7 @@ def add_object_align_init(context, operator):
 
         if properties.align == 'WORLD':
             rotation = properties.rotation.to_matrix().to_4x4()
-        elif properties.align == 'VIEW':
+        elif properties.align == 'VIEW' and space_data:
             rotation = space_data.region_3d.view_matrix.to_3x3().inverted()
             rotation.resize_4x4()
             properties.rotation = rotation.to_euler()

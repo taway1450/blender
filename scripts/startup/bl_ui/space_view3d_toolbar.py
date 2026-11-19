@@ -562,7 +562,8 @@ class VIEW3D_PT_slots_paint_canvas(SelectPaintSlotHelper, View3DPanel, Panel):
 
         is_paint_tool = False
         if tool.use_brushes:
-            brush = context.tool_settings.sculpt.brush
+            sculpt = context.tool_settings.sculpt
+            brush = sculpt.brush if sculpt else None
             if brush:
                 is_paint_tool = brush.sculpt_brush_type in {'PAINT', 'SMEAR'}
         else:
@@ -2004,7 +2005,7 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_advanced(View3DPanel, Panel):
         col.separator()
         col.prop(gp_settings, "hardness", slider=True)
         subcol = col.column(align=True)
-        if ma and ma.grease_pencil.mode == 'LINE':
+        if ma and ma.grease_pencil and ma.grease_pencil.mode == 'LINE':
             subcol.enabled = False
         subcol.prop(gp_settings, "aspect")
 

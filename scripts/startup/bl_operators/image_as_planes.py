@@ -141,6 +141,8 @@ def load_images(filenames, directory, force_reload=False, frame_start=1, find_se
             continue
 
         image = load_image(filename, directory, check_existing=True, force_reload=force_reload)
+        if image is None:
+            continue
 
         # Size is unavailable for sequences, so we grab it early.
         size = tuple(image.size)
