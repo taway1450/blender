@@ -2314,7 +2314,11 @@ class USERPREF_MT_extensions_active_repo_remove(Menu):
         except IndexError:
             active_repo = None
 
-        is_system_repo = (active_repo.use_remote_url is False) and (active_repo.source == 'SYSTEM')
+        is_system_repo = (
+            (active_repo is not None) and
+            (active_repo.use_remote_url is False) and
+            (active_repo.source == 'SYSTEM')
+        )
 
         props = layout.operator("preferences.extension_repo_remove", text="Remove Repository")
         props.index = active_repo_index

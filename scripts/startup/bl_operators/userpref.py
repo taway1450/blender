@@ -373,6 +373,8 @@ class PREFERENCES_OT_keymap_restore(Operator):
                 km.restore_to_default()
         else:
             km = context.keymap
+            if km is None:
+                return {'CANCELLED'}
             km.restore_to_default()
 
         context.preferences.is_dirty = True
@@ -391,12 +393,13 @@ class PREFERENCES_OT_keyitem_restore(Operator):
 
     @classmethod
     def poll(cls, context):
-        keymap = getattr(context, "keymap", None)
-        return keymap
+        return getattr(context, "keymap", None) is not None
 
     def execute(self, context):
         km = context.keymap
         kmi = km.keymap_items.from_id(self.item_id)
+        if kmi is None:
+            return {'CANCELLED'}
 
         if (not kmi.is_user_defined) and kmi.is_user_modified:
             km.restore_item_to_default(kmi)
@@ -410,6 +413,10 @@ class PREFERENCES_OT_keyitem_add(Operator):
     bl_idname = "preferences.keyitem_add"
     bl_label = "Add Key Map Item"
 
+    @classmethod
+    def poll(cls, context):
+        return getattr(context, "keymap", None) is not None
+
     def execute(self, context):
         km = context.keymap
 
@@ -419,8 +426,9 @@ class PREFERENCES_OT_keyitem_add(Operator):
             km.keymap_items.new("none", 'A', 'PRESS')
 
         # clear filter and expand keymap so we can see the newly added item
-        if context.space_data.filter_text != "":
-            context.space_data.filter_text = ""
+        space = context.space_data
+        if space is not None and space.type == 'PREFERENCES' and space.filter_text != "":
+            space.filter_text = ""
             km.show_expanded_items = True
             km.show_expanded_children = True
 
@@ -440,11 +448,13 @@ class PREFERENCES_OT_keyitem_remove(Operator):
 
     @classmethod
     def poll(cls, context):
-        return hasattr(context, "keymap")
+        return getattr(context, "keymap", None) is not None
 
     def execute(self, context):
         km = context.keymap
         kmi = km.keymap_items.from_id(self.item_id)
+        if kmi is None:
+            return {'CANCELLED'}
         km.keymap_items.remove(kmi)
 
         context.preferences.is_dirty = True
