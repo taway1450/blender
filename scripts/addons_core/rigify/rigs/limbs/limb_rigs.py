@@ -579,7 +579,7 @@ class BaseLimbRig(BaseRig):
 
     def make_ik_mch_swing_bone(self, orgs):
         name = self.copy_bone(orgs[0], make_derived_name(orgs[0], 'mch', '_ik_swing'))
-        bone = self.get_bone(name)
+        bone = self.get_edit_bone(name)
         bone.tail = bone.head + (self.get_bone(orgs[2]).head - bone.head).normalized() * bone.length * 0.3
         return name
 

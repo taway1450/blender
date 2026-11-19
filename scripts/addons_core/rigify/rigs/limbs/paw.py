@@ -106,7 +106,7 @@ class Rig(BaseLimbRig):
         self.align_ik_control_bone(name)
 
         vec = self.get_bone(org_two).tail - self.get_bone(org_one).head
-        self.get_bone(name).length = self.vector_without_z(vec).length
+        self.get_edit_bone(name).length = self.vector_without_z(vec).length
 
         return name
 

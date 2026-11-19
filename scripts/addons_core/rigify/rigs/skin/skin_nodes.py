@@ -443,7 +443,7 @@ class ControlBoneNode(MainMergeNode, BaseSkinNode):
         else:
             matrix = self.merged_master.matrix
 
-        bone = self.get_bone(name)
+        bone = self.get_edit_bone(name)
         bone.matrix = matrix
         bone.length = self.merged_master.size * scale
 

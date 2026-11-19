@@ -234,7 +234,7 @@ class Rig(BaseSkinRig):
     def position_mouth_bone(self, name: str, scale: float):
         self.arrange_child_chains()
 
-        bone = self.get_bone(name)
+        bone = self.get_edit_bone(name)
         bone.matrix = self.mouth_space
         bone.length = self.layer_width[0] * scale
 

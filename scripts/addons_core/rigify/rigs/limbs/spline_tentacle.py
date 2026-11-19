@@ -176,7 +176,7 @@ class Rig(SimpleChainRig):
         new_name = self.copy_bone(org_name, name, parent=False)
 
         org_bone = self.get_bone(org_name)
-        new_bone = self.get_bone(new_name)
+        new_bone = self.get_edit_bone(new_name)
         new_bone.translate(pos_spec[1] * (org_bone.tail - org_bone.head))
         new_bone.length = self.avg_length * scale
 

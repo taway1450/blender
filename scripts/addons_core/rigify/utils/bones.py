@@ -489,6 +489,13 @@ class BoneUtilityMixin(object):
         """Get EditBone or PoseBone by name, depending on the current mode."""
         return get_bone(self.obj, bone_name)
 
+    def get_edit_bone(self, bone_name: str) -> bpy.types.EditBone:
+        """Get the EditBone by name, in an edit stage (the armature is in edit mode)."""
+        edit_bones = self.obj.data.edit_bones
+        if bone_name not in edit_bones:
+            raise MetarigError("bone '%s' not found" % bone_name)
+        return edit_bones[bone_name]
+
     def get_bone_parent(self, bone_name: str) -> Optional[str]:
         """Get the name of the parent bone, or None."""
         return get_name(self.get_bone(bone_name).parent)

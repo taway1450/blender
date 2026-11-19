@@ -279,7 +279,7 @@ class Rig(BaseSkinChainRigWithRotationOption):
         handle_end = next_node or node
         handle_axis = (handle_end.point - handle_start.point).normalized()
 
-        bone = self.get_bone(name)
+        bone = self.get_edit_bone(name)
         bone.tail = bone.head + handle_axis * self.length * 3 / 4
 
         align_bone_roll(self.obj, name, node.org)

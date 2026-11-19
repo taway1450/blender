@@ -79,13 +79,13 @@ class Rig(BaseHeadTailRig):
         name = self.copy_bone(org, name, parent=False)
 
         # Neck spans all neck bones (except head)
-        self.get_bone(name).tail = self.get_bone(org_head).head
+        self.get_edit_bone(name).tail = self.get_bone(org_head).head
 
         return name
 
     def make_neck_bend_control_bone(self, org: str, name: str, neck: str):
         name = self.copy_bone(org, name, parent=False)
-        neck_bend_eb = self.get_bone(name)
+        neck_bend_eb = self.get_edit_bone(name)
 
         # Neck pivot position
         neck_bones = self.bones.org
@@ -184,7 +184,7 @@ class Rig(BaseHeadTailRig):
 
     def make_mch_stretch_bone(self, org: str, name: str, org_head: str):
         name = self.copy_bone(org, make_derived_name(name, 'mch'), parent=False)
-        self.get_bone(name).tail = self.get_bone(org_head).head
+        self.get_edit_bone(name).tail = self.get_bone(org_head).head
         return name
 
     @stage.parent_bones

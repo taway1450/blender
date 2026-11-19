@@ -248,7 +248,7 @@ class ConnectingChainRig(TweakChainRig):
     def prepare_bones(self):
         # Exactly match bone position to parent
         if self.use_connect_chain:
-            first_bone = self.get_bone(self.bones.org[0])
+            first_bone = self.get_edit_bone(self.bones.org[0])
             parent_orgs = self.rigify_parent.bones.org
 
             if self.use_connect_reverse:
