@@ -824,6 +824,8 @@ TYPE_VARS: dict[str, str] = {
     "_C": "TypeVar('_C', bound=type)",
     # The type of a `default` argument, returned when there is no value.
     "_D": "TypeVar('_D')",
+    # A path given as `str` or `bytes`, returned as the same type.
+    "_AnyStr": "TypeVar('_AnyStr', str, bytes)",
     # The shaders of a list passed to `freestyle.types.Operators.create`: the C code requires a `list`,
     # which is invariant, so `list[StrokeShader]` would reject a `list[SamplingShader | ...]`.
     "_StrokeShaderT": "TypeVar('_StrokeShaderT', bound='StrokeShader')",

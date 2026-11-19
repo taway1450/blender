@@ -344,16 +344,16 @@ def ensure_ext(filepath, ext, *, case_sensitive=False):
     """
     Return the path with the extension added if it is not already set.
 
-    :param filepath: The file path.
-    :type filepath: str | bytes
+    :param filepath: The file path, a ``str`` or ``bytes``.
+    :type filepath: _AnyStr
     :param ext: The extension to check for, can be a compound extension. Should
               start with a dot, such as ``.blend`` or ``.tar.gz``.
               Of the same type as ``filepath``.
-    :type ext: str | bytes
+    :type ext: _AnyStr
     :param case_sensitive: Check for matching case when comparing extensions.
     :type case_sensitive: bool
     :return: The file path with the given extension, of the type of ``filepath``.
-    :rtype: str | bytes
+    :rtype: _AnyStr
     """
 
     if case_sensitive:
