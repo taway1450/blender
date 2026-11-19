@@ -2259,48 +2259,11 @@ def find_type_ref_errors(
     return errors
 
 
-def main() -> int:
-    """Generate ``*.pyi`` stubs from RST documentation."""
-    setup_docutils_once()
-
-    parser = argparse.ArgumentParser(description="Generate .pyi stubs from RST API documentation.")
-    parser.add_argument(
-        "build_dir", nargs="?",
-        default=str(Path(__file__).parent / "sphinx-in"),
-        help="Directory containing RST files (default: %(default)s)",
-    )
-    parser.add_argument(
-        "-o", "--output", dest="output_dir",
-        default=str(Path(__file__).parent / "stubs"),
-        help="Output directory for .pyi stubs (default: %(default)s)",
-    )
-    parser.add_argument(
-        "-v", "--verbose", action="store_true",
-        help="Show per-module progress and informational warnings.",
-    )
-    parser.add_argument(
-        "--strict-docs", action="store_true",
-        help="Treat undocumented parameters as errors (non-zero exit).",
-    )
-    args = parser.parse_args()
-
-    global GLOBAL
-    GLOBAL = GLOBAL._replace(verbose=args.verbose)
-    build_dir = Path(args.build_dir)
-    output_dir = Path(args.output_dir)
-
-    if not build_dir.exists():
-        print("Error: {:s} directory not found.".format(str(build_dir)), file=sys.stderr)
-        return 1
-
-    # Refuse to overwrite a non-empty output directory; checked before parsing.
-    if output_dir.exists() and any(output_dir.iterdir()):
-        print(
-            "Error: output directory is not empty: {:s}".format(str(output_dir)),
-            file=sys.stderr,
-        )
-        return 1
-
+def collect_modules(build_dir: Path) -> dict[str, ModuleInfo]:
+    """
+    Parse the RST files of *build_dir* into modules, with the implied parent packages, and ``bpy.context``
+    and ``bpy.data`` as typed attributes of ``bpy``.
+    """
     # Parse shared enum items for type aliases.
     if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
         parse_enum_items(build_dir / "bpy_types_enum_items")
@@ -2351,32 +2314,26 @@ def main() -> int:
         modules["bpy"].data.append(DataInfo(name="context", type_str=":class:`bpy.types.Context`"))
         modules["bpy"].data.append(DataInfo(name="data", type_str=":class:`bpy.types.BlendData`"))
 
+    return modules
+
+
+def render_stubs(modules: dict[str, ModuleInfo]) -> tuple[list[tuple[str, str]], list[TypeRefError]]:
+    """
+    Render every module before anything is written: ``(module name, stub)`` pairs, and the type references that
+    do not resolve (rendering reports references that clash by name within a stub & finds plain text references).
+    """
     build_collection_element_map(modules)
     class_locations = ClassLocations(modules)
-
-    # Render all stubs before writing, so no stubs are written when there are invalid type references
-    # (rendering reports references that clash by name within a stub & finds plain text references).
     stub_contents = [
         (module.name, render_stub(module, class_locations, modules))
         for _, module in sorted(modules.items())
     ]
+    errors = sorted([*find_type_ref_errors(modules, class_locations), *State.dotted_ref_errors])
+    return stub_contents, errors
 
-    # Typically a mistyped cross-reference, report it as an error so it isn't left unchecked.
-    # NOTE: this fails for RST generated with `sphinx_doc_gen.py --partial`,
-    # since types from modules that were not generated are undefined.
-    for error in sorted([*find_type_ref_errors(modules, class_locations), *State.dotted_ref_errors]):
-        print("Error: referenced type {:s}: {:s} in {:s}{:s}".format(
-            "is ambiguous" if error.is_ambiguous else "not defined",
-            error.ref,
-            error.module,
-            " (defined in {:s})".format(", ".join(error.defined_in)) if error.defined_in else "",
-        ), file=sys.stderr)
-        State.type_ref_errors += 1
 
-    if State.type_ref_errors:
-        print("\n{:d} invalid type reference(s)".format(State.type_ref_errors), file=sys.stderr)
-        return 1
-
+def write_stubs(output_dir: Path, stub_contents: list[tuple[str, str]]) -> list[Path]:
+    """Write the rendered stubs, the enum aliases module and the hand-written stubs; the paths written."""
     stub_paths: list[Path] = []
     if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
         enum_stub = write_enum_aliases_module(output_dir)
@@ -2393,6 +2350,71 @@ def main() -> int:
         stub_paths.append(stub_path)
         if GLOBAL.verbose:
             print("Copied: {:s}".format(str(stub_path)))
+    return stub_paths
+
+
+def main() -> int:
+    """Generate ``*.pyi`` stubs from RST documentation."""
+    setup_docutils_once()
+
+    parser = argparse.ArgumentParser(description="Generate .pyi stubs from RST API documentation.")
+    parser.add_argument(
+        "build_dir", nargs="?",
+        default=str(Path(__file__).parent / "sphinx-in"),
+        help="Directory containing RST files (default: %(default)s)",
+    )
+    parser.add_argument(
+        "-o", "--output", dest="output_dir",
+        default=str(Path(__file__).parent / "stubs"),
+        help="Output directory for .pyi stubs (default: %(default)s)",
+    )
+    parser.add_argument(
+        "-v", "--verbose", action="store_true",
+        help="Show per-module progress and informational warnings.",
+    )
+    parser.add_argument(
+        "--strict-docs", action="store_true",
+        help="Treat undocumented parameters as errors (non-zero exit).",
+    )
+    args = parser.parse_args()
+
+    global GLOBAL
+    GLOBAL = GLOBAL._replace(verbose=args.verbose)
+    build_dir = Path(args.build_dir)
+    output_dir = Path(args.output_dir)
+
+    if not build_dir.exists():
+        print("Error: {:s} directory not found.".format(str(build_dir)), file=sys.stderr)
+        return 1
+
+    # Refuse to overwrite a non-empty output directory; checked before parsing.
+    if output_dir.exists() and any(output_dir.iterdir()):
+        print(
+            "Error: output directory is not empty: {:s}".format(str(output_dir)),
+            file=sys.stderr,
+        )
+        return 1
+
+    modules = collect_modules(build_dir)
+    stub_contents, ref_errors = render_stubs(modules)
+
+    # Typically a mistyped cross-reference, report it as an error so it isn't left unchecked.
+    # NOTE: this fails for RST generated with `sphinx_doc_gen.py --partial`,
+    # since types from modules that were not generated are undefined.
+    for error in ref_errors:
+        print("Error: referenced type {:s}: {:s} in {:s}{:s}".format(
+            "is ambiguous" if error.is_ambiguous else "not defined",
+            error.ref,
+            error.module,
+            " (defined in {:s})".format(", ".join(error.defined_in)) if error.defined_in else "",
+        ), file=sys.stderr)
+        State.type_ref_errors += 1
+
+    if State.type_ref_errors:
+        print("\n{:d} invalid type reference(s)".format(State.type_ref_errors), file=sys.stderr)
+        return 1
+
+    stub_paths = write_stubs(output_dir, stub_contents)
 
     print("\nStubs written to: {:s}".format(str(output_dir)))
     print("Add to mypy config: mypy_path = doc/python_api/stubs")
