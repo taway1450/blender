@@ -21,12 +21,12 @@ class SpaceAssetInfo:
         """
         Check if the given space is an asset browser.
 
-        :param space_data: The space to check.
-        :type space_data: :class:`bpy.types.Space`
+        :param space_data: The space to check, None when there is no space (``context.space_data``).
+        :type space_data: :class:`bpy.types.Space` | None
         :return: True when the space is an asset browser.
         :rtype: bool
         """
-        return space_data and space_data.type == 'FILE_BROWSER' and space_data.browse_mode == 'ASSETS'
+        return space_data is not None and space_data.type == 'FILE_BROWSER' and space_data.browse_mode == 'ASSETS'
 
     @classmethod
     def is_asset_browser_poll(cls, context):

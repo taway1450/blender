@@ -785,9 +785,17 @@ def GetInfoStructRNA(bl_rna):
 # The static items of a dynamic enum that stand in for its real items, which come from a callback:
 # `rna_enum_dummy_DEFAULT_items`, a compositor node's image layer or view layer, a region's panel category.
 ENUM_PLACEHOLDER_ITEMS = [["DEFAULT"], ["PLACEHOLDER"], ["UNSUPPORTED"]]
-# Enums whose static items are only the built-in ones, their callback adding what is registered at run time:
-# `RenderSettings.engine` gives every registered render engine (`rna_RenderSettings_engine_itemf`).
-ENUM_RUNTIME_ITEMS = {("RenderSettings", "engine")}
+# Enums whose static items are not the ones their callback gives at run time: only the built-in ones, the callback
+# adding what is registered (`RenderSettings.engine` gives every registered render engine,
+# `rna_RenderSettings_engine_itemf`), the ones the OCIO configuration lists (`rna_ColorManagedViewSettings_look_itemf`)
+# or another set by the struct's state (a 2D curve's fill modes, `rna_Curve_fill_mode_itemf`).
+ENUM_RUNTIME_ITEMS = {
+    ("RenderSettings", "engine"),
+    ("ColorManagedViewSettings", "view_transform"),
+    ("ColorManagedViewSettings", "look"),
+    ("ColorManagedDisplaySettings", "display_device"),
+    ("Curve", "fill_mode"),
+}
 
 
 def GetInfoPropertyRNA(bl_rna, parent_id):

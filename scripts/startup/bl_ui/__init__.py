@@ -214,7 +214,7 @@ class UI_UL_list(bpy.types.UIList):
         :param bitflag: Bit to set on matching items.
         :type bitflag: int
         :param items: Collection to filter.
-        :type items: Sequence[Any]
+        :type items: Sequence[Any] | :class:`bpy.types.bpy_prop_collection`
         :param propname: Name of the string property on each item to match against.
         :type propname: str
         :param flags: Existing flag list to update; one int per item. ``None`` allocates a new list.
@@ -269,7 +269,7 @@ class UI_UL_list(bpy.types.UIList):
         Re-order items using their names (case-insensitive).
 
         :param items: Collection to sort.
-        :type items: Sequence[Any]
+        :type items: Sequence[Any] | :class:`bpy.types.bpy_prop_collection`
         :param propname: Name of the string property on each item to sort by.
         :type propname: str
         :return: A list mapping original index to new index, or an empty list when no sorting was needed.

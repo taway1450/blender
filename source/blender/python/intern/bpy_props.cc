@@ -3409,11 +3409,19 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
 
 /* A multi-dimension *size* takes nested sequences, up to #RNA_MAX_ARRAY_DIMENSION levels deep
  * (see #bpy_prop_array_from_py_with_dims), such as a #mathutils.Matrix. */
+#define BPY_PROPDEF_VECTOR_TYPE(ty) \
+  "Sequence[" ty "] | Sequence[Sequence[" ty "]] | Sequence[Sequence[Sequence[" ty "]]]"
+
 #define BPY_PROPDEF_VECTOR_DEFAULT_DOC(ty_plural, ty) \
   "   :param default: Sequence of " ty_plural " the length of *size*, " \
   "nested once per dimension of a multi-dimension *size*.\n" \
-  "   :type default: Sequence[" ty "] | Sequence[Sequence[" ty "]] | " \
-  "Sequence[Sequence[Sequence[" ty "]]]\n"
+  "   :type default: " BPY_PROPDEF_VECTOR_TYPE(ty) "\n"
+
+/* The value `get` returns and `set` takes is nested in the same way, `set` takes nested tuples
+ * (see #bpy_prop_array_from_py_with_dims): a tuple of any items, so a callback taking a flat
+ * `tuple[float, ...]` stays valid. */
+#define BPY_PROPDEF_VECTOR_GET_DOC(ty) BPY_PROPDEF_GET_DOC(BPY_PROPDEF_VECTOR_TYPE(ty))
+#define BPY_PROPDEF_VECTOR_SET_DOC BPY_PROPDEF_SET_DOC("tuple[Any, ...]")
 
 #define BPY_PROPDEF_VECSIZE_DOC \
   "   :param size: Vector dimensions in [1, " STRINGIFY(PYRNA_STACK_ARRAY) "]. " \
@@ -3781,8 +3789,8 @@ PyDoc_STRVAR(
     BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC
     BPY_PROPDEF_VECSIZE_DOC
     BPY_PROPDEF_UPDATE_DOC
-    BPY_PROPDEF_GET_DOC("Sequence[bool]")
-    BPY_PROPDEF_SET_DOC("tuple[bool, ...]")
+    BPY_PROPDEF_VECTOR_GET_DOC("bool")
+    BPY_PROPDEF_VECTOR_SET_DOC
     BPY_PROPDEF_GET_TRANSFORM_DOC("Sequence[bool]")
     BPY_PROPDEF_SET_TRANSFORM_DOC("Sequence[bool]")
     BPY_PROPDEF_RETURN_DOC
@@ -4202,8 +4210,8 @@ PyDoc_STRVAR(
     BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC
     BPY_PROPDEF_VECSIZE_DOC
     BPY_PROPDEF_UPDATE_DOC
-    BPY_PROPDEF_GET_DOC("Sequence[int]")
-    BPY_PROPDEF_SET_DOC("tuple[int, ...]")
+    BPY_PROPDEF_VECTOR_GET_DOC("int")
+    BPY_PROPDEF_VECTOR_SET_DOC
     BPY_PROPDEF_GET_TRANSFORM_DOC("Sequence[int]")
     BPY_PROPDEF_SET_TRANSFORM_DOC("Sequence[int]")
     BPY_PROPDEF_RETURN_DOC
@@ -4647,8 +4655,8 @@ PyDoc_STRVAR(
     BPY_PROPDEF_UNIT_DOC
     BPY_PROPDEF_VECSIZE_DOC
     BPY_PROPDEF_UPDATE_DOC
-    BPY_PROPDEF_GET_DOC("Sequence[float]")
-    BPY_PROPDEF_SET_DOC("tuple[float, ...]")
+    BPY_PROPDEF_VECTOR_GET_DOC("float")
+    BPY_PROPDEF_VECTOR_SET_DOC
     BPY_PROPDEF_GET_TRANSFORM_DOC("Sequence[float]")
     BPY_PROPDEF_SET_TRANSFORM_DOC("Sequence[float]")
     BPY_PROPDEF_RETURN_DOC

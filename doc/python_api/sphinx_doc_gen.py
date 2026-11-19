@@ -2870,8 +2870,10 @@ def write_rna_metaclasses(basepath: Path) -> None:
 
     for metaclass_id, (description, members) in RNA_METACLASSES.items():
         metaclass = getattr(_bpy_types, metaclass_id)
-        # A base that is not one of these metaclasses (`bpy_struct_meta_idprop`) is not documented.
-        base_ids = [base.__name__ for base in metaclass.__bases__ if base.__name__ in RNA_METACLASSES] or ["type"]
+        base_ids = [
+            base.__name__ for base in metaclass.__bases__
+            if base.__name__ in RNA_METACLASSES or base.__name__ == _BPY_STRUCT_META_IDPROP_CAPI
+        ] or ["type"]
 
         with open(basepath / "bpy.types.{:s}.rst".format(metaclass_id), "w", encoding="utf-8") as fh:
             fw = fh.write
@@ -2886,6 +2888,36 @@ def write_rna_metaclasses(basepath: Path) -> None:
                 fw("      {:s}\n\n".format(member_description))
                 fw("      :type: {:s}\n\n".format(member_type))
                 fw("      (readonly)\n\n")
+
+
+def write_rna_capi_internals(basepath: Path) -> None:
+    """
+    Write a page for the ``bpy.types`` classes behind RNA that scripts may name but the API docs leave out:
+    the class of an RNA function and the metaclass of the classes with custom properties.
+    The pages are in no table of contents, as these are internal.
+    """
+    assert type(bpy.data.objects.new) is getattr(bpy.types, _BPY_FUNC_CAPI)
+    with open(basepath / "bpy.types.{:s}.rst".format(_BPY_FUNC_CAPI), "w", encoding="utf-8") as fh:
+        fw = fh.write
+        fw(":orphan:\n\n")
+        fw(title_string(_BPY_FUNC_CAPI, "="))
+        fw(".. currentmodule:: bpy.types\n\n")
+        fw(".. class:: {:s}\n\n".format(_BPY_FUNC_CAPI))
+        fw("   An RNA function, bound to the struct it is read from (``bpy.data.objects.new``).\n\n")
+        fw("   .. method:: __call__(*args, **kwargs)\n\n")
+        fw("      Call the function, with the parameters it documents.\n\n")
+        fw("      :return: The function's return value, a tuple of them or None.\n")
+        fw("      :rtype: Any\n\n")
+
+    assert issubclass(getattr(bpy.types, _BPY_STRUCT_META_IDPROP_CAPI), type)
+    with open(basepath / "bpy.types.{:s}.rst".format(_BPY_STRUCT_META_IDPROP_CAPI), "w", encoding="utf-8") as fh:
+        fw = fh.write
+        fw(":orphan:\n\n")
+        fw(title_string(_BPY_STRUCT_META_IDPROP_CAPI, "="))
+        fw(".. currentmodule:: bpy.types\n\n")
+        fw(".. class:: {:s}(type)\n\n".format(_BPY_STRUCT_META_IDPROP_CAPI))
+        fw("   Metaclass of the classes whose properties can be defined as class attributes\n")
+        fw("   (see :ref:`bpy.types.rna_types_with_custom_property_support`).\n\n")
 
 
 def write_type_tag_views(basepath: Path, type_tags: Any) -> None:
@@ -3287,6 +3319,15 @@ def pyrna2sphinx(basepath: Path) -> None:
                     identifier, struct_id, " (readonly)" if readonly else ""))
                 fw("      :type: {:s}\n\n".format(" | ".join(type_descrs)))
 
+        # A collection struct (`BlendDataCurves`) derives from `bpy_prop_collection`, not `bpy_struct`, but its
+        # collection reads `bl_rna` and `rna_type` from it (`pyrna_prop_collection_getattro`).
+        if struct_id in _collection_wrapper_ids and not struct.base:
+            struct_attributes = CLASS_OVERRIDES[("bpy.types", _BPY_STRUCT_PYCAPI)].attributes or {}
+            for key, (attr_descr, attr_type) in sorted(struct_attributes.items()):
+                fw("   .. data:: {:s}\n\n".format(key))
+                fw("      {:s}\n\n".format(attr_descr))
+                fw("      :type: {:s}\n\n".format(attr_type))
+
         # Screen context members (only for Context struct).
         if struct_id == "Context":
             written_props = {prop.identifier for prop in sorted_struct_properties
@@ -3677,6 +3718,7 @@ def pyrna2sphinx(basepath: Path) -> None:
 
         if USE_STUB_GEN:
             write_rna_metaclasses(basepath)
+            write_rna_capi_internals(basepath)
 
         if type_tags is not None:
             write_type_tag_views(basepath, type_tags)
