@@ -267,10 +267,10 @@ def actionconfig_export_as_data(session_state, filepath, *, sort=False):
         fw("    if blender_version >= (3, 0, 0):\n")
         fw("        keywords[\"actionconfig_version\"] = actionconfig_version\n")
 
-        fw("    import os\n")
-        fw("    from viewport_vr_preview.io import actionconfig_import_from_data\n")
+        fw("    import bpy\n")
+        fw("    from viewport_vr_preview.action_map_io import actionconfig_import_from_data\n")
         fw("    actionconfig_import_from_data(\n")
-        fw("        os.path.splitext(os.path.basename(__file__))[0],\n")
+        fw("        bpy.context.window_manager.xr_session_state,\n")
         fw("        actionconfig_data,\n")
         fw("        **keywords,\n")
         fw("    )\n")

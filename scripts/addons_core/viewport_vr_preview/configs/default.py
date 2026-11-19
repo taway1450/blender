@@ -2700,11 +2700,11 @@ if __name__ == "__main__":
     keywords = {}
     if blender_version >= (3, 0, 0):
         keywords["actionconfig_version"] = actionconfig_version
-    import os
-    from viewport_vr_preview.io import actionconfig_import_from_data
+    import bpy
+    from viewport_vr_preview.action_map_io import actionconfig_import_from_data
 
     actionconfig_import_from_data(
-        os.path.splitext(os.path.basename(__file__))[0],
+        bpy.context.window_manager.xr_session_state,
         actionconfig_data,
         **keywords,
     )
