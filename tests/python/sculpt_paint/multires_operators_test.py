@@ -70,6 +70,7 @@ class Unsubdivide(unittest.TestCase):
         subdivided_positions = self._sorted_positions(ob_cube.data)
 
         mod = ob_cube.modifiers.new(name="Multires", type='MULTIRES')
+        self.assertIsNotNone(mod)
         result = bpy.ops.object.multires_unsubdivide(modifier=mod.name)
         self.assertEqual(result, {'FINISHED'})
 
@@ -100,6 +101,7 @@ class Unsubdivide(unittest.TestCase):
         subdivided_positions = self._sorted_positions(ob_cube.data)
 
         mod = ob_cube.modifiers.new(name="Multires", type='MULTIRES')
+        self.assertIsNotNone(mod)
         result = bpy.ops.object.multires_unsubdivide(modifier=mod.name)
         self.assertEqual(result, {'FINISHED'})
         self.assertEqual(len(ob_cube.data.vertices), 26)
@@ -126,6 +128,7 @@ class Unsubdivide(unittest.TestCase):
         ob_cube = bpy.context.object
 
         mod = ob_cube.modifiers.new(name="Multires", type='MULTIRES')
+        self.assertIsNotNone(mod)
         bpy.ops.object.multires_subdivide(modifier=mod.name)
         bpy.ops.object.multires_subdivide(modifier=mod.name)
         mod.levels = mod.total_levels
@@ -135,10 +138,12 @@ class Unsubdivide(unittest.TestCase):
         self.assertEqual(len(ob_cube.data.vertices), 98)
 
         mod_mirror = ob_cube.modifiers.new(name="Mirror", type='MIRROR')
+        self.assertIsNotNone(mod_mirror)
         bpy.ops.object.modifier_apply(modifier=mod_mirror.name)
         self.assertEqual(len(ob_cube.data.vertices), 180)
 
         mod = ob_cube.modifiers.new(name="Multires", type='MULTIRES')
+        self.assertIsNotNone(mod)
         # First call takes the vertex-extraction path.
         result = bpy.ops.object.multires_unsubdivide(modifier=mod.name)
         self.assertEqual(result, {'FINISHED'})
@@ -167,6 +172,7 @@ class Unsubdivide(unittest.TestCase):
         # One multi-resolution level above the base, since `multires_reshape` needs
         # a top level to project onto.
         mod = ob_cube.modifiers.new(name="Multires", type='MULTIRES')
+        self.assertIsNotNone(mod)
         bpy.ops.object.multires_subdivide(modifier=mod.name)
 
         # Build the reshape source by duplicating the cube and make it sphere-shaped it.
@@ -174,9 +180,10 @@ class Unsubdivide(unittest.TestCase):
         # which a primitive sphere cannot match exactly.
         bpy.ops.object.duplicate()
         ob_src = bpy.context.object
-        mod_src_name = ob_src.modifiers[0].name
-        ob_src.modifiers[mod_src_name].levels = ob_src.modifiers[mod_src_name].total_levels
-        bpy.ops.object.modifier_apply(modifier=mod_src_name)
+        mod_src = ob_src.modifiers[0]
+        self.assertIsInstance(mod_src, bpy.types.MultiresModifier)
+        mod_src.levels = mod_src.total_levels
+        bpy.ops.object.modifier_apply(modifier=mod_src.name)
         self.assertEqual(len(ob_src.data.vertices), 98)
         for v in ob_src.data.vertices:
             v.co.normalize()
@@ -203,6 +210,7 @@ class Unsubdivide(unittest.TestCase):
         bpy.ops.object.duplicate()
         ob_cube_copy = bpy.context.object
         mod_copy = ob_cube_copy.modifiers[0]
+        self.assertIsInstance(mod_copy, bpy.types.MultiresModifier)
         mod_copy.levels = mod_copy.total_levels
         bpy.ops.object.modifier_apply(modifier=mod_copy.name)
         self.assertEqual(len(ob_cube_copy.data.vertices), 98)
@@ -220,6 +228,7 @@ class Unsubdivide(unittest.TestCase):
         bpy.ops.object.duplicate()
         ob_unsubdiv = bpy.context.object
         mod_unsubdiv = ob_unsubdiv.modifiers[0]
+        self.assertIsInstance(mod_unsubdiv, bpy.types.MultiresModifier)
         result = bpy.ops.object.multires_unsubdivide(modifier=mod_unsubdiv.name)
         self.assertEqual(result, {'FINISHED'})
         self.assertEqual(len(ob_unsubdiv.data.vertices), 8)
