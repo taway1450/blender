@@ -1102,7 +1102,7 @@ PyDoc_STRVAR(
     "   Return the cross product of this vector and another.\n"
     "\n"
     "   :param other: The other vector to perform the cross product with.\n"
-    "   :type other: :class:`Vector`\n"
+    "   :type other: Sequence[float]\n"
     "   :return: The cross product as a vector or a float when 2D vectors are used.\n"
     "   :rtype: :class:`Vector` | float\n"
     "\n"

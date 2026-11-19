@@ -6551,8 +6551,9 @@ PyDoc_STRVAR(
     "\n"
     "   This is a function to give fast access to array data.\n"
     "\n"
-    "   :param seq: Buffer to read element values into, must match the length of this array.\n"
-    "   :type seq: MutableSequence[Any]\n");
+    "   :param seq: Writable sequence or buffer to read element values into,\n"
+    "      must match the length of this array.\n"
+    "   :type seq: MutableSequence[Any] | Buffer\n");
 static PyObject *pyrna_prop_array_foreach_get(BPy_PropertyArrayRNA *self, PyObject *args)
 {
   PYRNA_PROP_CHECK_OBJ((BPy_PropertyRNA *)self);
@@ -6567,8 +6568,8 @@ PyDoc_STRVAR(
     "\n"
     "   This is a function to give fast access to array data.\n"
     "\n"
-    "   :param seq: Element values to write, must match the length of this array.\n"
-    "   :type seq: Sequence[Any]\n");
+    "   :param seq: Sequence or buffer of element values to write, must match the length of this array.\n"
+    "   :type seq: Sequence[Any] | Buffer\n");
 static PyObject *pyrna_prop_array_foreach_set(BPy_PropertyArrayRNA *self, PyObject *args)
 {
   PYRNA_PROP_CHECK_OBJ((BPy_PropertyRNA *)self);

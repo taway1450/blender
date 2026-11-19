@@ -1287,6 +1287,13 @@ SEQUENCE_ELEM_TYPES: dict[tuple[str, str], str] = {
     ("mathutils", "Matrix"): "Vector",
 }
 
+# The return types of `bpy_prop_collection` methods that list its items (`pyrna_prop_collection_items`,
+# `pyrna_prop_collection_values`), which the docs can only give as `bpy_struct`.
+COLLECTION_METHOD_RETURNS: dict[str, str] = {
+    "items": "list[tuple[str, _T]]",
+    "values": "list[_T]",
+}
+
 # C extension classes that implement the buffer protocol (`PyBufferProcs`): `memoryview(vec)`.
 BUFFER_CLASSES: set[tuple[str, str]] = {
     # `pygpu_buffer__bf_getbuffer`.
@@ -1758,6 +1765,9 @@ def write_class(
             continue
         if is_idprop_collection and method.name == "add":
             method = replace(method, return_type="_T")
+        if cls.name == "bpy_prop_collection" and method.name in COLLECTION_METHOD_RETURNS:
+            # The items of the collection, in the item type it is generic over.
+            method = replace(method, return_type=COLLECTION_METHOD_RETURNS[method.name])
         if cls.name == "bpy_prop_collection" and method.name == "get":
             # `get(key, default=None)` returns the member or `default`,
             # as `pyrna_prop_collection_get` parses both arguments positionally.
