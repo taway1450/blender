@@ -12,9 +12,9 @@ from dataclasses import dataclass
 # XXX Not really nice, but that hack is needed to allow execution of that test
 #     from both automated CTest and by directly running the file manually.
 if __name__ == "__main__":
-    from paths import match_files_to_socket_names
+    from paths import TextureSocket, match_files_to_socket_names
 else:
-    from .paths import match_files_to_socket_names
+    from .paths import TextureSocket, match_files_to_socket_names
 
 
 # From NWPrincipledPreferences 2023-01-06
@@ -39,16 +39,16 @@ class MockFile:
 
 def sockets_fixture():
     return [
-        ["Displacement", TAGS_DISPLACEMENT, None],
-        ["Base Color", TAGS_BASE_COLOR, None],
-        ["Metallic", TAGS_METALLIC, None],
-        ["Specular", TAGS_SPECULAR, None],
-        ["Roughness", TAGS_ROUGHNESS + TAGS_GLOSS, None],
-        ["Normal", TAGS_NORMAL + TAGS_BUMP, None],
-        ["Transmission Weight", TAGS_TRANSMISSION, None],
-        ["Emission Color", TAGS_EMISSION, None],
-        ["Alpha", TAGS_ALPHA, None],
-        ["Ambient Occlusion", TAGS_AMBIENT_OCCLUSION, None],
+        TextureSocket("Displacement", TAGS_DISPLACEMENT),
+        TextureSocket("Base Color", TAGS_BASE_COLOR),
+        TextureSocket("Metallic", TAGS_METALLIC),
+        TextureSocket("Specular", TAGS_SPECULAR),
+        TextureSocket("Roughness", TAGS_ROUGHNESS + TAGS_GLOSS),
+        TextureSocket("Normal", TAGS_NORMAL + TAGS_BUMP),
+        TextureSocket("Transmission Weight", TAGS_TRANSMISSION),
+        TextureSocket("Emission Color", TAGS_EMISSION),
+        TextureSocket("Alpha", TAGS_ALPHA),
+        TextureSocket("Ambient Occlusion", TAGS_AMBIENT_OCCLUSION),
     ]
 
 
@@ -61,11 +61,11 @@ def assert_sockets(asserter, sockets, expected):
 
         socket_found = False
         for socket in sockets:
-            if socket[0] != socket_name:
+            if socket.name != socket_name:
                 continue
             socket_found = True
 
-            actual_path = socket[2]
+            actual_path = socket.file_name
             if actual_path not in expected_path:
                 errors.append(
                     f"{socket_name:12}: Got {actual_path} but expected {expected_path}"
@@ -76,9 +76,9 @@ def assert_sockets(asserter, sockets, expected):
     asserter.assertCountEqual([], errors)
 
     for socket in sockets:
-        if socket[0] in checked_sockets:
+        if socket.name in checked_sockets:
             continue
-        asserter.assertEqual(socket[2], None)
+        asserter.assertEqual(socket.file_name, None)
 
 
 class TestPutFileNamesInSockets(unittest.TestCase):

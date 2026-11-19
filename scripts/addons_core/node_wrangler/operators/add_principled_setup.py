@@ -21,6 +21,7 @@ from ..utils.nodes import (
     force_update,
 )
 from ..utils.paths import (
+    TextureSocket,
     match_files_to_socket_names,
     split_into_components,
 )
@@ -84,31 +85,30 @@ class NODE_OT_add_principled_setup(Operator, NWBase, ImportHelper):
         active_node = nodes.active
 
         # Filter textures names for texture-types in filenames.
-        # [Socket Name, [abbreviations and keyword list], Filename placeholder]
         tags = context.preferences.addons[base_package].preferences.principled_tags
         normal_abbr = tags.normal.split(' ')
         bump_abbr = tags.bump.split(' ')
         gloss_abbr = tags.gloss.split(' ')
         rough_abbr = tags.rough.split(' ')
         socketnames = [
-            ['Displacement', tags.displacement.split(' '), None],
-            ['Base Color', tags.base_color.split(' '), None],
-            ['Metallic', tags.metallic.split(' '), None],
-            ['Specular IOR Level', tags.specular.split(' '), None],
-            ['Roughness', rough_abbr + gloss_abbr, None],
-            ['Bump', bump_abbr, None],
-            ['Normal', normal_abbr, None],
-            ['Transmission Weight', tags.transmission.split(' '), None],
-            ['Emission Color', tags.emission.split(' '), None],
-            ['Alpha', tags.alpha.split(' '), None],
-            ['Ambient Occlusion', tags.ambient_occlusion.split(' '), None],
+            TextureSocket('Displacement', tags.displacement.split(' ')),
+            TextureSocket('Base Color', tags.base_color.split(' ')),
+            TextureSocket('Metallic', tags.metallic.split(' ')),
+            TextureSocket('Specular IOR Level', tags.specular.split(' ')),
+            TextureSocket('Roughness', rough_abbr + gloss_abbr),
+            TextureSocket('Bump', bump_abbr),
+            TextureSocket('Normal', normal_abbr),
+            TextureSocket('Transmission Weight', tags.transmission.split(' ')),
+            TextureSocket('Emission Color', tags.emission.split(' ')),
+            TextureSocket('Alpha', tags.alpha.split(' ')),
+            TextureSocket('Ambient Occlusion', tags.ambient_occlusion.split(' ')),
         ]
 
         match_files_to_socket_names(self.files, socketnames)
-        # Remove socketnames without found files
-        socketnames = [s for s in socketnames if s[2]
-                       and path.exists(bpy.path.abspath(self.directory) + s[2])]
-        if not socketnames:
+        # The sockets with a file found, and the file.
+        matched_files = [(s.name, s.file_name) for s in socketnames if s.file_name
+                         and path.exists(bpy.path.abspath(self.directory) + s.file_name)]
+        if not matched_files:
             self.report({'INFO'}, 'No matching images found')
             print('No matching images found')
             return {'CANCELLED'}
@@ -132,13 +132,13 @@ class NODE_OT_add_principled_setup(Operator, NWBase, ImportHelper):
         bump_node = None
         bump_node_texture = None
         roughness_node = None
-        for i, sname in enumerate(socketnames):
-            print(i, sname[0], sname[2])
+        for i, (socket_name, file_name) in enumerate(matched_files):
+            print(i, socket_name, file_name)
 
             # DISPLACEMENT NODES
-            if sname[0] == 'Displacement':
+            if socket_name == 'Displacement':
                 disp_texture = nodes.new(type='ShaderNodeTexImage')
-                img = bpy.data.images.load(path.join(import_path, sname[2]))
+                img = bpy.data.images.load(path.join(import_path, file_name))
                 disp_texture.image = img
                 disp_texture.label = 'Displacement'
                 if disp_texture.image:
@@ -162,14 +162,14 @@ class NODE_OT_add_principled_setup(Operator, NWBase, ImportHelper):
                 continue
 
             # BUMP NODES
-            elif sname[0] == 'Bump':
+            elif socket_name == 'Bump':
                 # Test if new texture node is bump map
-                fname_components = split_into_components(sname[2])
+                fname_components = split_into_components(file_name)
                 match_bump = set(bump_abbr).intersection(set(fname_components))
                 if match_bump:
                     # If Bump add bump node in between
                     bump_node_texture = nodes.new(type='ShaderNodeTexImage')
-                    img = bpy.data.images.load(path.join(import_path, sname[2]))
+                    img = bpy.data.images.load(path.join(import_path, file_name))
                     img.colorspace_settings.is_data = True
                     bump_node_texture.image = img
                     bump_node_texture.label = 'Bump'
@@ -181,14 +181,14 @@ class NODE_OT_add_principled_setup(Operator, NWBase, ImportHelper):
                 continue
 
             # NORMAL NODES
-            elif sname[0] == 'Normal':
+            elif socket_name == 'Normal':
                 # Test if new texture node is normal map
-                fname_components = split_into_components(sname[2])
+                fname_components = split_into_components(file_name)
                 match_normal = set(normal_abbr).intersection(set(fname_components))
                 if match_normal:
                     # If Normal add normal node in between
                     normal_node_texture = nodes.new(type='ShaderNodeTexImage')
-                    img = bpy.data.images.load(path.join(import_path, sname[2]))
+                    img = bpy.data.images.load(path.join(import_path, file_name))
                     img.colorspace_settings.is_data = True
                     normal_node_texture.image = img
                     normal_node_texture.label = 'Normal'
@@ -198,61 +198,61 @@ class NODE_OT_add_principled_setup(Operator, NWBase, ImportHelper):
                     connect_sockets(normal_node.inputs[1], normal_node_texture.outputs[0])
                     # Connect to bump node if it was created before, otherwise to the BSDF
                     if bump_node is None:
-                        connect_sockets(active_node.inputs[sname[0]], normal_node.outputs[0])
+                        connect_sockets(active_node.inputs[socket_name], normal_node.outputs[0])
                     else:
-                        connect_sockets(bump_node.inputs[sname[0]], normal_node.outputs[sname[0]])
+                        connect_sockets(bump_node.inputs[socket_name], normal_node.outputs[socket_name])
                 continue
 
             # AMBIENT OCCLUSION TEXTURE
-            elif sname[0] == 'Ambient Occlusion':
+            elif socket_name == 'Ambient Occlusion':
                 ao_texture = nodes.new(type='ShaderNodeTexImage')
-                img = bpy.data.images.load(path.join(import_path, sname[2]))
+                img = bpy.data.images.load(path.join(import_path, file_name))
                 ao_texture.image = img
-                ao_texture.label = sname[0]
+                ao_texture.label = socket_name
                 if ao_texture.image:
                     ao_texture.image.colorspace_settings.is_data = True
 
                 continue
 
-            if not active_node.inputs[sname[0]].is_linked:
+            if not active_node.inputs[socket_name].is_linked:
                 # No texture node connected -> add texture node with new image
                 texture_node = nodes.new(type='ShaderNodeTexImage')
-                img = bpy.data.images.load(path.join(import_path, sname[2]))
+                img = bpy.data.images.load(path.join(import_path, file_name))
                 texture_node.image = img
 
-                if sname[0] == 'Roughness':
+                if socket_name == 'Roughness':
                     # Test if glossy or roughness map
-                    fname_components = split_into_components(sname[2])
+                    fname_components = split_into_components(file_name)
                     match_rough = set(rough_abbr).intersection(set(fname_components))
                     match_gloss = set(gloss_abbr).intersection(set(fname_components))
 
                     if match_rough:
                         # If Roughness nothing to do.
-                        connect_sockets(active_node.inputs[sname[0]], texture_node.outputs[0])
+                        connect_sockets(active_node.inputs[socket_name], texture_node.outputs[0])
 
                     elif match_gloss:
                         # If Gloss Map add invert node
                         invert_node = nodes.new(type='ShaderNodeInvert')
                         connect_sockets(invert_node.inputs[1], texture_node.outputs[0])
 
-                        connect_sockets(active_node.inputs[sname[0]], invert_node.outputs[0])
+                        connect_sockets(active_node.inputs[socket_name], invert_node.outputs[0])
                         roughness_node = texture_node
 
                 else:
                     # This is a simple connection Texture --> Input slot
-                    connect_sockets(active_node.inputs[sname[0]], texture_node.outputs[0])
+                    connect_sockets(active_node.inputs[socket_name], texture_node.outputs[0])
 
                 # Use non-color except for color inputs
-                if sname[0] not in ['Base Color', 'Emission Color'] and texture_node.image:
+                if socket_name not in ['Base Color', 'Emission Color'] and texture_node.image:
                     texture_node.image.colorspace_settings.is_data = True
 
             else:
                 # If already texture connected. add to node list for alignment
-                texture_node = active_node.inputs[sname[0]].links[0].from_node
+                texture_node = active_node.inputs[socket_name].links[0].from_node
 
             # This are all connected texture nodes
             texture_nodes.append(texture_node)
-            texture_node.label = sname[0]
+            texture_node.label = socket_name
 
         if disp_texture:
             texture_nodes.append(disp_texture)

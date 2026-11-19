@@ -2,8 +2,18 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+from dataclasses import dataclass
 from os import path
 import re
+
+
+@dataclass
+class TextureSocket:
+    """A socket of the Principled BSDF, the tags that name its textures and the file matched to it."""
+    name: str
+    tags: list[str]
+    # The file name of the texture, set by `match_files_to_socket_names`.
+    file_name: str | None = None
 
 
 def split_into_components(fname):
@@ -88,10 +98,7 @@ def files_to_clean_file_names_for_sockets(files, sockets):
 
     A file is something that we can do x.name on to figure out the file name.
 
-    A socket is a tuple containing:
-    * name
-    * list of tags
-    * a None field where the selected file name will go later. Ignored by us.
+    A socket is a `TextureSocket`, whose file name is ignored here.
     """
 
     names_to_tag_lists = {}
@@ -100,7 +107,7 @@ def files_to_clean_file_names_for_sockets(files, sockets):
 
     all_tags = set()
     for socket in sockets:
-        socket_tags = socket[1]
+        socket_tags = socket.tags
         all_tags.update(socket_tags)
 
     while len(names_to_tag_lists) > 1:
@@ -143,19 +150,14 @@ def match_files_to_socket_names(files, sockets):
     filled in. Sockets without any matches will not get their file names
     changed.
 
-    Sockets list format. Note that all file names are initially expected to be
-    None. Tags are strings, as are the socket names: [
-        [
-            socket_name, [tags], Optional[file_name]
-        ]
-    ]
+    The sockets are `TextureSocket`s, whose file names are initially expected to be None.
     """
 
     names_to_tag_lists = files_to_clean_file_names_for_sockets(files, sockets)
 
     for sname in sockets:
         for name, tag_list in names_to_tag_lists.items():
-            if sname[0] == "Normal":
+            if sname.name == "Normal":
                 # Blender wants GL normals, not DX (DirectX) ones:
                 # https://www.reddit.com/r/blender/comments/rbuaua/texture_contains_normaldx_and_normalgl_files/
                 if 'dx' in tag_list:
@@ -163,7 +165,7 @@ def match_files_to_socket_names(files, sockets):
                 if 'directx' in tag_list:
                     continue
 
-            matches = set(sname[1]).intersection(set(tag_list))
+            matches = set(sname.tags).intersection(set(tag_list))
             if matches:
-                sname[2] = name
+                sname.file_name = name
                 break
