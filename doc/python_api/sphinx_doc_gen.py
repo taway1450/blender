@@ -249,15 +249,15 @@ def write_node_socket_views(basepath: Path, node_sockets: Any) -> None:
         for side, table in node_socket_sides(node_sockets, node_id):
             base = "NodeInputs" if side == "inputs" else "NodeOutputs"
             # Socket classes (in the order found) -> the keys that give them: names sorted, then indices.
-            by_result: dict[tuple[str, ...], list[str | int]] = {}
+            keys_by_classes: dict[tuple[str, ...], list[str | int]] = {}
             for key, classes in sorted(table.names.items()):
-                by_result.setdefault(tuple(classes), []).append(key)
+                keys_by_classes.setdefault(tuple(classes), []).append(key)
             for index, classes in sorted(table.indices.items()):
-                by_result.setdefault(tuple(classes), []).append(index)
+                keys_by_classes.setdefault(tuple(classes), []).append(index)
             overloads = [
                 ("Literal[{:s}]".format(", ".join(repr(key) for key in keys)),
                  " | ".join(":class:`{:s}`".format(struct_id) for struct_id in classes))
-                for classes, keys in by_result.items()
+                for classes, keys in keys_by_classes.items()
             ]
             overloads += [
                 ("int | str", ":class:`NodeSocket`"),

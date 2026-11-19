@@ -8,9 +8,9 @@ The socket each key of a built-in node's ``inputs`` and ``outputs`` gives, for t
 
 A node declares its sockets in C (``node_declare``), which RNA introspection cannot read: the stubs
 only know that ``node.inputs["Base Color"]`` is a :class:`bpy.types.NodeSocket`. This module adds
-each built-in node to a node tree inside Blender, in each state of the node's own enum and boolean
-properties (which may add, remove or retype sockets), and reads the sockets a key finds, as
-``rna_NodeInputs_lookup_string`` does: an available socket whose identifier is the key, else one
+each built-in node to a node tree inside Blender, in the states of the node's own enum and boolean
+properties and of its menu input sockets (which may add, remove or retype sockets; see `states`), and
+reads the sockets a key finds, as ``rna_NodeInputs_lookup_string`` does: an available socket whose identifier is the key, else one
 whose name is. An integer key indexes every socket, available or not.
 
 A key's type is the union, over the states, of the sockets it finds. A node whose sockets come from
@@ -26,8 +26,10 @@ __all__ = (
     "probe",
 )
 
+import ast
 import itertools
-from collections.abc import Iterator
+import re
+from collections.abc import Callable, Iterator
 from typing import Any, NamedTuple
 
 import bpy
@@ -91,54 +93,137 @@ def node_classes() -> list[type]:
     return result
 
 
-def own_properties(cls: type) -> list[Any]:
-    """The writable enum and boolean properties a node class adds to its bases (``ShaderNodeMix.data_type``)."""
-    srna = cls.bl_rna
+def own_rna_properties(struct: Any) -> list[Any]:
+    """The RNA properties a struct's class adds to its base's (``ShaderNodeMix.data_type``)."""
+    srna = struct.bl_rna
     inherited = set(srna.base.properties.keys()) if srna.base is not None else set()
-    return [
-        prop for prop in srna.properties
-        if prop.identifier not in inherited
-        and not prop.is_readonly
-        and getattr(prop, "is_array", False) is False
-        and (prop.type == 'BOOLEAN' or (prop.type == 'ENUM' and not prop.is_enum_flag))
-    ]
+    return [prop for prop in srna.properties if prop.identifier not in inherited]
 
 
 def item_collections(node: Any) -> list[Any]:
     """The collections of items a node defines its sockets from (``GeometryNodeRepeatOutput.repeat_items``)."""
-    srna = node.bl_rna
-    inherited = set(srna.base.properties.keys()) if srna.base is not None else set()
     return [
-        getattr(node, prop.identifier) for prop in srna.properties
-        if prop.identifier not in inherited and prop.type == 'COLLECTION'
-        and hasattr(getattr(node, prop.identifier), "clear")
+        getattr(node, prop.identifier) for prop in own_rna_properties(node)
+        if prop.type == 'COLLECTION' and hasattr(getattr(node, prop.identifier), "clear")
     ]
 
 
-def property_values(node: Any, prop: Any) -> list[Any]:
-    if prop.type == 'BOOLEAN':
-        return [False, True]
-    # The items an enum offers for this node (some depend on the tree or the node's state).
-    items = node.bl_rna.properties[prop.identifier].enum_items
-    return [item.identifier for item in items] or [getattr(node, prop.identifier)]
+def instance_enum_items(owner: Any, attr: str) -> list[str]:
+    """
+    The items the enum ``owner.attr`` offers this very struct. ``bl_rna.properties[attr].enum_items`` reads a
+    dynamic enum without the struct, so it gives the static items or none: Blender lists the instance's items in
+    the error of an assignment of an unknown one.
+    """
+    try:
+        setattr(owner, attr, "\x01")
+    except TypeError as ex:
+        if (match := re.search(r"not found in (\(.*\))", str(ex))) is not None:
+            # A single item is written without a trailing comma: `('ViewLayer')`.
+            items = ast.literal_eval(match.group(1))
+            return [items] if isinstance(items, str) else [item for item in items if isinstance(item, str)]
+    return []
 
 
-def states(props: list[tuple[str, list[Any]]]) -> Iterator[dict[str, Any]]:
-    """The property values to probe a node in, as {identifier: value}; the empty state is the default one."""
+class Variant(NamedTuple):
+    """A value a node's sockets may depend on: one of its own enum or boolean properties, or a menu input socket."""
+    name: str
+    # Read and write the value; `read` raises `LookupError` when the state has no such value (a menu socket the
+    # node does not declare in this state).
+    read: Callable[[], Any]
+    write: Callable[[Any], None]
+    values: list[Any]
+    default: Any
+
+
+def property_variant(node: Any, identifier: str, values: list[Any]) -> Variant:
+    return Variant(
+        identifier,
+        lambda: getattr(node, identifier),
+        lambda value: setattr(node, identifier, value),
+        values,
+        getattr(node, identifier),
+    )
+
+
+def menu_socket_variant(node: Any, socket: Any) -> Variant:
+    identifier = socket.identifier
+
+    def find() -> Any:
+        for candidate in node.inputs:
+            if candidate.identifier == identifier and candidate.bl_rna.identifier == "NodeSocketMenu":
+                return candidate
+        raise LookupError(identifier)
+
+    return Variant(
+        "inputs[{!r}]".format(identifier),
+        lambda: find().default_value,
+        lambda value: setattr(find(), "default_value", value),
+        instance_enum_items(socket, "default_value"),
+        socket.default_value,
+    )
+
+
+def node_variants(node: Any) -> list[Variant]:
+    """The writable enum and boolean properties of a node's own class, then its menu input sockets."""
+    variants = []
+    for prop in own_rna_properties(node):
+        if prop.is_readonly or getattr(prop, "is_array", False):
+            continue
+        if prop.type == 'BOOLEAN':
+            variants.append(property_variant(node, prop.identifier, [False, True]))
+        elif prop.type == 'ENUM' and not prop.is_enum_flag:
+            values = instance_enum_items(node, prop.identifier) or [getattr(node, prop.identifier)]
+            variants.append(property_variant(node, prop.identifier, values))
+    for socket in node.inputs:
+        if socket.bl_rna.identifier == "NodeSocketMenu":
+            if (variant := menu_socket_variant(node, socket)).values:
+                variants.append(variant)
+    return variants
+
+
+def states(variants: list[Variant]) -> Iterator[dict[str, Any]]:
+    """
+    The values to probe a node in, as {variant name: value}; the empty state is the default one. Every combination
+    when there are at most `MAX_STATES`, else each variant's values with the others at their defaults and each
+    pair's combinations (a socket that only three values together give is then missed).
+    """
     yield {}
     total = 1
-    for _identifier, values in props:
-        total *= len(values)
+    for variant in variants:
+        total *= len(variant.values)
     if total <= MAX_STATES:
-        for combination in itertools.product(*(values for _identifier, values in props)):
-            yield {identifier: value for (identifier, _values), value in zip(props, combination)}
+        for combination in itertools.product(*(variant.values for variant in variants)):
+            yield {variant.name: value for variant, value in zip(variants, combination)}
         return
-    for identifier, values in props:
-        for value in values:
-            yield {identifier: value}
-    for (id_a, values_a), (id_b, values_b) in itertools.combinations(props, 2):
-        for value_a, value_b in itertools.product(values_a, values_b):
-            yield {id_a: value_a, id_b: value_b}
+    for variant in variants:
+        for value in variant.values:
+            yield {variant.name: value}
+    for variant_a, variant_b in itertools.combinations(variants, 2):
+        for value_a, value_b in itertools.product(variant_a.values, variant_b.values):
+            yield {variant_a.name: value_a, variant_b.name: value_b}
+
+
+def enter_state(variants: list[Variant], state: dict[str, Any]) -> bool:
+    """
+    Set each variant to its value in ``state`` (its default otherwise), and whether the node then has them all. A
+    value may only be set once another is (an enum whose items depend on a data type), so this sets them twice. A
+    variant the state lacks (a menu socket another value removes) counts only when it is not at its default.
+    """
+    wanted = {variant.name: state.get(variant.name, variant.default) for variant in variants}
+    for _attempt in range(2):
+        for variant in variants:
+            try:
+                variant.write(wanted[variant.name])
+            except Exception:
+                pass
+    for variant in variants:
+        try:
+            if variant.read() != wanted[variant.name]:
+                return False
+        except LookupError:
+            if wanted[variant.name] != variant.default:
+                return False
+    return True
 
 
 def allows_identifier_lookup(node_id: str) -> bool:
@@ -217,18 +302,15 @@ def probe_node(trees: list[Any], cls: type) -> tuple[SocketTable, SocketTable]:
         collection.clear()
     indexed = not collections and node_id not in DATA_INDEXED_NODES
     inputs, outputs = SocketTable({}, {}), SocketTable({}, {})
-    props = [(prop.identifier, property_values(node, prop)) for prop in own_properties(cls)]
-    defaults = {identifier: getattr(node, identifier) for identifier, _values in props}
-    for state in states(props):
-        for identifier, value in {**defaults, **state}.items():
-            try:
-                setattr(node, identifier, value)
-            except Exception:
-                pass
+    variants = node_variants(node)
+    for state in states(variants):
+        # A state the node refuses (a value that another one rules out) gives no sockets of its own.
+        if not enter_state(variants, state):
+            continue
         record_side(inputs, node.inputs, by_identifier=by_identifier, indexed=indexed)
         record_side(outputs, node.outputs, by_identifier=by_identifier, indexed=indexed)
     # An extendable side adds the items a link makes before its virtual socket, shifting the indices after them.
-    for table, sockets in ((inputs, node.inputs), (outputs, node.outputs)):
+    for table in (inputs, outputs):
         if any("NodeSocketVirtual" in classes for classes in table.indices.values()):
             table.indices.clear()
     node.id_data.nodes.remove(node)
