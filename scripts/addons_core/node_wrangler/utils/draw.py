@@ -10,6 +10,11 @@ from math import cos, sin, pi
 from .nodes import prefs_line_width, abs_node_location, dpi_fac
 
 
+def fan_indices(count):
+    # The triangles of a fan around the first of `count` vertices, as the 'TRI_FAN' primitive is deprecated.
+    return [(0, i, i + 1) for i in range(1, count - 1)]
+
+
 def draw_line(x1, y1, x2, y2, size, colour=(1.0, 1.0, 1.0, 0.7)):
     shader = gpu.shader.from_builtin('POLYLINE_SMOOTH_COLOR')
     shader.uniform_float("viewportSize", gpu.state.viewport_get()[2:])
@@ -35,7 +40,7 @@ def draw_circle_2d_filled(mx, my, radius, colour=(1.0, 1.0, 1.0, 0.7)):
 
     shader = gpu.shader.from_builtin('UNIFORM_COLOR')
     shader.uniform_float("color", colour)
-    batch = batch_for_shader(shader, 'TRI_FAN', {"pos": vertices})
+    batch = batch_for_shader(shader, 'TRIS', {"pos": vertices}, indices=fan_indices(len(vertices)))
     batch.draw(shader)
 
 
@@ -74,7 +79,7 @@ def draw_rounded_node_border(node, radius=8, colour=(1.0, 1.0, 1.0, 0.7)):
                 sine = radius * sin(i * 2 * pi / sides) + my
                 vertices.append((cosine, sine))
 
-    batch = batch_for_shader(shader, 'TRI_FAN', {"pos": vertices})
+    batch = batch_for_shader(shader, 'TRIS', {"pos": vertices}, indices=fan_indices(len(vertices)))
     batch.draw(shader)
 
     # Top right corner
@@ -87,7 +92,7 @@ def draw_rounded_node_border(node, radius=8, colour=(1.0, 1.0, 1.0, 0.7)):
                 sine = radius * sin(i * 2 * pi / sides) + my
                 vertices.append((cosine, sine))
 
-    batch = batch_for_shader(shader, 'TRI_FAN', {"pos": vertices})
+    batch = batch_for_shader(shader, 'TRIS', {"pos": vertices}, indices=fan_indices(len(vertices)))
     batch.draw(shader)
 
     # Bottom left corner
@@ -100,7 +105,7 @@ def draw_rounded_node_border(node, radius=8, colour=(1.0, 1.0, 1.0, 0.7)):
                 sine = radius * sin(i * 2 * pi / sides) + my
                 vertices.append((cosine, sine))
 
-    batch = batch_for_shader(shader, 'TRI_FAN', {"pos": vertices})
+    batch = batch_for_shader(shader, 'TRIS', {"pos": vertices}, indices=fan_indices(len(vertices)))
     batch.draw(shader)
 
     # Bottom right corner
@@ -113,7 +118,7 @@ def draw_rounded_node_border(node, radius=8, colour=(1.0, 1.0, 1.0, 0.7)):
                 sine = radius * sin(i * 2 * pi / sides) + my
                 vertices.append((cosine, sine))
 
-    batch = batch_for_shader(shader, 'TRI_FAN', {"pos": vertices})
+    batch = batch_for_shader(shader, 'TRIS', {"pos": vertices}, indices=fan_indices(len(vertices)))
     batch.draw(shader)
 
     # prepare drawing all edges in one batch
